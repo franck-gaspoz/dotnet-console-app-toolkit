@@ -129,6 +129,8 @@ namespace DotNetConsoleSdk
          *      set cursor top: crt=
          * app control:
          *      exit: exit
+         * scripts engines:
+         *      exec: exec csharp from text
          */
 
         static readonly Dictionary<string, Action<object>> _drtvs = new Dictionary<string, Action<object>>() {
@@ -149,7 +151,8 @@ namespace DotNetConsoleSdk
             { "crs" , (x) => ShowCur() },
             { "crx=" , (x) => SetCursorLeft(GetCursorX(x)) },
             { "cry=" , (x) => SetCursorTop(GetCursorY(x)) },
-            { "exit" , (x) => Environment.Exit(0) }
+            { "exit" , (x) => Environment.Exit(0) },
+            { "exec=" , (x) => ExecCSharp((string)x) }
         };
 
         public static void BackupForeground() => _foregroundBackup = sc.ForegroundColor;
@@ -227,7 +230,6 @@ namespace DotNetConsoleSdk
                 _echoStreamWriter = new StreamWriter(_echoFileStream);
             }
         }
-
         public static void EchoOff()
         { 
             if (_echoFileStream!=null)
@@ -235,6 +237,11 @@ namespace DotNetConsoleSdk
                 _outputStreamWriter.Flush();
                 _outputStreamWriter.Close();
             }
+        }
+        
+        public static void ExecCSharp(string csharpText)
+        {
+
         }
 
         #endregion
@@ -342,7 +349,7 @@ namespace DotNetConsoleSdk
             AddFrame((bar) =>
             {
                 var s = "".PadLeft(bar.ActualWidth, '-');
-                var t = "  Console tool: commands tester  ";
+                var t = "  dotnet console sdk - sample CLI";
                 var r = $"{Bdarkblue}{Cyan}{s}{Br}";
                 r += $"{Bdarkblue}{Cyan}|{t}{White}{"".PadLeft(bar.ActualWidth - 2 - t.Length)}{Cyan}|{Br}";
                 r += $"{Bdarkblue}{Cyan}{s}{Br}";
@@ -606,6 +613,8 @@ namespace DotNetConsoleSdk
         public static string Crx(int x) => GetCmd("crx", x + "");
         public static string Cry(int y) => GetCmd("cry", y + "");
         public static string Cr(int x, int y) => $"{GetCmd("crx", x + "")}{GetCmd("cry", y + "")}";
+
+        public static string Exec(string csharpText) => GetCmd("exec", csharpText);
 
         #endregion
 
