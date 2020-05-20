@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "dotnet-console-sdk": {
+      "commandName": "Project",
+      "commandLineArgs": "\"(exec=[[!--Clear()--]],inf)\""
+    }
+  }
+}

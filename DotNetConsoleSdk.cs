@@ -34,6 +34,8 @@ namespace DotNetConsoleSdk
         public static char CommandSeparatorChar = ',';
         public static char CommandValueAssignationChar = '=';
         public static string DumpNullStringAsText = "{null}";
+        public static string CodeBlockBegin = "[[!--";
+        public static string CodeBlockEnd = "--]]";
         
         static int _cursorLeftBackup;
         static int _cursorTopBackup;
@@ -110,6 +112,10 @@ namespace DotNetConsoleSdk
          *      commandBlockEnd := )
          *      commandValueAssignationChar := =
          *      commandSeparatorChar := ,
+         *      value := string_without_CommandBlockBegin_and_CommandBlockEnd) | ( codeBlockBegin any codeBlockEnd )
+         *      any := string
+         *      codeBlockBegin ::= [[!--
+         *      codeBlockEnd ::= --]]
          * colors: 
          *      set foreground:     f=consoleColor
          *      set background:     b=consoleColor
@@ -133,26 +139,49 @@ namespace DotNetConsoleSdk
          *      exec: exec csharp from text
          */
 
+        public enum KeyWords
+        {
+            bkf,
+            bkb,
+            rsf,
+            rsb,
+            cl,
+            f,
+            b,
+            df,
+            db,
+            br,
+            inf,
+            bkcr,
+            rscr,
+            crh,
+            crs,
+            crx,
+            cry,
+            exit,
+            exec
+        }
+
         static readonly Dictionary<string, Action<object>> _drtvs = new Dictionary<string, Action<object>>() {
-            { "bkf" , (x) => BackupForeground() },
-            { "bkb" , (x) => BackupBackground() },
-            { "rsf" , (x) => RestoreForeground() },
-            { "rsb" , (x) => RestoreBackground() },
-            { "cl" , (x) => Clear() },
-            { "f=" , (x) => SetForeground( ParseColor(x)) },
-            { "b=" , (x) => SetBackground( ParseColor(x)) },
-            { "df=" , (x) => SetDefaultForeground( ParseColor(x)) },
-            { "db=" , (x) => SetDefaultBackground( ParseColor(x)) },
-            { "br" , (x) => LineBreak() },
-            { "inf" , (x) => Infos() },
-            { "bkcr" , (x) => BackupCursorPos() },
-            { "rscr" , (x) => RestoreCursorPos() },
-            { "crh" , (x) => HideCur() },
-            { "crs" , (x) => ShowCur() },
-            { "crx=" , (x) => SetCursorLeft(GetCursorX(x)) },
-            { "cry=" , (x) => SetCursorTop(GetCursorY(x)) },
-            { "exit" , (x) => Environment.Exit(0) },
-            { "exec=" , (x) => ExecCSharp((string)x) }
+            { KeyWords.bkf+""   , (x) => BackupForeground() },
+            { KeyWords.bkb+""   , (x) => BackupBackground() },
+            { KeyWords.rsf+""   , (x) => RestoreForeground() },
+            { KeyWords.rsb+""   , (x) => RestoreBackground() },
+            { KeyWords.cl+""    , (x) => Clear() },
+            { KeyWords.f+"="    , (x) => SetForeground( ParseColor(x)) },
+            { KeyWords.b+"="    , (x) => SetBackground( ParseColor(x)) },
+            { KeyWords.df+"="   , (x) => SetDefaultForeground( ParseColor(x)) },
+            { KeyWords.db+"="   , (x) => SetDefaultBackground( ParseColor(x)) },
+            { KeyWords.br+""    , (x) => LineBreak() },
+            { KeyWords.inf+""   , (x) => Infos() },
+            { KeyWords.bkcr+""  , (x) => BackupCursorPos() },
+            { KeyWords.rscr+""  , (x) => RestoreCursorPos() },
+            { KeyWords.crh+""   , (x) => HideCur() },
+            { KeyWords.crs+""   , (x) => ShowCur() },
+            { KeyWords.crx+"="  , (x) => SetCursorLeft(GetCursorX(x)) },
+            { KeyWords.cry+"="  , (x) => SetCursorTop(GetCursorY(x)) },
+            { KeyWords.exit+""  , (x) => Environment.Exit(0) },
+            { KeyWords.exec+"=" , (x) => ExecCSharp((string)x) }
         };
 
         public static void BackupForeground() => _foregroundBackup = sc.ForegroundColor;
@@ -422,6 +451,13 @@ namespace DotNetConsoleSdk
             return $"{CommandBlockBeginChar}{cmd}{CommandBlockEndChar}";
         }
 
+        public static string GetCmd(KeyWords cmd, string value = null)
+        {
+            if (value != null)
+                return $"{CommandBlockBeginChar}{cmd}{CommandValueAssignationChar}{value}{CommandBlockEndChar}";
+            return $"{CommandBlockBeginChar}{cmd}{CommandBlockEndChar}";
+        }
+
         static void TraceError(string s) => LogError(s);
 
         static ConsoleColor GetColor(string colorName)
@@ -505,6 +541,7 @@ namespace DotNetConsoleSdk
             int i = 0;
             KeyValuePair<string, Action<object>>? cmd = null;
             int n = s.Length;
+            bool isAssignation = false;
             while (cmd == null && i < n)
             {
                 foreach (var ccmd in _drtvs)
@@ -512,6 +549,7 @@ namespace DotNetConsoleSdk
                     if (s.IndexOf(CommandBlockBeginChar + ccmd.Key, i) == i)
                     {
                         cmd = ccmd;
+                        isAssignation = ccmd.Key.EndsWith("=");
                         break;
                     }
                 }
@@ -528,6 +566,15 @@ namespace DotNetConsoleSdk
             if (!string.IsNullOrEmpty(tmps))
                 ConsolePrint(tmps);
 
+            int firstCommandEndIndex = 0;
+            if (isAssignation)
+            {
+                firstCommandEndIndex = s.IndexOf(CommandValueAssignationChar, i+1);
+                if (firstCommandEndIndex>-1)
+                {
+
+                }
+            }
             var j = s.IndexOf(CommandBlockEndChar, i + 1);
             if (j==-1)
             {
@@ -536,7 +583,7 @@ namespace DotNetConsoleSdk
             }
 
             var cmdtxt = s[i..j];
-            var k = cmdtxt.IndexOf(CommandSeparatorChar);
+            var k = cmdtxt.IndexOf(CommandSeparatorChar, firstCommandEndIndex);
             if (k > -1)
                 cmdtxt = cmdtxt.Substring(0, k);
             if (cmd.Value.Key.EndsWith(CommandValueAssignationChar))
@@ -565,56 +612,56 @@ namespace DotNetConsoleSdk
 
         #region commands shortcuts
 
-        public static string Bblack => GetCmd("b", "black");
-        public static string Bdarkblue => GetCmd("b", "darkblue");
-        public static string Bdarkgreen => GetCmd("b", "darkgreen");
-        public static string Bdarkcyan => GetCmd("b", "darkcyan");
-        public static string Bdarkred => GetCmd("b", "darkred");
-        public static string Bdarkmagenta => GetCmd("b", "darkmagenta");
-        public static string Bdarkyellow => GetCmd("b", "darkyelllow");
-        public static string Bgray => GetCmd("b", "gray");
-        public static string Bdarkgray => GetCmd("b", "darkgray");
-        public static string Bblue => GetCmd("b", "blue");
-        public static string Bgreen => GetCmd("b", "green");
-        public static string Bcyan => GetCmd("b", "cyan");
-        public static string Bred => GetCmd("b", "red");
-        public static string Bmagenta => GetCmd("b", "magenta");
-        public static string Byellow => GetCmd("b", "yellow");
-        public static string Bwhite => GetCmd("b", "white");
-        public static string Black => GetCmd("f", "black");
-        public static string Darkblue => GetCmd("f", "darkblue");
-        public static string Darkgreen => GetCmd("f", "darkgreen");
-        public static string Darkcyan => GetCmd("f", "darkcyan");
-        public static string Darkred => GetCmd("f", "darkred");
-        public static string Darkmagenta => GetCmd("f", "darkmagenta");
-        public static string Darkyellow => GetCmd("f", "darkyelllow");
-        public static string Gray => GetCmd("f", "gray");
-        public static string Darkgray => GetCmd("f", "darkgray");
-        public static string Blue => GetCmd("f", "blue");
-        public static string Green => GetCmd("f", "green");
-        public static string Cyan => GetCmd("f", "cyan");
-        public static string Red => GetCmd("f", "red");
-        public static string Magenta => GetCmd("f", "magenta");
-        public static string Yellow => GetCmd("f", "yellow");
-        public static string White => GetCmd("f", "white");
+        public static string Bblack => GetCmd(KeyWords.b+"", "black");
+        public static string Bdarkblue => GetCmd(KeyWords.b , "darkblue");
+        public static string Bdarkgreen => GetCmd(KeyWords.b , "darkgreen");
+        public static string Bdarkcyan => GetCmd(KeyWords.b , "darkcyan");
+        public static string Bdarkred => GetCmd(KeyWords.b , "darkred");
+        public static string Bdarkmagenta => GetCmd(KeyWords.b , "darkmagenta");
+        public static string Bdarkyellow => GetCmd(KeyWords.b , "darkyelllow");
+        public static string Bgray => GetCmd(KeyWords.b , "gray");
+        public static string Bdarkgray => GetCmd(KeyWords.b , "darkgray");
+        public static string Bblue => GetCmd(KeyWords.b , "blue");
+        public static string Bgreen => GetCmd(KeyWords.b , "green");
+        public static string Bcyan => GetCmd(KeyWords.b , "cyan");
+        public static string Bred => GetCmd(KeyWords.b , "red");
+        public static string Bmagenta => GetCmd(KeyWords.b , "magenta");
+        public static string Byellow => GetCmd(KeyWords.b , "yellow");
+        public static string Bwhite => GetCmd(KeyWords.b , "white");
+        public static string Black => GetCmd(KeyWords.f , "black");
+        public static string Darkblue => GetCmd(KeyWords.f , "darkblue");
+        public static string Darkgreen => GetCmd(KeyWords.f , "darkgreen");
+        public static string Darkcyan => GetCmd(KeyWords.f , "darkcyan");
+        public static string Darkred => GetCmd(KeyWords.f , "darkred");
+        public static string Darkmagenta => GetCmd(KeyWords.f , "darkmagenta");
+        public static string Darkyellow => GetCmd(KeyWords.f , "darkyelllow");
+        public static string Gray => GetCmd(KeyWords.f , "gray");
+        public static string Darkgray => GetCmd(KeyWords.f , "darkgray");
+        public static string Blue => GetCmd(KeyWords.f , "blue");
+        public static string Green => GetCmd(KeyWords.f , "green");
+        public static string Cyan => GetCmd(KeyWords.f , "cyan");
+        public static string Red => GetCmd(KeyWords.f , "red");
+        public static string Magenta => GetCmd(KeyWords.f , "magenta");
+        public static string Yellow => GetCmd(KeyWords.f , "yellow");
+        public static string White => GetCmd(KeyWords.f , "white");
 
-        public static string Bkf => GetCmd("bkf");
-        public static string Rf => GetCmd("rsf");
-        public static string Bkb => GetCmd("bkb");
-        public static string Rb => GetCmd("rsb");
-        public static string Cl => GetCmd("cl");
-        public static string Br => GetCmd("br");
+        public static string Bkf => GetCmd(KeyWords.bkf );
+        public static string Rf => GetCmd(KeyWords.rsf );
+        public static string Bkb => GetCmd(KeyWords.bkb );
+        public static string Rb => GetCmd(KeyWords.rsb );
+        public static string Cl => GetCmd(KeyWords.cl );
+        public static string Br => GetCmd(KeyWords.br );
 
-        public static string B(ConsoleColor c) => GetCmd("b", c+"");
-        public static string F(ConsoleColor c) => GetCmd("f", c+"");
+        public static string B(ConsoleColor c) => GetCmd(KeyWords.b , c+"");
+        public static string F(ConsoleColor c) => GetCmd(KeyWords.f , c+"");
 
-        public static string Bkcr => GetCmd("bkcr");
-        public static string Rscr => GetCmd("rscr");
-        public static string Crx(int x) => GetCmd("crx", x + "");
-        public static string Cry(int y) => GetCmd("cry", y + "");
-        public static string Cr(int x, int y) => $"{GetCmd("crx", x + "")}{GetCmd("cry", y + "")}";
+        public static string Bkcr => GetCmd(KeyWords.bkcr );
+        public static string Rscr => GetCmd(KeyWords.rscr );
+        public static string Crx(int x) => GetCmd(KeyWords.crx , x +"");
+        public static string Cry(int y) => GetCmd(KeyWords.cry , y +"");
+        public static string Cr(int x, int y) => $"{GetCmd(KeyWords.crx , x +"" )}{GetCmd(KeyWords.cry , y+"" )}";
 
-        public static string Exec(string csharpText) => GetCmd("exec", csharpText);
+        public static string Exec(string csharpText) => GetCmd(KeyWords.exec , csharpText);
 
         #endregion
 
