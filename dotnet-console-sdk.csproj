@@ -6,4 +6,19 @@
     <RootNamespace>DotNetConsoleSdk</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="csdk.bat" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="csdk.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Lib\" />
+    <Folder Include="Temp\" />
+  </ItemGroup>
+
 </Project>

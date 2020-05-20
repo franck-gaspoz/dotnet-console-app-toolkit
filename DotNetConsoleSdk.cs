@@ -1,10 +1,17 @@
-﻿using System;
+﻿#define dbg
+
+using DotNetConsoleSdk.Component;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Threading;
 using sc = System.Console;
+using static DotNetConsoleSdk.Component.UIElement;
+using Microsoft.VisualBasic.CompilerServices;
+using System.Reflection;
+using System.IO;
 
 namespace DotNetConsoleSdk
 {
@@ -13,7 +20,9 @@ namespace DotNetConsoleSdk
     /// </summary>
     public static class DotNetConsoleSdk
     {
-        public static bool ClearOnUIUpdate = true;
+        #region attributes
+
+        public static bool ClearOnViewResized = true;
         public static bool SaveColors = true;
         public static bool TraceCommandErrors = true;
         public static bool EnableColors = true;
@@ -25,8 +34,7 @@ namespace DotNetConsoleSdk
         public static char CommandSeparatorChar = ',';
         public static char CommandValueAssignationChar = '=';
         public static string DumpNullStringAsText = "{null}";
-
-        static bool _redrawUIElementsEnabled = true;
+        
         static int _cursorLeftBackup;
         static int _cursorTopBackup;
         static ConsoleColor _backgroundBackup = ConsoleColor.Black;
@@ -34,8 +42,16 @@ namespace DotNetConsoleSdk
         static readonly string[] _crlf = { Environment.NewLine };
 
         static Thread _watcherThread;
-        static int _uiid = 0;
-        static Dictionary<int, UIBar> _uibars = new Dictionary<int, UIBar>();
+        static Dictionary<int, UIElement> _uielements = new Dictionary<int, UIElement>();
+
+        static string[] _args;
+        static TextWriter _outputWriter;
+        static StreamWriter _outputStreamWriter;
+        static FileStream _outputFileStream;
+        static StreamWriter _echoStreamWriter;
+        static FileStream _echoFileStream;
+
+        #endregion
 
         #region log methods
 
@@ -52,7 +68,7 @@ namespace DotNetConsoleSdk
                     msg += Environment.NewLine + ex.Message;
                 }
                 var ls = msg.Split(_crlf, StringSplitOptions.None)
-                    .Select(x => ((EnableColors) ? "(f=Red)" : "") + x);
+                    .Select(x => ((EnableColors) ? $"{Red}" : "") + x);
                 Println(ls);
             }
         }
@@ -60,21 +76,21 @@ namespace DotNetConsoleSdk
         public static void LogException(Exception ex)
         {
             var ls = (ex + "").Split(_crlf, StringSplitOptions.None)
-                .Select(x => ((EnableColors) ? "(f=Red)" : "") + x);
+                .Select(x => ((EnableColors) ? $"{Red}" : "") + x);
             Println(ls);
         }
 
         public static void LogError(string s)
         {
             var ls = (s + "").Split(_crlf, StringSplitOptions.None)
-                .Select(x => ((EnableColors) ? "(f=Red)" : "") + x);
+                .Select(x => ((EnableColors) ? $"{Red}" : "") + x);
             Println(ls);
         }
 
         public static void LogWarning(string s)
         {
             var ls = (s + "").Split(_crlf, StringSplitOptions.None)
-                .Select(x => ((EnableColors) ? "(f=Yellow)" : "") + x);
+                .Select(x => ((EnableColors) ? $"{Yellow}" : "") + x);
             Println(ls);
         }
 
@@ -127,8 +143,8 @@ namespace DotNetConsoleSdk
             { "db=" , (x) => SetDefaultBackground( ParseColor(x)) },
             { "br" , (x) => LineBreak() },
             { "inf" , (x) => Infos() },
-            { "bkcr" , (x) => BackupCursor() },
-            { "rscr" , (x) => RestoreCursor() },
+            { "bkcr" , (x) => BackupCursorPos() },
+            { "rscr" , (x) => RestoreCursorPos() },
             { "crh" , (x) => HideCur() },
             { "crs" , (x) => ShowCur() },
             { "crx=" , (x) => SetCursorLeft(GetCursorX(x)) },
@@ -160,28 +176,32 @@ namespace DotNetConsoleSdk
             Println($"{Green}buffer:{Rf} width={Cyan}{Console.BufferWidth}{Rf},height={Cyan}{Console.BufferHeight}{Rf} | input encoding={Cyan}{Console.InputEncoding.EncodingName}{Rf} | output encoding={Cyan}{Console.OutputEncoding.EncodingName}{Rf}");
             Println($"number lock={Cyan}{Console.NumberLock}{Rf} | capslock={Cyan}{Console.CapsLock}{Rf} | cursor visible={Cyan}{Console.CursorVisible}{Rf} | cursor size={Cyan}{Console.CursorSize}");
         }
-        public static void BackupCursor()
+        public static void BackupCursorPos()
         {
             _cursorLeftBackup = Console.CursorLeft;
             _cursorTopBackup = Console.CursorTop;
         }
-        public static void RestoreCursor()
+        public static void RestoreCursorPos()
         {
             Console.CursorLeft = _cursorLeftBackup;
             Console.CursorTop = _cursorTopBackup;
         }
-        public static void SetCursorLeft(int x) => Console.CursorLeft = x;
-        public static void SetCursorTop(int y) => Console.CursorTop = y;
+        public static void SetCursorLeft(int x) => Console.CursorLeft = FixX(x);
+        public static void SetCursorTop(int y) => Console.CursorTop = FixY(y);
         public static int CursorLeft => Console.CursorLeft;
         public static int CursorTop => Console.CursorTop;
         public static Point CursorPos => new Point(CursorLeft, CursorTop);
         public static void SetCursorPos(Point p)
         {
-            Console.CursorLeft = p.X;
-            Console.CursorTop = p.Y;
+            var x = p.X;
+            var y = p.Y;
+            FixCoords(ref x, ref y);
+            Console.CursorLeft = x;
+            Console.CursorTop = y;
         }
         public static void SetCursorPos(int x,int y)
         {
+            FixCoords(ref x, ref y);
             Console.CursorLeft = x;
             Console.CursorTop = y;
         }
@@ -199,11 +219,45 @@ namespace DotNetConsoleSdk
             return sc.ReadLine();
         }
 
+        public static void EchoOn(string filepath)
+        {
+            if (!string.IsNullOrWhiteSpace(filepath) && _echoFileStream == null)
+            {
+                _echoFileStream = new FileStream(filepath, FileMode.Append, FileAccess.Write);
+                _echoStreamWriter = new StreamWriter(_echoFileStream);
+            }
+        }
+
+        public static void EchoOff()
+        { 
+            if (_echoFileStream!=null)
+            {
+                _outputStreamWriter.Flush();
+                _outputStreamWriter.Close();
+            }
+        }
+
+        #endregion
+
+        #region data to text operations
+
+        static string DumpAsText(object o)
+        {
+            if (o == null)
+                return DumpNullStringAsText ?? "";
+            return o.ToString();
+        }
+
+        public static string Dump(object[] t)
+        {
+            return string.Join(',', t.Select(x => DumpAsText(x)));
+        }
+
         #endregion
 
         #region UI elements methods
 
-        static void RunWatcher()
+        public static void RunUIElementWatcher()
         {
             if (_watcherThread != null)
                 return;
@@ -221,7 +275,7 @@ namespace DotNetConsoleSdk
                         var w = Console.WindowWidth;
                         var l = Console.WindowLeft;
                         var t = Console.WindowTop;
-                        if (w != lastWinWidth || h != lastWinHeight || l!=lastWinLeft || t!=lastWinTop)
+                        if (w != lastWinWidth || h != lastWinHeight || l != lastWinLeft || t != lastWinTop)
                             RedrawUIElements(true);
                         lastWinHeight = h;
                         lastWinWidth = w;
@@ -236,51 +290,36 @@ namespace DotNetConsoleSdk
             _watcherThread.Start();
         }
 
-        static (int x,int y,int w,int h) GetCoords(int x,int y,int w,int h)
+        public static int AddFrame(Func<Frame,string> printContent, ConsoleColor backgroundColor, int x = 0, int y = -1, int w = -1, int h = 1, DrawStrategy drawStrategy = DrawStrategy.OnViewResized, bool mustRedrawBackground = true)
         {
-            if (y == -1) y = Console.WindowTop + Console.WindowHeight - 1;
-            if (w == -1) w = Console.WindowWidth - 1;
-            return (x, y, w, h);
-        }
-
-        public static void DrawRect(ConsoleColor backgroundColor, int rx = 0, int ry = -1, int rw = -1, int rh = -1)
-        {
-            var p = CursorPos;
-            var (x, y, w, h) = GetCoords(rx, ry, rw, rh);
-            var s = "".PadLeft(w, ' ');
-            for (int i=0;i<h;i++)
-                Print($"(crx={x},cry={y+i},b={backgroundColor}){s}");
-            SetCursorPos(p);
-        }
-
-        public static int AddBar(Func<UIBar,string> printContent, ConsoleColor backgroundColor, int x = 0, int y = -1, int w = -1, int h = 1, bool redrawOnUpdate = true, bool mustRedrawBackground = true)
-        {
-            var o = new UIBar(printContent, backgroundColor, x, y, w, h, redrawOnUpdate, mustRedrawBackground);
+            var o = new Frame(printContent, backgroundColor, x, y, w, h, drawStrategy, mustRedrawBackground);
             o.Draw();
-            _uibars.Add(o.Id,o);            
-            RunWatcher();
+            _uielements.Add(o.Id,o);            
+            RunUIElementWatcher();
             return o.Id;
         }
 
-        public static bool RemoveBar(int id)
+        public static bool RemoveFrame(int id)
         {
-            if (_uibars.ContainsKey(id))
+            if (_uielements.ContainsKey(id))
             {
-                _uibars.Remove(id);
+                _uielements.Remove(id);
                 return true;
             }
             return false;
         }
 
-        static void RedrawUIElements(bool eraseElements = false)
+        static void RedrawUIElements(bool forceDraw = false)
         {
             if (_redrawUIElementsEnabled)
             {
                 _redrawUIElementsEnabled = false;
-                if (ClearOnUIUpdate && eraseElements)
+                if (ClearOnViewResized && forceDraw)
+                {
                     Clear();
-                foreach (var o in _uibars)
-                    o.Value.UpdateDraw(eraseElements);
+                }
+                foreach (var o in _uielements)
+                    o.Value.UpdateDraw(forceDraw & !ClearOnViewResized,forceDraw);
                 _redrawUIElementsEnabled = true;
             }
         }
@@ -288,7 +327,7 @@ namespace DotNetConsoleSdk
         static void EraseUIElements()
         {
             if (_redrawUIElementsEnabled)
-                foreach (var o in _uibars)
+                foreach (var o in _uielements)
                     o.Value.Erase();
         }
 
@@ -296,8 +335,31 @@ namespace DotNetConsoleSdk
 
         #region cli methods
 
-        public static void CommandTester(string prompt = null)
+        public static void RunSampleCLI(string prompt = null)
         {
+            Clear();
+
+            AddFrame((bar) =>
+            {
+                var s = "".PadLeft(bar.ActualWidth, '-');
+                var t = "  Console tool: commands tester  ";
+                var r = $"{Bdarkblue}{Cyan}{s}{Br}";
+                r += $"{Bdarkblue}{Cyan}|{t}{White}{"".PadLeft(bar.ActualWidth - 2 - t.Length)}{Cyan}|{Br}";
+                r += $"{Bdarkblue}{Cyan}{s}{Br}";
+                return r;
+            }, ConsoleColor.DarkBlue, 0, 0, -1, 3,DrawStrategy.OnViewResized, false);
+
+            SetCursorPos(0, 4);
+            Infos();
+            LineBreak();
+
+            AddFrame((bar) =>
+            {
+                var r = $"{Bdarkblue}{Green}Cursor pos: {White}X={Cyan}{CursorLeft}{Green},{White}Y={Cyan}{CursorTop}{White}";
+                r += $" | {Green}bar pos: {White}X={Cyan}{bar.ActualX}{Green},{White}Y={Cyan}{bar.ActualY}{White}";
+                return r;
+            }, ConsoleColor.DarkBlue);
+
             var end = false;
             while (!end)
             {
@@ -306,11 +368,47 @@ namespace DotNetConsoleSdk
             }
         }
 
+        public static string Arg(int n)
+        {
+            if (_args == null) return null;
+            if (_args.Length <= n) return null;
+            return _args[n];
+        }
+
+        public static bool HasArgs => _args != null && _args.Length > 0;
+
+        public static void SetArgs(string[] args)
+        {
+            _args = (string[])args?.Clone();
+        }
+
+        #region stream methods
+
+        public static void OutputTo(string filepath = null)
+        {
+            if (filepath!=null)
+            {
+                _outputWriter = Console.Out;
+                _outputFileStream = new FileStream(filepath, FileMode.Append, FileAccess.Write);
+                _outputStreamWriter = new StreamWriter(_outputFileStream);
+                sc.SetOut(_outputStreamWriter);
+            } else
+            {
+                _outputStreamWriter.Flush();
+                _outputStreamWriter.Close();
+                sc.SetOut(_outputWriter);
+            }
+        }
+
+        public static string TempPath => Path.Combine( Assembly.GetExecutingAssembly().Location , "Temp" );
+
+        #endregion
+
         #endregion
 
         #region implementation methods
 
-        static string GetCmd(string cmd, string value = null)
+        public static string GetCmd(string cmd, string value = null)
         {
             if (value != null)
                 return $"{CommandBlockBeginChar}{cmd}{CommandValueAssignationChar}{value}{CommandBlockEndChar}";
@@ -500,6 +598,9 @@ namespace DotNetConsoleSdk
         public static string Cl => GetCmd("cl");
         public static string Br => GetCmd("br");
 
+        public static string B(ConsoleColor c) => GetCmd("b", c+"");
+        public static string F(ConsoleColor c) => GetCmd("f", c+"");
+
         public static string Bkcr => GetCmd("bkcr");
         public static string Rscr => GetCmd("rscr");
         public static string Crx(int x) => GetCmd("crx", x + "");
@@ -508,86 +609,5 @@ namespace DotNetConsoleSdk
 
         #endregion
 
-        #region UI components
-
-        public class UIBar
-        {
-            public readonly int Id;
-            public Func<UIBar,string> Content;
-            public ConsoleColor BackgroundColor;
-            public int X = 0;
-            public int Y = -1;
-            public int W = -1;
-            public int H = -1;
-            public int BX = 0;
-            public int BY = -1;
-            public int BW = -1;
-            public int BH = -1;
-            public bool RedrawOnUpdate = true;
-            public bool MustRedrawBackground = false;
-
-            public UIBar(Func<UIBar,string> content,
-                         ConsoleColor backgroundColor,
-                         int x = 0,
-                         int y = -1,
-                         int w = -1,
-                         int h = -1,
-                         bool redrawOnUpdate = true,
-                         bool mustRedrawBackground = false)
-            {
-                Id = _uiid++;
-                Content = content;
-                BackgroundColor = backgroundColor;
-                X = x;
-                Y = y;
-                W = w;
-                H = h;
-                RedrawOnUpdate = redrawOnUpdate;
-                MustRedrawBackground = mustRedrawBackground;
-            }
-
-            public void Draw(bool drawBackground=true)
-            {
-                var redrawUIElementsEnabled = _redrawUIElementsEnabled;
-                _redrawUIElementsEnabled = false;
-                var p = CursorPos;
-                var (x, y, w, h) = GetCoords(X, Y, W, H);
-                BackupCoords(x, y, w, h);
-                var content = Content?.Invoke(this);
-                HideCur();
-                if (drawBackground)
-                    DrawRect(BackgroundColor, X, Y, W, H);
-                SetCursorPos(x, y);
-                Print(content);
-                SetCursorPos(p);
-                ShowCur();
-                _redrawUIElementsEnabled = redrawUIElementsEnabled;
-            }
-
-            void BackupCoords(int x,int y,int w,int h)
-            {
-                BX = x;
-                BY = y;
-                BW = w;
-                BH = h;
-            }
-
-            public void Erase()
-            {
-                var redrawUIElementsEnabled = _redrawUIElementsEnabled;
-                _redrawUIElementsEnabled = false;
-                DrawRect(Console.BackgroundColor, BX, BY, BW, BH);
-                _redrawUIElementsEnabled = redrawUIElementsEnabled;
-            }
-
-            public void UpdateDraw(bool erase = false)
-            {
-                if (!erase && !RedrawOnUpdate) return;
-                if (erase) Erase();
-                Draw(MustRedrawBackground);
-            }
-        }
-
-        #endregion
     }
 }
