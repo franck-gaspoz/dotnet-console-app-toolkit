@@ -17,8 +17,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Lib\" />
+    <Folder Include="Lib\DynamicCode\" />
     <Folder Include="Temp\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.7.0-1.final" />
   </ItemGroup>
 
 </Project>
