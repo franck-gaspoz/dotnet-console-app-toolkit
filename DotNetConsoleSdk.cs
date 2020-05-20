@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic.CompilerServices;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
@@ -10,7 +9,7 @@ using sc = System.Console;
 namespace DotNetConsoleSdk
 {
     /// <summary>
-    /// console tool utilitary methods
+    /// dotnet core sdk helps build fastly nice console applications
     /// </summary>
     public static class DotNetConsoleSdk
     {
