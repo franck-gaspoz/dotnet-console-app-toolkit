@@ -12,6 +12,8 @@ using static DotNetConsoleSdk.Component.UIElement;
 using Microsoft.VisualBasic.CompilerServices;
 using System.Reflection;
 using System.IO;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
 
 namespace DotNetConsoleSdk
 {
@@ -52,6 +54,8 @@ namespace DotNetConsoleSdk
         static FileStream _outputFileStream;
         static StreamWriter _echoStreamWriter;
         static FileStream _echoFileStream;
+
+        static Dictionary<string, Script<object>> _csscripts = new Dictionary<string, Script<object>>();
 
         #endregion
 
@@ -162,27 +166,31 @@ namespace DotNetConsoleSdk
             exec
         }
 
-        static readonly Dictionary<string, Action<object>> _drtvs = new Dictionary<string, Action<object>>() {
-            { KeyWords.bkf+""   , (x) => BackupForeground() },
-            { KeyWords.bkb+""   , (x) => BackupBackground() },
-            { KeyWords.rsf+""   , (x) => RestoreForeground() },
-            { KeyWords.rsb+""   , (x) => RestoreBackground() },
-            { KeyWords.cl+""    , (x) => Clear() },
-            { KeyWords.f+"="    , (x) => SetForeground( ParseColor(x)) },
-            { KeyWords.b+"="    , (x) => SetBackground( ParseColor(x)) },
-            { KeyWords.df+"="   , (x) => SetDefaultForeground( ParseColor(x)) },
-            { KeyWords.db+"="   , (x) => SetDefaultBackground( ParseColor(x)) },
-            { KeyWords.br+""    , (x) => LineBreak() },
-            { KeyWords.inf+""   , (x) => Infos() },
-            { KeyWords.bkcr+""  , (x) => BackupCursorPos() },
-            { KeyWords.rscr+""  , (x) => RestoreCursorPos() },
-            { KeyWords.crh+""   , (x) => HideCur() },
-            { KeyWords.crs+""   , (x) => ShowCur() },
-            { KeyWords.crx+"="  , (x) => SetCursorLeft(GetCursorX(x)) },
-            { KeyWords.cry+"="  , (x) => SetCursorTop(GetCursorY(x)) },
-            { KeyWords.exit+""  , (x) => Environment.Exit(0) },
+        delegate object CommandDelegate(object x);
+
+        static readonly Dictionary<string, CommandDelegate> _drtvs = new Dictionary<string, CommandDelegate>() {
+            { KeyWords.bkf+""   , (x) => RelayCall(BackupForeground) },
+            { KeyWords.bkb+""   , (x) => RelayCall(BackupBackground) },
+            { KeyWords.rsf+""   , (x) => RelayCall(RestoreForeground) },
+            { KeyWords.rsb+""   , (x) => RelayCall(RestoreBackground) },
+            { KeyWords.cl+""    , (x) => RelayCall(Clear) },
+            { KeyWords.f+"="    , (x) => RelayCall(() => SetForeground( ParseColor(x))) },
+            { KeyWords.b+"="    , (x) => RelayCall(() => SetBackground( ParseColor(x))) },
+            { KeyWords.df+"="   , (x) => RelayCall(() => SetDefaultForeground( ParseColor(x))) },
+            { KeyWords.db+"="   , (x) => RelayCall(() => SetDefaultBackground( ParseColor(x))) },
+            { KeyWords.br+""    , (x) => RelayCall(LineBreak) },
+            { KeyWords.inf+""   , (x) => RelayCall(Infos) },
+            { KeyWords.bkcr+""  , (x) => RelayCall(BackupCursorPos) },
+            { KeyWords.rscr+""  , (x) => RelayCall(RestoreCursorPos) },
+            { KeyWords.crh+""   , (x) => RelayCall(HideCur) },
+            { KeyWords.crs+""   , (x) => RelayCall(ShowCur) },
+            { KeyWords.crx+"="  , (x) => RelayCall(() => SetCursorLeft(GetCursorX(x))) },
+            { KeyWords.cry+"="  , (x) => RelayCall(() => SetCursorTop(GetCursorY(x))) },
+            { KeyWords.exit+""  , (x) => RelayCall(() => Environment.Exit(0)) },
             { KeyWords.exec+"=" , (x) => ExecCSharp((string)x) }
         };
+
+        static object RelayCall(Action method) { method(); return null; }
 
         public static void BackupForeground() => _foregroundBackup = sc.ForegroundColor;
         public static void BackupBackground() => _backgroundBackup = sc.BackgroundColor;
@@ -268,9 +276,25 @@ namespace DotNetConsoleSdk
             }
         }
         
-        public static void ExecCSharp(string csharpText)
+        public static object ExecCSharp(string csharpText)
         {
-
+            try
+            {
+                var scriptKey = csharpText;
+                if (!_csscripts.TryGetValue(scriptKey, out var script))
+                {
+                    script = CSharpScript.Create<object>(csharpText);
+                    script.Compile();
+                    _csscripts[scriptKey] = script;
+                }
+                var res = script.RunAsync();
+                return res.Result.ReturnValue;
+            }
+            catch (CompilationErrorException ex)
+            {
+                LogError(string.Join(Environment.NewLine,ex.Diagnostics));
+                return null;
+            }
         }
 
         #endregion
@@ -347,7 +371,7 @@ namespace DotNetConsoleSdk
 
         static void RedrawUIElements(bool forceDraw = false)
         {
-            if (_redrawUIElementsEnabled)
+            if (_redrawUIElementsEnabled && _uielements.Count>0)
             {
                 _redrawUIElementsEnabled = false;
                 if (ClearOnViewResized && forceDraw)
@@ -539,7 +563,7 @@ namespace DotNetConsoleSdk
         static void ParseTextAndApplyCommands(string s, bool lineBreak = false, string tmps = "")
         {
             int i = 0;
-            KeyValuePair<string, Action<object>>? cmd = null;
+            KeyValuePair<string, CommandDelegate>? cmd = null;
             int n = s.Length;
             bool isAssignation = false;
             while (cmd == null && i < n)
@@ -624,6 +648,7 @@ namespace DotNetConsoleSdk
             if (firstCommandSeparatorCharIndex > -1)
                 cmdtxt = cmdtxt.Substring(0, firstCommandSeparatorCharIndex-1);
 
+            object result = null;
             if (isAssignation)
             {
                 if (value == null)
@@ -631,9 +656,14 @@ namespace DotNetConsoleSdk
                     var t = cmdtxt.Split(CommandValueAssignationChar);
                     value = t[1];
                 }
-                cmd.Value.Value(value);
-            } else
-                cmd.Value.Value(null);
+                result = cmd.Value.Value(value);
+            }
+            else
+            {
+                result = cmd.Value.Value(null);
+            }
+            if (result != null)
+                Print(result);
 
             if (firstCommandSeparatorCharIndex > -1)
                 s = CommandBlockBeginChar + s.Substring(k + i );
