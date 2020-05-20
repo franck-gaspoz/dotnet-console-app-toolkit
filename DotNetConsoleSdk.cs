@@ -567,35 +567,76 @@ namespace DotNetConsoleSdk
                 ConsolePrint(tmps);
 
             int firstCommandEndIndex = 0;
+            int k = -1;
+            string value = null;
             if (isAssignation)
             {
                 firstCommandEndIndex = s.IndexOf(CommandValueAssignationChar, i+1);
                 if (firstCommandEndIndex>-1)
                 {
-
+                    firstCommandEndIndex++;
+                    var subs = s.Substring(firstCommandEndIndex);
+                    if (subs.StartsWith(CodeBlockBegin))
+                    {
+                        firstCommandEndIndex += CodeBlockBegin.Length;
+                        k = s.IndexOf(CodeBlockEnd,firstCommandEndIndex);
+                        if (k>-1)
+                        {
+                            value = s.Substring(firstCommandEndIndex, k - firstCommandEndIndex);
+                            k += CodeBlockEnd.Length;
+                        } else
+                        {
+                            ConsolePrint(s);
+                            return;
+                        }
+                    }
                 }
             }
-            var j = s.IndexOf(CommandBlockEndChar, i + 1);
-            if (j==-1)
+
+            int j = i + cmd.Value.Key.Length;
+            bool inCmt = false;
+            int firstCommandSeparatorCharIndex = -1;
+            while (j<s.Length)
+            {
+                if (inCmt && s.IndexOf(CodeBlockEnd, j) == j)
+                {
+                    inCmt = false;
+                    j += CodeBlockEnd.Length - 1;
+                }
+                if (!inCmt && s.IndexOf(CodeBlockBegin, j) == j)
+                {
+                    inCmt = true;
+                    j += CodeBlockBegin.Length - 1;
+                }
+                if (!inCmt && s.IndexOf(CommandSeparatorChar, j) == j && firstCommandSeparatorCharIndex == -1)
+                    firstCommandSeparatorCharIndex = j;
+                if (!inCmt && s.IndexOf(CommandBlockEndChar, j) == j)
+                    break;
+                j++;
+            }
+            if (j==s.Length)
             {
                 ConsolePrint(s);
                 return;
             }
 
             var cmdtxt = s[i..j];
-            var k = cmdtxt.IndexOf(CommandSeparatorChar, firstCommandEndIndex);
-            if (k > -1)
-                cmdtxt = cmdtxt.Substring(0, k);
-            if (cmd.Value.Key.EndsWith(CommandValueAssignationChar))
+            if (firstCommandSeparatorCharIndex > -1)
+                cmdtxt = cmdtxt.Substring(0, firstCommandSeparatorCharIndex-1);
+
+            if (isAssignation)
             {
-                var t = cmdtxt.Split(CommandValueAssignationChar);
-                var value = t[1];
+                if (value == null)
+                {
+                    var t = cmdtxt.Split(CommandValueAssignationChar);
+                    value = t[1];
+                }
                 cmd.Value.Value(value);
             } else
                 cmd.Value.Value(null);
 
-            if (k > -1)
-                s = CommandBlockBeginChar + s.Substring(k + i + 1);
+            if (firstCommandSeparatorCharIndex > -1)
+                s = CommandBlockBeginChar + s.Substring(k + i );
             else
             {
                 if (j + 1 < s.Length)

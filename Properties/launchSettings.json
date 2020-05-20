@@ -2,7 +2,7 @@
   "profiles": {
     "dotnet-console-sdk": {
       "commandName": "Project",
-      "commandLineArgs": "\"(exec=[[!--Clear()--]],inf)\""
+      "commandLineArgs": "\"(exec=[[!--Println(\\\",!\\\")--]],inf)\""
     }
   }
 }
