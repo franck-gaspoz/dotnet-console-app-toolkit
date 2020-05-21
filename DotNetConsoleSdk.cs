@@ -57,6 +57,8 @@ namespace DotNetConsoleSdk
 
         static Dictionary<string, Script<object>> _csscripts = new Dictionary<string, Script<object>>();
 
+        public static object ConsoleLock = new object();
+
         #endregion
 
         #region log methods
@@ -191,81 +193,128 @@ namespace DotNetConsoleSdk
         };
 
         static object RelayCall(Action method) { method(); return null; }
+        public static void Lock(Action action)
+        {
+            lock (ConsoleLock)
+            {
+                action?.Invoke();
+            }
+        }
 
-        public static void BackupForeground() => _foregroundBackup = sc.ForegroundColor;
-        public static void BackupBackground() => _backgroundBackup = sc.BackgroundColor;
-        public static void RestoreForeground() => sc.ForegroundColor = _foregroundBackup;
-        public static void RestoreBackground() => sc.BackgroundColor = _backgroundBackup;
-        public static void SetForeground(ConsoleColor c) => sc.ForegroundColor = c;
-        public static void SetBackground(ConsoleColor c) => sc.BackgroundColor = c;
-        public static void SetDefaultForeground(ConsoleColor c) => DefaultForeground = c;
-        public static void SetDefaultBackground(ConsoleColor c) => DefaultBackground = c;
+        public static void BackupForeground() => Lock(()=>_foregroundBackup = sc.ForegroundColor);
+        public static void BackupBackground() => Lock(() => _backgroundBackup = sc.BackgroundColor);
+        public static void RestoreForeground() => Lock(() => sc.ForegroundColor = _foregroundBackup);
+        public static void RestoreBackground() => Lock(() => sc.BackgroundColor = _backgroundBackup);
+        public static void SetForeground(ConsoleColor c) => Lock(() => sc.ForegroundColor = c);
+        public static void SetBackground(ConsoleColor c) => Lock(() => sc.BackgroundColor = c);
+        public static void SetDefaultForeground(ConsoleColor c) => Lock(() => DefaultForeground = c);
+        public static void SetDefaultBackground(ConsoleColor c) => Lock(() => DefaultBackground = c);
         public static void Clear()
         {
-            sc.Clear();
-            RedrawUI();
+            Lock(() =>
+            {
+                sc.Clear();
+                RedrawUI();
+            }
+            );
         }
         public static void LineBreak()
         {
-            ConsolePrint(string.Empty, true);
-            RedrawUI();
+            Lock(() =>
+            {
+                ConsolePrint(string.Empty, true);
+                RedrawUI();
+            });
         }
         public static void Infos()
         {
-            Println($"{White}{Bkf}{Green}window:{Rf} left={Cyan}{Console.WindowLeft}{Rf},top={Cyan}{Console.WindowTop}{Rf},width={Cyan}{Console.WindowWidth}{Rf},height={Cyan}{Console.WindowHeight}{Rf},largest width={Cyan}{Console.LargestWindowWidth}{Rf},largest height={Cyan}{Console.LargestWindowHeight}{Rf}");
-            Println($"{Green}buffer:{Rf} width={Cyan}{Console.BufferWidth}{Rf},height={Cyan}{Console.BufferHeight}{Rf} | input encoding={Cyan}{Console.InputEncoding.EncodingName}{Rf} | output encoding={Cyan}{Console.OutputEncoding.EncodingName}{Rf}");
-            Println($"number lock={Cyan}{Console.NumberLock}{Rf} | capslock={Cyan}{Console.CapsLock}{Rf} | cursor visible={Cyan}{Console.CursorVisible}{Rf} | cursor size={Cyan}{Console.CursorSize}");
+            Lock(() =>
+            {
+                Println($"{White}{Bkf}{Green}window:{Rf} left={Cyan}{sc.WindowLeft}{Rf},top={Cyan}{sc.WindowTop}{Rf},width={Cyan}{sc.WindowWidth}{Rf},height={Cyan}{sc.WindowHeight}{Rf},largest width={Cyan}{sc.LargestWindowWidth}{Rf},largest height={Cyan}{sc.LargestWindowHeight}{Rf}");
+                Println($"{Green}buffer:{Rf} width={Cyan}{sc.BufferWidth}{Rf},height={Cyan}{sc.BufferHeight}{Rf} | input encoding={Cyan}{sc.InputEncoding.EncodingName}{Rf} | output encoding={Cyan}{sc.OutputEncoding.EncodingName}{Rf}");
+                Println($"number lock={Cyan}{sc.NumberLock}{Rf} | capslock={Cyan}{sc.CapsLock}{Rf} | cursor visible={Cyan}{sc.CursorVisible}{Rf} | cursor size={Cyan}{sc.CursorSize}");
+            });
         }
         public static void BackupCursorPos()
         {
-            _cursorLeftBackup = Console.CursorLeft;
-            _cursorTopBackup = Console.CursorTop;
+            Lock(() =>
+            {
+                _cursorLeftBackup = sc.CursorLeft;
+                _cursorTopBackup = sc.CursorTop;
+            });
         }
         public static void RestoreCursorPos()
         {
-            Console.CursorLeft = _cursorLeftBackup;
-            Console.CursorTop = _cursorTopBackup;
+            Lock(() =>
+            {
+                sc.CursorLeft = _cursorLeftBackup;
+                sc.CursorTop = _cursorTopBackup;
+            });
         }
-        public static void SetCursorLeft(int x) => Console.CursorLeft = FixX(x);
-        public static void SetCursorTop(int y) => Console.CursorTop = FixY(y);
-        public static int CursorLeft => Console.CursorLeft;
-        public static int CursorTop => Console.CursorTop;
-        public static Point CursorPos => new Point(CursorLeft, CursorTop);
+        public static void SetCursorLeft(int x) => Lock(() => sc.CursorLeft = FixX(x));
+        public static void SetCursorTop(int y) => Lock(() => sc.CursorTop = FixY(y));
+        public static int CursorLeft { 
+            get { lock(ConsoleLock) { return sc.CursorLeft; } } 
+        }
+        public static int CursorTop
+        {
+            get { lock (ConsoleLock) { return sc.CursorTop; } }
+        }
+        public static Point CursorPos
+        {
+            get
+            {
+                lock (ConsoleLock)
+                { return new Point(CursorLeft, CursorTop); }
+            }
+        }
         public static void SetCursorPos(Point p)
         {
-            var x = p.X;
-            var y = p.Y;
-            FixCoords(ref x, ref y);
-            Console.CursorLeft = x;
-            Console.CursorTop = y;
+            lock (ConsoleLock)
+            {
+                var x = p.X;
+                var y = p.Y;
+                FixCoords(ref x, ref y);
+                sc.CursorLeft = x;
+                sc.CursorTop = y;
+            }
         }
         public static void SetCursorPos(int x,int y)
         {
-            FixCoords(ref x, ref y);
-            Console.CursorLeft = x;
-            Console.CursorTop = y;
+            lock (ConsoleLock) {
+                FixCoords(ref x, ref y);
+                sc.CursorLeft = x;
+                sc.CursorTop = y;
+            }
         }
-        public static void HideCur() => Console.CursorVisible = false;
-        public static void ShowCur() => Console.CursorVisible = true;
+        public static void HideCur() => Lock(()=>sc.CursorVisible = false);
+        public static void ShowCur() => Lock(()=>sc.CursorVisible = true);
         public static void Exit(int r=0) => Environment.Exit(r);
 
         public static void SetWorkArea(int wx,int wy,int width,int height)
         {
-            var (x, y, w, h) = GetCoords(wx, wy, width, height);
-            FixCoords(ref x, ref y);
-            _workArea = new Rectangle(x, y, w, h);
-            ApplyWorkArea();
+            lock (ConsoleLock)
+            {
+                var (x, y, w, h) = GetCoords(wx, wy, width, height);
+                FixCoords(ref x, ref y);
+                _workArea = new Rectangle(x, y, w, h);
+                ApplyWorkArea();
+            }
         }
         static void ApplyWorkArea()
         {
-            if (_workArea.IsEmpty) return;
-            try
+            lock (ConsoleLock)
             {
-                sc.WindowTop = 0;
-                sc.WindowLeft = 0;
-                sc.BufferWidth = sc.WindowWidth;
-                sc.BufferHeight = sc.WindowHeight;
-            } catch (Exception) { }
+                if (_workArea.IsEmpty) return;
+                try
+                {
+                    sc.WindowTop = 0;
+                    sc.WindowLeft = 0;
+                    sc.BufferWidth = sc.WindowWidth;
+                    sc.BufferHeight = sc.WindowHeight;
+                }
+                catch (Exception) { }
+            }
         }
 
         public static void Println(IEnumerable<string> ls) { foreach (var s in ls) Println(s); }
@@ -275,7 +324,10 @@ namespace DotNetConsoleSdk
 
         public static string Readln(string prompt = null)
         {
-            if (prompt != null) Print(prompt);
+            lock (ConsoleLock)
+            {
+                if (prompt != null) Print(prompt);
+            }
             return sc.ReadLine();
         }
 
@@ -352,23 +404,30 @@ namespace DotNetConsoleSdk
 
         static void WatcherThreadImpl()
         {
-            int lastWinHeight = Console.WindowHeight;
-            int lastWinWidth = Console.WindowWidth;
-            int lastWinTop = Console.WindowTop;
-            int lastWinLeft = Console.WindowLeft;
+            int lastWinHeight,lastWinWidth,lastWinTop,lastWinLeft,w,h,l,t;
+            lock (ConsoleLock)
+            {
+                lastWinHeight = sc.WindowHeight;
+                lastWinWidth = sc.WindowWidth;
+                lastWinTop = sc.WindowTop;
+                lastWinLeft = sc.WindowLeft;
+            }
             bool interrupted = false;
             try
             {
                 while (true)
                 {
-                    var h = Console.WindowHeight;
-                    var w = Console.WindowWidth;
-                    var l = Console.WindowLeft;
-                    var t = Console.WindowTop;
-                    if (w != lastWinWidth || h != lastWinHeight || l != lastWinLeft || t != lastWinTop)
+                    lock (ConsoleLock)
                     {
-                        _redrawUIElementsEnabled = true;
-                        RedrawUI(true);
+                        h = sc.WindowHeight;
+                        w = sc.WindowWidth;
+                        l = sc.WindowLeft;
+                        t = sc.WindowTop;
+                        if (w != lastWinWidth || h != lastWinHeight || l != lastWinLeft || t != lastWinTop)
+                        {
+                            _redrawUIElementsEnabled = true;
+                            RedrawUI(true);
+                        }
                     }
                     lastWinHeight = h;
                     lastWinWidth = w;
@@ -400,55 +459,67 @@ namespace DotNetConsoleSdk
             bool mustRedrawBackground = true,
             int updateTimerInterval=0)
         {
-            var o = new Frame(
-                printContent,
-                backgroundColor,
-                x,
-                y,
-                w,
-                h,
-                drawStrategy,
-                mustRedrawBackground,
-                updateTimerInterval);
-            o.Draw();
-            _uielements.Add(o.Id,o);            
-            RunUIElementWatcher();
-            return o.Id;
+            lock (ConsoleLock)
+            {
+                var o = new Frame(
+                    printContent,
+                    backgroundColor,
+                    x,
+                    y,
+                    w,
+                    h,
+                    drawStrategy,
+                    mustRedrawBackground,
+                    updateTimerInterval);
+                o.Draw();
+                _uielements.Add(o.Id, o);
+                RunUIElementWatcher();
+                return o.Id;
+            }
         }
 
         public static bool RemoveFrame(int id)
         {
-            if (_uielements.ContainsKey(id))
+            lock (ConsoleLock)
             {
-                _uielements.Remove(id);
-                return true;
+                if (_uielements.ContainsKey(id))
+                {
+                    _uielements.Remove(id);
+                    return true;
+                }
+                return false;
             }
-            return false;
         }
 
         static void RedrawUI(bool forceDraw = false,bool skipErase = false)
         {
-            if (_redrawUIElementsEnabled && _uielements.Count>0)
+            lock (ConsoleLock)
             {
-                _redrawUIElementsEnabled = false;
-                if (!skipErase && ClearOnViewResized && forceDraw)
+                if (_redrawUIElementsEnabled && _uielements.Count > 0)
                 {
-                    Clear();
+                    _redrawUIElementsEnabled = false;
+                    if (!skipErase && ClearOnViewResized && forceDraw)
+                    {
+                        Clear();
+                    }
+                    foreach (var o in _uielements)
+                        o.Value.UpdateDraw(forceDraw & !ClearOnViewResized, forceDraw);
+
+                    if (forceDraw) ApplyWorkArea();
+
+                    _redrawUIElementsEnabled = true;
                 }
-                foreach (var o in _uielements)
-                    o.Value.UpdateDraw(forceDraw & !ClearOnViewResized,forceDraw);
-
-                if (forceDraw) ApplyWorkArea();
-
-                _redrawUIElementsEnabled = true;
             }
         }
 
         static void EraseUIElements()
         {
-            if (_redrawUIElementsEnabled)
-                foreach (var o in _uielements)
-                    o.Value.Erase();
+            lock (ConsoleLock)
+            {
+                if (_redrawUIElementsEnabled)
+                    foreach (var o in _uielements)
+                        o.Value.Erase();
+            }
         }
 
         #endregion
@@ -482,7 +553,7 @@ namespace DotNetConsoleSdk
                     r += $" | {Green}bar pos: {White}X={Cyan}{bar.ActualX}{Green},{White}Y={Cyan}{bar.ActualY}{White}";
                     r += $" | {Cyan}{System.DateTime.Now}";
                     return r;
-                }, ConsoleColor.DarkBlue,0,-1,-1,1,DrawStrategy.OnPrint,true,500);
+                }, ConsoleColor.DarkBlue,0,-1,-1,1,DrawStrategy.OnTime,true,500);
 
                 var end = false;
                 while (!end)
@@ -577,7 +648,10 @@ namespace DotNetConsoleSdk
                 && int.TryParse(s, out var v))
                 return v;
             if (TraceCommandErrors) TraceError($"wrong cursor x: {x}");
-            return Console.CursorLeft;
+            lock (ConsoleLock)
+            {
+                return sc.CursorLeft;
+            }
         }
         static int GetCursorY(object x)
         {
@@ -585,173 +659,186 @@ namespace DotNetConsoleSdk
                 && int.TryParse(s, out var v))
                 return v;
             if (TraceCommandErrors) TraceError($"wrong cursor y: {x}");
-            return Console.CursorTop;
+            lock (ConsoleLock)
+            {
+                return sc.CursorTop;
+            }
         }
 
         static void ConsolePrint(string s, bool lineBreak = false)
         {
-            sc.Write(s);
-            if (lineBreak) sc.WriteLine(string.Empty);
+            lock (ConsoleLock)
+            {
+                sc.Write(s);
+                if (lineBreak) sc.WriteLine(string.Empty);
+            }
         }
 
         static void Print(object s, bool lineBreak = false, bool preserveColors = false, bool parseCommands = true)
         {
-            var redrawUIElementsEnabled = _redrawUIElementsEnabled;
-            _redrawUIElementsEnabled = false;
-            if (!preserveColors && SaveColors)
+            lock (ConsoleLock)
             {
-                BackupBackground();
-                BackupForeground();
-            }
+                var redrawUIElementsEnabled = _redrawUIElementsEnabled;
+                _redrawUIElementsEnabled = false;
+                if (!preserveColors && SaveColors)
+                {
+                    BackupBackground();
+                    BackupForeground();
+                }
 
-            if (!preserveColors && EnableColors)
-            {
-                sc.ForegroundColor = DefaultForeground;
-                sc.BackgroundColor = DefaultBackground;
-            }
+                if (!preserveColors && EnableColors)
+                {
+                    sc.ForegroundColor = DefaultForeground;
+                    sc.BackgroundColor = DefaultBackground;
+                }
 
-            if (s == null)
-            {
-                if (DumpNullStringAsText != null)
-                    ConsolePrint(DumpNullStringAsText, false);
-            }
-            else
-            {
-                if (parseCommands)
-                    ParseTextAndApplyCommands(s.ToString(), false);
+                if (s == null)
+                {
+                    if (DumpNullStringAsText != null)
+                        ConsolePrint(DumpNullStringAsText, false);
+                }
                 else
-                    ConsolePrint(s.ToString(), false);
+                {
+                    if (parseCommands)
+                        ParseTextAndApplyCommands(s.ToString(), false);
+                    else
+                        ConsolePrint(s.ToString(), false);
+                }
+
+                if (!preserveColors && SaveColors)
+                {
+                    RestoreBackground();
+                    RestoreForeground();
+                }
+
+                if (lineBreak) LineBreak();
+
+                _redrawUIElementsEnabled = redrawUIElementsEnabled;
+                RedrawUI(redrawUIElementsEnabled, true);
             }
-
-            if (!preserveColors && SaveColors)
-            {
-                RestoreBackground();
-                RestoreForeground();
-            }
-
-            if (lineBreak) LineBreak();
-
-            _redrawUIElementsEnabled = redrawUIElementsEnabled;
-            RedrawUI(redrawUIElementsEnabled,true);
         }
 
         static void ParseTextAndApplyCommands(string s, bool lineBreak = false, string tmps = "")
         {
-            int i = 0;
-            KeyValuePair<string, CommandDelegate>? cmd = null;
-            int n = s.Length;
-            bool isAssignation = false;
-            while (cmd == null && i < n)
+            lock (ConsoleLock)
             {
-                foreach (var ccmd in _drtvs)
+                int i = 0;
+                KeyValuePair<string, CommandDelegate>? cmd = null;
+                int n = s.Length;
+                bool isAssignation = false;
+                while (cmd == null && i < n)
                 {
-                    if (s.IndexOf(CommandBlockBeginChar + ccmd.Key, i) == i)
+                    foreach (var ccmd in _drtvs)
                     {
-                        cmd = ccmd;
-                        isAssignation = ccmd.Key.EndsWith("=");
-                        break;
+                        if (s.IndexOf(CommandBlockBeginChar + ccmd.Key, i) == i)
+                        {
+                            cmd = ccmd;
+                            isAssignation = ccmd.Key.EndsWith("=");
+                            break;
+                        }
                     }
+                    if (cmd == null)
+                        tmps += s.Substring(i, 1);
+                    i++;
                 }
                 if (cmd == null)
-                    tmps += s.Substring(i, 1);
-                i++;
-            }
-            if (cmd == null)
-            {
-                ConsolePrint(tmps, false);
-                return;
-            }
-
-            if (!string.IsNullOrEmpty(tmps))
-                ConsolePrint(tmps);
-
-            int firstCommandEndIndex = 0;
-            int k = -1;
-            string value = null;
-            if (isAssignation)
-            {
-                firstCommandEndIndex = s.IndexOf(CommandValueAssignationChar, i+1);
-                if (firstCommandEndIndex>-1)
                 {
-                    firstCommandEndIndex++;
-                    var subs = s.Substring(firstCommandEndIndex);
-                    if (subs.StartsWith(CodeBlockBegin))
+                    ConsolePrint(tmps, false);
+                    return;
+                }
+
+                if (!string.IsNullOrEmpty(tmps))
+                    ConsolePrint(tmps);
+
+                int firstCommandEndIndex = 0;
+                int k = -1;
+                string value = null;
+                if (isAssignation)
+                {
+                    firstCommandEndIndex = s.IndexOf(CommandValueAssignationChar, i + 1);
+                    if (firstCommandEndIndex > -1)
                     {
-                        firstCommandEndIndex += CodeBlockBegin.Length;
-                        k = s.IndexOf(CodeBlockEnd,firstCommandEndIndex);
-                        if (k>-1)
+                        firstCommandEndIndex++;
+                        var subs = s.Substring(firstCommandEndIndex);
+                        if (subs.StartsWith(CodeBlockBegin))
                         {
-                            value = s.Substring(firstCommandEndIndex, k - firstCommandEndIndex);
-                            k += CodeBlockEnd.Length;
-                        } else
-                        {
-                            ConsolePrint(s);
-                            return;
+                            firstCommandEndIndex += CodeBlockBegin.Length;
+                            k = s.IndexOf(CodeBlockEnd, firstCommandEndIndex);
+                            if (k > -1)
+                            {
+                                value = s.Substring(firstCommandEndIndex, k - firstCommandEndIndex);
+                                k += CodeBlockEnd.Length;
+                            }
+                            else
+                            {
+                                ConsolePrint(s);
+                                return;
+                            }
                         }
                     }
                 }
-            }
 
-            int j = i + cmd.Value.Key.Length;
-            bool inCmt = false;
-            int firstCommandSeparatorCharIndex = -1;
-            while (j<s.Length)
-            {
-                if (inCmt && s.IndexOf(CodeBlockEnd, j) == j)
+                int j = i + cmd.Value.Key.Length;
+                bool inCmt = false;
+                int firstCommandSeparatorCharIndex = -1;
+                while (j < s.Length)
                 {
-                    inCmt = false;
-                    j += CodeBlockEnd.Length - 1;
+                    if (inCmt && s.IndexOf(CodeBlockEnd, j) == j)
+                    {
+                        inCmt = false;
+                        j += CodeBlockEnd.Length - 1;
+                    }
+                    if (!inCmt && s.IndexOf(CodeBlockBegin, j) == j)
+                    {
+                        inCmt = true;
+                        j += CodeBlockBegin.Length - 1;
+                    }
+                    if (!inCmt && s.IndexOf(CommandSeparatorChar, j) == j && firstCommandSeparatorCharIndex == -1)
+                        firstCommandSeparatorCharIndex = j;
+                    if (!inCmt && s.IndexOf(CommandBlockEndChar, j) == j)
+                        break;
+                    j++;
                 }
-                if (!inCmt && s.IndexOf(CodeBlockBegin, j) == j)
+                if (j == s.Length)
                 {
-                    inCmt = true;
-                    j += CodeBlockBegin.Length - 1;
+                    ConsolePrint(s);
+                    return;
                 }
-                if (!inCmt && s.IndexOf(CommandSeparatorChar, j) == j && firstCommandSeparatorCharIndex == -1)
-                    firstCommandSeparatorCharIndex = j;
-                if (!inCmt && s.IndexOf(CommandBlockEndChar, j) == j)
-                    break;
-                j++;
-            }
-            if (j==s.Length)
-            {
-                ConsolePrint(s);
-                return;
-            }
 
-            var cmdtxt = s[i..j];
-            if (firstCommandSeparatorCharIndex > -1)
-                cmdtxt = cmdtxt.Substring(0, firstCommandSeparatorCharIndex-i/*-1*/);
+                var cmdtxt = s[i..j];
+                if (firstCommandSeparatorCharIndex > -1)
+                    cmdtxt = cmdtxt.Substring(0, firstCommandSeparatorCharIndex - i/*-1*/);
 
-            object result = null;
-            if (isAssignation)
-            {
-                if (value == null)
+                object result = null;
+                if (isAssignation)
                 {
-                    var t = cmdtxt.Split(CommandValueAssignationChar);
-                    value = t[1];
+                    if (value == null)
+                    {
+                        var t = cmdtxt.Split(CommandValueAssignationChar);
+                        value = t[1];
+                    }
+                    result = cmd.Value.Value(value);
                 }
-                result = cmd.Value.Value(value);
-            }
-            else
-            {
-                result = cmd.Value.Value(null);
-            }
-            if (result != null)
-                Print(result,false,true);
-
-            if (firstCommandSeparatorCharIndex > -1)
-                s = CommandBlockBeginChar + s.Substring(firstCommandSeparatorCharIndex + 1 /*+ i*/ );
-            else
-            {
-                if (j + 1 < s.Length)
-                    s = s.Substring(j + 1);
                 else
-                    s = string.Empty;
-            }
+                {
+                    result = cmd.Value.Value(null);
+                }
+                if (result != null)
+                    Print(result, false, true);
 
-            if (!string.IsNullOrEmpty(s))
-                ParseTextAndApplyCommands(s, lineBreak);
+                if (firstCommandSeparatorCharIndex > -1)
+                    s = CommandBlockBeginChar + s.Substring(firstCommandSeparatorCharIndex + 1 /*+ i*/ );
+                else
+                {
+                    if (j + 1 < s.Length)
+                        s = s.Substring(j + 1);
+                    else
+                        s = string.Empty;
+                }
+
+                if (!string.IsNullOrEmpty(s))
+                    ParseTextAndApplyCommands(s, lineBreak);
+            }
         }
 
         #endregion

@@ -62,9 +62,12 @@ namespace DotNetConsoleSdk.Component
                 while (true)
                 {
                     Thread.Sleep(UpdateTimerInterval);
-                    BackupCursorPos();
-                    Draw(MustRedrawBackground);
-                    RestoreCursorPos();
+                    lock (ConsoleLock)
+                    {
+                        BackupCursorPos();
+                        Draw(MustRedrawBackground);
+                        RestoreCursorPos();
+                    }
                 }
             }
             catch { }
@@ -72,22 +75,25 @@ namespace DotNetConsoleSdk.Component
 
         public override void Draw(bool drawBackground = true)
         {
-            var redrawUIElementsEnabled = _redrawUIElementsEnabled;
-            _redrawUIElementsEnabled = false;
-            var p = CursorPos;
-            var (x, y, w, h) = GetCoords(X, Y, W, H);
-            BackupCoords(x, y, w, h);
-            var content = Content?.Invoke(this);
-            HideCur();
-            if (drawBackground)
-                //DrawRect(BackgroundColor, X, Y, W, H);
-                DrawRectAt(BackgroundColor, x, y, w, h);
+            lock (ConsoleLock)
+            {
+                var redrawUIElementsEnabled = _redrawUIElementsEnabled;
+                _redrawUIElementsEnabled = false;
+                var p = CursorPos;
+                var (x, y, w, h) = GetCoords(X, Y, W, H);
+                BackupCoords(x, y, w, h);
+                var content = Content?.Invoke(this);
+                HideCur();
+                if (drawBackground)
+                    //DrawRect(BackgroundColor, X, Y, W, H);
+                    DrawRectAt(BackgroundColor, x, y, w, h);
 
-            SetCursorPos(x, y);
-            Print(content);
-            SetCursorPos(p);
-            ShowCur();
-            _redrawUIElementsEnabled = redrawUIElementsEnabled;
+                SetCursorPos(x, y);
+                Print(content);
+                SetCursorPos(p);
+                ShowCur();
+                _redrawUIElementsEnabled = redrawUIElementsEnabled;
+            }
         }
 
         void BackupCoords(int x, int y, int w, int h)
@@ -100,31 +106,37 @@ namespace DotNetConsoleSdk.Component
 
         public override void Erase()
         {
-            var redrawUIElementsEnabled = _redrawUIElementsEnabled;
-            _redrawUIElementsEnabled = false;
+            lock (ConsoleLock)
+            {
+                var redrawUIElementsEnabled = _redrawUIElementsEnabled;
+                _redrawUIElementsEnabled = false;
 #if dbg
             OutputTo("./trace.txt");
             Println($"erase");
             OutputTo();
 #endif
-            DrawRect(Console.BackgroundColor, ActualX, ActualY, ActualWidth, ActualHeight);
-            _redrawUIElementsEnabled = redrawUIElementsEnabled;
+                DrawRect(Console.BackgroundColor, ActualX, ActualY, ActualWidth, ActualHeight);
+                _redrawUIElementsEnabled = redrawUIElementsEnabled;
+            }
         }
 
         public override void UpdateDraw(
             bool erase = false,
             bool forceDraw = false)
         {
-            if (erase) Erase();
-            List<DrawStrategy> ignorableStrategies = new List<DrawStrategy>()
+            lock (ConsoleLock)
+            {
+                if (erase) Erase();
+                List<DrawStrategy> ignorableStrategies = new List<DrawStrategy>()
             { DrawStrategy.OnPrint , DrawStrategy.OnTime };
-            if (!forceDraw && !ignorableStrategies.Contains(DrawStrategy)) return;
+                if (!forceDraw && !ignorableStrategies.Contains(DrawStrategy)) return;
 #if dbg
             OutputTo("./trace.txt");
             Println($"update draw (force draw={forceDraw} | must redraw background={MustRedrawBackground})");
             OutputTo();
 #endif
-            Draw(/*forceDraw ||*/ MustRedrawBackground);
+                Draw(/*forceDraw ||*/ MustRedrawBackground);
+            }
         }
     }
 }
