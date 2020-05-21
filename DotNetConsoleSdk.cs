@@ -732,7 +732,7 @@ namespace DotNetConsoleSdk
                                             SetCursorLeft(beginOfLineCurPos.X);
                                             r.Clear();
                                             r.Append(h);
-                                            Print(h);
+                                            ConsolePrint(h);
                                             ShowCur();
                                         }
                                     }
@@ -749,7 +749,7 @@ namespace DotNetConsoleSdk
                                             SetCursorLeft(beginOfLineCurPos.X);
                                             r.Clear();
                                             r.Append(fh);
-                                            Print(fh);
+                                            ConsolePrint(fh);
                                             ShowCur();
                                         }
                                     }
