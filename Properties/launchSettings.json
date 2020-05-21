@@ -2,7 +2,7 @@
   "profiles": {
     "dotnet-console-sdk": {
       "commandName": "Project",
-      "commandLineArgs": "\"(exec=[[!--1+2--]],inf)\""
+      "commandLineArgs": "\"(f=green)ceci est la date et l'heure: (br,f=red,b=yellow,exec=System.DateTime.Now,br)\""
     }
   }
 }

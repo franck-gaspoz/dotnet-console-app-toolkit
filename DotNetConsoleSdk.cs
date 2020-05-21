@@ -292,6 +292,7 @@ namespace DotNetConsoleSdk
             }
             catch (CompilationErrorException ex)
             {
+                LogError($"{csharpText}");
                 LogError(string.Join(Environment.NewLine,ex.Diagnostics));
                 return null;
             }
@@ -519,17 +520,17 @@ namespace DotNetConsoleSdk
             if (lineBreak) sc.WriteLine(string.Empty);
         }
 
-        static void Print(object s, bool lineBreak = false, bool parseCommands = true)
+        static void Print(object s, bool lineBreak = false, bool preserveColors = false, bool parseCommands = true)
         {
             var redrawUIElementsEnabled = _redrawUIElementsEnabled;
             _redrawUIElementsEnabled = false;
-            if (SaveColors)
+            if (!preserveColors && SaveColors)
             {
                 BackupBackground();
                 BackupForeground();
             }
 
-            if (EnableColors)
+            if (!preserveColors && EnableColors)
             {
                 sc.ForegroundColor = DefaultForeground;
                 sc.BackgroundColor = DefaultBackground;
@@ -548,7 +549,7 @@ namespace DotNetConsoleSdk
                     ConsolePrint(s.ToString(), false);
             }
 
-            if (SaveColors)
+            if (!preserveColors && SaveColors)
             {
                 RestoreBackground();
                 RestoreForeground();
@@ -646,7 +647,7 @@ namespace DotNetConsoleSdk
 
             var cmdtxt = s[i..j];
             if (firstCommandSeparatorCharIndex > -1)
-                cmdtxt = cmdtxt.Substring(0, firstCommandSeparatorCharIndex-1);
+                cmdtxt = cmdtxt.Substring(0, firstCommandSeparatorCharIndex-i/*-1*/);
 
             object result = null;
             if (isAssignation)
@@ -663,10 +664,10 @@ namespace DotNetConsoleSdk
                 result = cmd.Value.Value(null);
             }
             if (result != null)
-                Print(result);
+                Print(result,false,true);
 
             if (firstCommandSeparatorCharIndex > -1)
-                s = CommandBlockBeginChar + s.Substring(k + i );
+                s = CommandBlockBeginChar + s.Substring(firstCommandSeparatorCharIndex + 1 /*+ i*/ );
             else
             {
                 if (j + 1 < s.Length)

@@ -1,5 +1,4 @@
-﻿using System;
-using static DotNetConsoleSdk.DotNetConsoleSdk;
+﻿using static DotNetConsoleSdk.DotNetConsoleSdk;
 
 namespace DotNetConsoleSdk
 {
@@ -13,7 +12,7 @@ namespace DotNetConsoleSdk
             else
             {
                 Clear();
-                RunSampleCLI();
+                RunSampleCLI("(f=yellow,exec=[[!--System.IO.Path.GetFileName(System.Environment.CurrentDirectory)--]]) > ");
             }
         }
     }
