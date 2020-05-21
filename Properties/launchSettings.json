@@ -1,8 +1,7 @@
 {
   "profiles": {
     "dotnet-console-sdk": {
-      "commandName": "Project",
-      "commandLineArgs": "\"(f=green)ceci est la date et l'heure: (br,f=red,b=yellow,exec=System.DateTime.Now,br)\""
+      "commandName": "Project"
     }
   }
 }

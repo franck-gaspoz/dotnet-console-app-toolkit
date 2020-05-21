@@ -1,19 +1,18 @@
 ﻿#define dbg
 
 using DotNetConsoleSdk.Component;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Threading;
-using sc = System.Console;
-using static DotNetConsoleSdk.Component.UIElement;
-using Microsoft.VisualBasic.CompilerServices;
-using System.Reflection;
 using System.IO;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.Scripting;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
+using static DotNetConsoleSdk.Component.UIElement;
+using sc = System.Console;
 
 namespace DotNetConsoleSdk
 {
@@ -28,7 +27,7 @@ namespace DotNetConsoleSdk
         public static bool SaveColors = true;
         public static bool TraceCommandErrors = true;
         public static bool EnableColors = true;
-        public static bool DumpExceptions = true;
+        public static bool DumpExceptions = false;
         public static ConsoleColor DefaultForeground = ConsoleColor.White;
         public static ConsoleColor DefaultBackground = ConsoleColor.Black;
         public static char CommandBlockBeginChar = '(';
@@ -186,7 +185,7 @@ namespace DotNetConsoleSdk
             { KeyWords.crs+""   , (x) => RelayCall(ShowCur) },
             { KeyWords.crx+"="  , (x) => RelayCall(() => SetCursorLeft(GetCursorX(x))) },
             { KeyWords.cry+"="  , (x) => RelayCall(() => SetCursorTop(GetCursorY(x))) },
-            { KeyWords.exit+""  , (x) => RelayCall(() => Environment.Exit(0)) },
+            { KeyWords.exit+""  , (x) => RelayCall(() => Exit()) },
             { KeyWords.exec+"=" , (x) => ExecCSharp((string)x) }
         };
 
@@ -247,6 +246,15 @@ namespace DotNetConsoleSdk
         }
         public static void HideCur() => Console.CursorVisible = false;
         public static void ShowCur() => Console.CursorVisible = true;
+        public static void Exit(int r=0) => Environment.Exit(r);
+
+        public static void SetWorkArea(int wx,int wy,int width,int height)
+        {
+            var (x, y, w, h) = GetCoords(wx, wy, width, height);
+            FixCoords(ref x, ref y);
+            sc.BufferHeight = h;
+            sc.BufferWidth = w;
+        }
 
         public static void Println(IEnumerable<string> ls) { foreach (var s in ls) Println(s); }
         public static void Print(IEnumerable<string> ls) { foreach (var s in ls) Print(s); }
@@ -398,34 +406,48 @@ namespace DotNetConsoleSdk
 
         public static void RunSampleCLI(string prompt = null)
         {
-            Clear();
-
-            AddFrame((bar) =>
+            try
             {
-                var s = "".PadLeft(bar.ActualWidth, '-');
-                var t = "  dotnet console sdk - sample CLI";
-                var r = $"{Bdarkblue}{Cyan}{s}{Br}";
-                r += $"{Bdarkblue}{Cyan}|{t}{White}{"".PadLeft(bar.ActualWidth - 2 - t.Length)}{Cyan}|{Br}";
-                r += $"{Bdarkblue}{Cyan}{s}{Br}";
-                return r;
-            }, ConsoleColor.DarkBlue, 0, 0, -1, 3,DrawStrategy.OnViewResized, false);
+                Clear();
 
-            SetCursorPos(0, 4);
-            Infos();
-            LineBreak();
+                AddFrame((bar) =>
+                {
+                    var s = "".PadLeft(bar.ActualWidth, '-');
+                    var t = "  dotnet console sdk - sample CLI";
+                    var r = $"{Bdarkblue}{Cyan}{s}{Br}";
+                    r += $"{Bdarkblue}{Cyan}|{t}{White}{"".PadLeft(bar.ActualWidth - 2 - t.Length)}{Cyan}|{Br}";
+                    r += $"{Bdarkblue}{Cyan}{s}{Br}";
+                    return r;
+                }, ConsoleColor.DarkBlue, 0, 0, -1, 3, DrawStrategy.OnViewResized, false);
 
-            AddFrame((bar) =>
+                SetCursorPos(0, 4);
+                SetWorkArea(0, 4, -1, 10);
+                Infos();
+                LineBreak();
+
+                AddFrame((bar) =>
+                {
+                    var r = $"{Bdarkblue}{Green}Cursor pos: {White}X={Cyan}{CursorLeft}{Green},{White}Y={Cyan}{CursorTop}{White}";
+                    r += $" | {Green}bar pos: {White}X={Cyan}{bar.ActualX}{Green},{White}Y={Cyan}{bar.ActualY}{White}";
+                    return r;
+                }, ConsoleColor.DarkBlue);
+
+                var end = false;
+                while (!end)
+                {
+                    try
+                    {
+                        var s = Readln(prompt);
+                        Println(s);
+                    } catch (Exception interpretException)
+                    {
+                        LogError(interpretException);
+                    }
+                }
+            } catch (Exception initException)
             {
-                var r = $"{Bdarkblue}{Green}Cursor pos: {White}X={Cyan}{CursorLeft}{Green},{White}Y={Cyan}{CursorTop}{White}";
-                r += $" | {Green}bar pos: {White}X={Cyan}{bar.ActualX}{Green},{White}Y={Cyan}{bar.ActualY}{White}";
-                return r;
-            }, ConsoleColor.DarkBlue);
-
-            var end = false;
-            while (!end)
-            {
-                var s = Readln(prompt);                
-                Println(s);
+                LogError(initException);
+                Exit();
             }
         }
 

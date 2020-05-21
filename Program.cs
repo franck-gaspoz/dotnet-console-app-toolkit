@@ -12,7 +12,8 @@ namespace DotNetConsoleSdk
             else
             {
                 Clear();
-                RunSampleCLI("(f=yellow,exec=[[!--System.IO.Path.GetFileName(System.Environment.CurrentDirectory)--]]) > ");
+                //RunSampleCLI("(f=yellow,exec=[[!--System.IO.Path.GetFileName(System.Environment.CurrentDirectory)--]]) > ");
+                RunSampleCLI("(f=yellow) > ");
             }
         }
     }
