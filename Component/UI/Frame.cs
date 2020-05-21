@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using static DotNetConsoleSdk.DotNetConsoleSdk;
 
-namespace DotNetConsoleSdk.Component
+namespace DotNetConsoleSdk.Component.UI
 {
     public delegate List<string> GetContentDelegate(Frame x);
 

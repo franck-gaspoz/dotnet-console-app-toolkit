@@ -8,17 +8,20 @@
 
   <ItemGroup>
     <None Remove="csdk.bat" />
+    <None Remove="Temp\this is an embeded temp folder.txt" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="csdk.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Temp\this is an embeded temp folder.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Lib\DynamicCode\" />
-    <Folder Include="Temp\" />
+    <Folder Include="Lib\" />
   </ItemGroup>
 
   <ItemGroup>

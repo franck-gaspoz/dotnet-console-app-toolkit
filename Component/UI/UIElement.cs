@@ -4,7 +4,7 @@ using sc = System.Console;
 using System;
 using static DotNetConsoleSdk.DotNetConsoleSdk;
 
-namespace DotNetConsoleSdk.Component
+namespace DotNetConsoleSdk.Component.UI
 {
     public abstract class UIElement
     {
