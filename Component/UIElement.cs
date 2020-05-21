@@ -8,7 +8,13 @@ namespace DotNetConsoleSdk.Component
 {
     public abstract class UIElement
     {
-        public static bool _redrawUIElementsEnabled = true;
+        /// <summary>
+        /// this setting limit wide of lines (-1) to prevent sys console to automatically put a line break when reaching end of line (case if sys console has the setting 'auto line break when resizing' activated - see doc
+        /// <para>can unset "linebreak when resize" in sys console settings (if any) instead of setting this flag as a workaround</para>
+        /// </summary>
+        public static bool AvoidConsoleAutoLineBreakAtEndOfLine = true;
+
+        public static bool RedrawUIElementsEnabled = true;
 
         protected static int _uiid = 0;
 
@@ -27,7 +33,7 @@ namespace DotNetConsoleSdk.Component
             {
                 if (x == -1) x = sc.WindowLeft + sc.WindowWidth - 1;
                 if (y == -1) y = sc.WindowTop + sc.WindowHeight - 1;
-                if (w == -1) w = sc.WindowWidth;
+                if (w == -1) w = sc.WindowWidth + ((AvoidConsoleAutoLineBreakAtEndOfLine)?-1:0);
                 if (h == -1) h = sc.WindowHeight;
                 return (x, y, w, h);
             }
@@ -72,11 +78,9 @@ namespace DotNetConsoleSdk.Component
             lock (ConsoleLock)
             {
                 if (!ValidCoords(x, y)) return;
-                var p = CursorPos;
                 var s = "".PadLeft(w, ' ');
                 for (int i = 0; i < h; i++)
                     Print($"{Crx(x)}{Cry(y + i)}{B(backgroundColor)}{s}");
-                SetCursorPos(p);
             }
         }
 
@@ -88,11 +92,9 @@ namespace DotNetConsoleSdk.Component
             {
                 var (x, y, w, h) = GetCoords(rx, ry, rw, rh);
                 if (!ValidCoords(x, y)) return;
-                var p = CursorPos;
                 var s = "".PadLeft(w, ' ');
                 for (int i = 0; i < h; i++)
                     Print($"{Crx(x)}{Cry(y + i)}{B(backgroundColor)}{s}");
-                SetCursorPos(p);
             }
         }
 

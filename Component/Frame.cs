@@ -7,10 +7,12 @@ using static DotNetConsoleSdk.DotNetConsoleSdk;
 
 namespace DotNetConsoleSdk.Component
 {
+    public delegate List<string> GetContentDelegate(Frame x);
+
     public class Frame : UIElement
     {
         public readonly int Id;
-        public Func<Frame, string> Content;
+        public GetContentDelegate GetContent;
         public ConsoleColor BackgroundColor;
         public int X = 0;
         public int Y = -1;
@@ -25,7 +27,7 @@ namespace DotNetConsoleSdk.Component
         public Thread _updateThread;
 
         public Frame(
-            Func<Frame, string> content, 
+            GetContentDelegate getContent, 
             ConsoleColor backgroundColor, 
             int x = 0, 
             int y = -1, 
@@ -37,7 +39,7 @@ namespace DotNetConsoleSdk.Component
             : base(drawStrategy)
         {
             Id = _uiid++;
-            Content = content;
+            GetContent = getContent;
             BackgroundColor = backgroundColor;
             X = x;
             Y = y;
@@ -77,22 +79,25 @@ namespace DotNetConsoleSdk.Component
         {
             lock (ConsoleLock)
             {
-                var redrawUIElementsEnabled = _redrawUIElementsEnabled;
-                _redrawUIElementsEnabled = false;
+                var redrawUIElementsEnabled = RedrawUIElementsEnabled;
+                RedrawUIElementsEnabled = false;
                 var p = CursorPos;
                 var (x, y, w, h) = GetCoords(X, Y, W, H);
                 BackupCoords(x, y, w, h);
-                var content = Content?.Invoke(this);
+                var content = GetContent?.Invoke(this);
                 HideCur();
                 if (drawBackground)
-                    //DrawRect(BackgroundColor, X, Y, W, H);
                     DrawRectAt(BackgroundColor, x, y, w, h);
 
-                SetCursorPos(x, y);
-                Print(content);
+                for (int i = 0; i < content.Count; i++)
+                {
+                    SetCursorPos(x, y + i);
+                    Print(content[i]);
+                }
+
                 SetCursorPos(p);
                 ShowCur();
-                _redrawUIElementsEnabled = redrawUIElementsEnabled;
+                RedrawUIElementsEnabled = redrawUIElementsEnabled;
             }
         }
 
@@ -108,15 +113,10 @@ namespace DotNetConsoleSdk.Component
         {
             lock (ConsoleLock)
             {
-                var redrawUIElementsEnabled = _redrawUIElementsEnabled;
-                _redrawUIElementsEnabled = false;
-#if dbg
-            OutputTo("./trace.txt");
-            Println($"erase");
-            OutputTo();
-#endif
+                var redrawUIElementsEnabled = RedrawUIElementsEnabled;
+                RedrawUIElementsEnabled = false;
                 DrawRect(Console.BackgroundColor, ActualX, ActualY, ActualWidth, ActualHeight);
-                _redrawUIElementsEnabled = redrawUIElementsEnabled;
+                RedrawUIElementsEnabled = redrawUIElementsEnabled;
             }
         }
 
@@ -130,11 +130,6 @@ namespace DotNetConsoleSdk.Component
                 List<DrawStrategy> ignorableStrategies = new List<DrawStrategy>()
             { DrawStrategy.OnPrint , DrawStrategy.OnTime };
                 if (!forceDraw && !ignorableStrategies.Contains(DrawStrategy)) return;
-#if dbg
-            OutputTo("./trace.txt");
-            Println($"update draw (force draw={forceDraw} | must redraw background={MustRedrawBackground})");
-            OutputTo();
-#endif
                 Draw(/*forceDraw ||*/ MustRedrawBackground);
             }
         }

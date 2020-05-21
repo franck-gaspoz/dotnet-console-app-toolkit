@@ -458,7 +458,7 @@ namespace DotNetConsoleSdk
                         t = sc.WindowTop;
                         if (w != lastWinWidth || h != lastWinHeight || l != lastWinLeft || t != lastWinTop)
                         {
-                            _redrawUIElementsEnabled = true;
+                            RedrawUIElementsEnabled = true;
                             RedrawUI(true);
                         }
                     }
@@ -482,7 +482,7 @@ namespace DotNetConsoleSdk
         }
 
         public static int AddFrame(
-            Func<Frame, string> printContent,
+            GetContentDelegate getContent,
             ConsoleColor backgroundColor,
             int x = 0,
             int y = -1,
@@ -495,7 +495,7 @@ namespace DotNetConsoleSdk
             lock (ConsoleLock)
             {
                 var o = new Frame(
-                    printContent,
+                    getContent,
                     backgroundColor,
                     x,
                     y,
@@ -528,9 +528,9 @@ namespace DotNetConsoleSdk
         {
             lock (ConsoleLock)
             {
-                if (_redrawUIElementsEnabled && _uielements.Count > 0)
+                if (RedrawUIElementsEnabled && _uielements.Count > 0)
                 {
-                    _redrawUIElementsEnabled = false;
+                    RedrawUIElementsEnabled = false;
                     if (!skipErase && ClearOnViewResized && forceDraw)
                     {
                         Clear();
@@ -540,7 +540,7 @@ namespace DotNetConsoleSdk
 
                     if (forceDraw) ApplyWorkArea();
 
-                    _redrawUIElementsEnabled = true;
+                    RedrawUIElementsEnabled = true;
                 }
             }
         }
@@ -549,7 +549,7 @@ namespace DotNetConsoleSdk
         {
             lock (ConsoleLock)
             {
-                if (_redrawUIElementsEnabled)
+                if (RedrawUIElementsEnabled)
                     foreach (var o in _uielements)
                         o.Value.Erase();
             }
@@ -564,29 +564,31 @@ namespace DotNetConsoleSdk
             try
             {
                 Clear();
+                SetWorkArea(0, 4, -1, 10);
 
                 AddFrame((bar) =>
                 {
                     var s = "".PadLeft(bar.ActualWidth, '-');
                     var t = "  dotnet console sdk - sample CLI";
-                    var r = $"{Bdarkblue}{Cyan}{s}{Br}";
-                    r += $"{Bdarkblue}{Cyan}|{t}{White}{"".PadLeft(Math.Max(0,bar.ActualWidth - 2 - t.Length))}{Cyan}|{Br}";
-                    r += $"{Bdarkblue}{Cyan}{s}{Br}";
-                    return r;
+                    return new List<string> {
+                        $"{Bdarkblue}{Cyan}{s}",
+                        $"{Bdarkblue}{Cyan}|{t}{White}{"".PadLeft(Math.Max(0, bar.ActualWidth - 2 - t.Length))}{Cyan}|",
+                        $"{Bdarkblue}{Cyan}{s}"
+                    };                    
                 }, ConsoleColor.DarkBlue, 0, 0, -1, 3, DrawStrategy.OnViewResizedOnly, false);
-
-                SetCursorPos(0, 4);
-                SetWorkArea(0, 4, -1, 10);
-                Infos();
-                LineBreak();
 
                 AddFrame((bar) =>
                 {
-                    var r = $"{Bdarkblue}{Green}Cursor pos: {White}X={Cyan}{CursorLeft}{Green},{White}Y={Cyan}{CursorTop}{White}";
-                    r += $" | {Green}bar pos: {White}X={Cyan}{bar.ActualX}{Green},{White}Y={Cyan}{bar.ActualY}{White}";
-                    r += $" | {Cyan}{System.DateTime.Now}";
-                    return r;
+                    return new List<string> {
+                        $"{Bdarkblue}{Green}Cursor pos: {White}X={Cyan}{CursorLeft}{Green},{White}Y={Cyan}{CursorTop}{White}"
+                        +$" | {Green}bar pos: {White}X={Cyan}{bar.ActualX}{Green},{White}Y={Cyan}{bar.ActualY}{White}"
+                        +$" | {Cyan}{System.DateTime.Now}"
+                    };
                 }, ConsoleColor.DarkBlue,0,-1,-1,1,DrawStrategy.OnTime,true,500);
+
+                SetCursorPos(0, 4);
+                Infos();
+                LineBreak();
 
                 Read(prompt);
 #if NO
@@ -912,8 +914,8 @@ namespace DotNetConsoleSdk
         {
             lock (ConsoleLock)
             {
-                var redrawUIElementsEnabled = _redrawUIElementsEnabled;
-                _redrawUIElementsEnabled = false;
+                var redrawUIElementsEnabled = RedrawUIElementsEnabled;
+                RedrawUIElementsEnabled = false;
                 if (!preserveColors && SaveColors)
                 {
                     BackupBackground();
@@ -947,7 +949,7 @@ namespace DotNetConsoleSdk
 
                 if (lineBreak) LineBreak();
 
-                _redrawUIElementsEnabled = redrawUIElementsEnabled;
+                RedrawUIElementsEnabled = redrawUIElementsEnabled;
                 RedrawUI(redrawUIElementsEnabled, true);
             }
         }
