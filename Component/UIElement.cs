@@ -33,8 +33,8 @@ namespace DotNetConsoleSdk.Component
 
         public static void FixCoords(ref int x,ref int y)
         {
-            x = Math.Max(0, Math.Min(x,Console.BufferWidth-1));
-            y = Math.Max(0, Math.Min(y,Console.BufferHeight-1));
+            x = Math.Max(0, Math.Min(x, Console.BufferWidth - 1));
+            y = Math.Max(0, Math.Min(y, Console.BufferHeight - 1));
         }
 
         public static int FixX(int x) => Math.Max(0, Math.Min(x, Console.BufferWidth - 1));

@@ -43,6 +43,7 @@ namespace DotNetConsoleSdk
         static ConsoleColor _backgroundBackup = ConsoleColor.Black;
         static ConsoleColor _foregroundBackup = ConsoleColor.White;
         static readonly string[] _crlf = { Environment.NewLine };
+        static Rectangle _workArea = Rectangle.Empty;
 
         static Thread _watcherThread;
         static Dictionary<int, UIElement> _uielements = new Dictionary<int, UIElement>();
@@ -172,7 +173,7 @@ namespace DotNetConsoleSdk
             { KeyWords.bkb+""   , (x) => RelayCall(BackupBackground) },
             { KeyWords.rsf+""   , (x) => RelayCall(RestoreForeground) },
             { KeyWords.rsb+""   , (x) => RelayCall(RestoreBackground) },
-            { KeyWords.cl+""    , (x) => RelayCall(Clear) },
+            { KeyWords.cl+""    , (x) => RelayCall(() => Clear()) },
             { KeyWords.f+"="    , (x) => RelayCall(() => SetForeground( ParseColor(x))) },
             { KeyWords.b+"="    , (x) => RelayCall(() => SetBackground( ParseColor(x))) },
             { KeyWords.df+"="   , (x) => RelayCall(() => SetDefaultForeground( ParseColor(x))) },
@@ -202,12 +203,12 @@ namespace DotNetConsoleSdk
         public static void Clear()
         {
             sc.Clear();
-            RedrawUIElements();
+            RedrawUI();
         }
         public static void LineBreak()
         {
             ConsolePrint(string.Empty, true);
-            RedrawUIElements();
+            RedrawUI();
         }
         public static void Infos()
         {
@@ -252,8 +253,17 @@ namespace DotNetConsoleSdk
         {
             var (x, y, w, h) = GetCoords(wx, wy, width, height);
             FixCoords(ref x, ref y);
-            sc.BufferHeight = h;
-            sc.BufferWidth = w;
+            _workArea = new Rectangle(x, y, w, h);
+            ApplyWorkArea();
+        }
+        static void ApplyWorkArea()
+        {
+            if (_workArea.IsEmpty) return;
+            try
+            {
+                sc.BufferWidth = sc.WindowWidth;
+                sc.BufferHeight = sc.WindowHeight;
+            } catch (Exception) { }
         }
 
         public static void Println(IEnumerable<string> ls) { foreach (var s in ls) Println(s); }
@@ -326,37 +336,55 @@ namespace DotNetConsoleSdk
 
         #region UI elements methods
 
-        public static void RunUIElementWatcher()
+        static void RunUIElementWatcher()
         {
             if (_watcherThread != null)
                 return;
+
+            _watcherThread = new Thread(WatcherThreadImpl)
+            {
+                Name = "console tool watcher"
+            };
+            _watcherThread.Start();
+        }
+
+        static void WatcherThreadImpl()
+        {
             int lastWinHeight = Console.WindowHeight;
             int lastWinWidth = Console.WindowWidth;
             int lastWinTop = Console.WindowTop;
             int lastWinLeft = Console.WindowLeft;
-            _watcherThread = new Thread(() =>
+            bool interrupted = false;
+            try
             {
-                try
+                while (true)
                 {
-                    while (true)
+                    var h = Console.WindowHeight;
+                    var w = Console.WindowWidth;
+                    var l = Console.WindowLeft;
+                    var t = Console.WindowTop;
+                    if (w != lastWinWidth || h != lastWinHeight || l != lastWinLeft || t != lastWinTop)
                     {
-                        var h = Console.WindowHeight;
-                        var w = Console.WindowWidth;
-                        var l = Console.WindowLeft;
-                        var t = Console.WindowTop;
-                        if (w != lastWinWidth || h != lastWinHeight || l != lastWinLeft || t != lastWinTop)
-                            RedrawUIElements(true);
-                        lastWinHeight = h;
-                        lastWinWidth = w;
-                        lastWinLeft = l;
-                        lastWinTop = t;
-                        Thread.Sleep(500);
+                        _redrawUIElementsEnabled = true;
+                        RedrawUI(true);
                     }
+                    lastWinHeight = h;
+                    lastWinWidth = w;
+                    lastWinLeft = l;
+                    lastWinTop = t;
+                    Thread.Sleep(500);
                 }
-                catch (ThreadInterruptedException) { }
-            });
-            _watcherThread.Name = "console tool watcher";
-            _watcherThread.Start();
+            }
+            catch (ThreadInterruptedException inex) { interrupted = true;  }
+            catch (Exception ex)
+            {
+                LogError(ex);
+            }
+            if (!interrupted)
+            {
+                _watcherThread = null;
+                RunUIElementWatcher();
+            }
         }
 
         public static int AddFrame(Func<Frame,string> printContent, ConsoleColor backgroundColor, int x = 0, int y = -1, int w = -1, int h = 1, DrawStrategy drawStrategy = DrawStrategy.OnViewResized, bool mustRedrawBackground = true)
@@ -378,18 +406,19 @@ namespace DotNetConsoleSdk
             return false;
         }
 
-        static void RedrawUIElements(bool forceDraw = false)
+        static void RedrawUI(bool forceDraw = false,bool skipErase = false)
         {
             if (_redrawUIElementsEnabled && _uielements.Count>0)
             {
                 _redrawUIElementsEnabled = false;
-                if (ClearOnViewResized && forceDraw)
+                if (!skipErase && ClearOnViewResized && forceDraw)
                 {
                     Clear();
                 }
                 foreach (var o in _uielements)
                     o.Value.UpdateDraw(forceDraw & !ClearOnViewResized,forceDraw);
                 _redrawUIElementsEnabled = true;
+                ApplyWorkArea();
             }
         }
 
@@ -415,7 +444,7 @@ namespace DotNetConsoleSdk
                     var s = "".PadLeft(bar.ActualWidth, '-');
                     var t = "  dotnet console sdk - sample CLI";
                     var r = $"{Bdarkblue}{Cyan}{s}{Br}";
-                    r += $"{Bdarkblue}{Cyan}|{t}{White}{"".PadLeft(bar.ActualWidth - 2 - t.Length)}{Cyan}|{Br}";
+                    r += $"{Bdarkblue}{Cyan}|{t}{White}{"".PadLeft(Math.Max(0,bar.ActualWidth - 2 - t.Length))}{Cyan}|{Br}";
                     r += $"{Bdarkblue}{Cyan}{s}{Br}";
                     return r;
                 }, ConsoleColor.DarkBlue, 0, 0, -1, 3, DrawStrategy.OnViewResized, false);
@@ -580,7 +609,7 @@ namespace DotNetConsoleSdk
             if (lineBreak) LineBreak();
 
             _redrawUIElementsEnabled = redrawUIElementsEnabled;
-            RedrawUIElements();
+            RedrawUI(redrawUIElementsEnabled,true);
         }
 
         static void ParseTextAndApplyCommands(string s, bool lineBreak = false, string tmps = "")
