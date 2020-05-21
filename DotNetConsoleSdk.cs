@@ -389,9 +389,27 @@ namespace DotNetConsoleSdk
             }
         }
 
-        public static int AddFrame(Func<Frame,string> printContent, ConsoleColor backgroundColor, int x = 0, int y = -1, int w = -1, int h = 1, DrawStrategy drawStrategy = DrawStrategy.OnViewResized, bool mustRedrawBackground = true)
+        public static int AddFrame(
+            Func<Frame, string> printContent,
+            ConsoleColor backgroundColor,
+            int x = 0,
+            int y = -1,
+            int w = -1,
+            int h = 1,
+            DrawStrategy drawStrategy = DrawStrategy.OnViewResizedOnly,
+            bool mustRedrawBackground = true,
+            int updateTimerInterval=0)
         {
-            var o = new Frame(printContent, backgroundColor, x, y, w, h, drawStrategy, mustRedrawBackground);
+            var o = new Frame(
+                printContent,
+                backgroundColor,
+                x,
+                y,
+                w,
+                h,
+                drawStrategy,
+                mustRedrawBackground,
+                updateTimerInterval);
             o.Draw();
             _uielements.Add(o.Id,o);            
             RunUIElementWatcher();
@@ -412,7 +430,6 @@ namespace DotNetConsoleSdk
         {
             if (_redrawUIElementsEnabled && _uielements.Count>0)
             {
-                ApplyWorkArea();
                 _redrawUIElementsEnabled = false;
                 if (!skipErase && ClearOnViewResized && forceDraw)
                 {
@@ -420,6 +437,9 @@ namespace DotNetConsoleSdk
                 }
                 foreach (var o in _uielements)
                     o.Value.UpdateDraw(forceDraw & !ClearOnViewResized,forceDraw);
+
+                if (forceDraw) ApplyWorkArea();
+
                 _redrawUIElementsEnabled = true;
             }
         }
@@ -449,7 +469,7 @@ namespace DotNetConsoleSdk
                     r += $"{Bdarkblue}{Cyan}|{t}{White}{"".PadLeft(Math.Max(0,bar.ActualWidth - 2 - t.Length))}{Cyan}|{Br}";
                     r += $"{Bdarkblue}{Cyan}{s}{Br}";
                     return r;
-                }, ConsoleColor.DarkBlue, 0, 0, -1, 3, DrawStrategy.OnViewResized, false);
+                }, ConsoleColor.DarkBlue, 0, 0, -1, 3, DrawStrategy.OnViewResizedOnly, false);
 
                 SetCursorPos(0, 4);
                 SetWorkArea(0, 4, -1, 10);
@@ -460,8 +480,9 @@ namespace DotNetConsoleSdk
                 {
                     var r = $"{Bdarkblue}{Green}Cursor pos: {White}X={Cyan}{CursorLeft}{Green},{White}Y={Cyan}{CursorTop}{White}";
                     r += $" | {Green}bar pos: {White}X={Cyan}{bar.ActualX}{Green},{White}Y={Cyan}{bar.ActualY}{White}";
+                    r += $" | {Cyan}{System.DateTime.Now}";
                     return r;
-                }, ConsoleColor.DarkBlue);
+                }, ConsoleColor.DarkBlue,0,-1,-1,1,DrawStrategy.OnPrint,true,500);
 
                 var end = false;
                 while (!end)

@@ -41,27 +41,24 @@ namespace DotNetConsoleSdk.Component
 
         public static int FixY(int y) => y = Math.Max(0, Math.Min(y, Console.BufferHeight - 1));
 
-        public static void DrawRect(ConsoleColor backgroundColor, int rx = 0, int ry = -1, int rw = -1, int rh = -1)
+        public static void DrawRectAt(ConsoleColor backgroundColor,
+            int x, int y , int w , int h)
         {
+            if (!ValidCoords(x, y)) return;
             var p = CursorPos;
+            var s = "".PadLeft(w, ' ');
+            for (int i = 0; i < h; i++)
+                Print($"{Crx(x)}{Cry(y + i)}{B(backgroundColor)}{s}");
+            SetCursorPos(p);
+        }
+
+        public static void DrawRect(
+            ConsoleColor backgroundColor, 
+            int rx = 0, int ry = -1, int rw = -1, int rh = -1)
+        {
             var (x, y, w, h) = GetCoords(rx, ry, rw, rh);
-            if (!ValidCoords(x, y))
-            {
-#if dbg
-                OutputTo("./trace.txt");
-                Println($"skip draw rect (unvalid coords)");
-                OutputTo();
-#endif
-                return;
-            }
-
-#if dbg
-            OutputTo("./trace.txt");
-            Infos();
-            Println($"x={x} y={y} w={w} h={h}");
-            OutputTo();
-#endif
-
+            if (!ValidCoords(x, y)) return;
+            var p = CursorPos;
             var s = "".PadLeft(w, ' ');
             for (int i = 0; i < h; i++)
                 Print($"{Crx(x)}{Cry(y + i)}{B(backgroundColor)}{s}");
