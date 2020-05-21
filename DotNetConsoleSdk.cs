@@ -46,7 +46,7 @@ namespace DotNetConsoleSdk
         static Rectangle _workArea = Rectangle.Empty;
 
         static Thread _watcherThread;
-        static Dictionary<int, UIElement> _uielements = new Dictionary<int, UIElement>();
+        static readonly Dictionary<int, UIElement> _uielements = new Dictionary<int, UIElement>();
 
         static string[] _args;
         static TextWriter _outputWriter;
@@ -55,7 +55,7 @@ namespace DotNetConsoleSdk
         static StreamWriter _echoStreamWriter;
         static FileStream _echoFileStream;
 
-        static Dictionary<string, Script<object>> _csscripts = new Dictionary<string, Script<object>>();
+        static readonly Dictionary<string, Script<object>> _csscripts = new Dictionary<string, Script<object>>();
 
         public static object ConsoleLock = new object();
 
@@ -718,7 +718,9 @@ namespace DotNetConsoleSdk
                             k = s.IndexOf(CodeBlockEnd, firstCommandEndIndex);
                             if (k > -1)
                             {
+#pragma warning disable IDE0057 // Utiliser l'opérateur de plage
                                 value = s.Substring(firstCommandEndIndex, k - firstCommandEndIndex);
+#pragma warning restore IDE0057 // Utiliser l'opérateur de plage
                                 k += CodeBlockEnd.Length;
                             }
                             else

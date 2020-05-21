@@ -16,7 +16,7 @@ namespace DotNetConsoleSdk.Component.Shell
         #region attributes
 
         static Thread _readerThread;
-        static List<string> _history = new List<string>();
+        static readonly List<string> _history = new List<string>();
         static int _historyIndex = -1;
 
         #endregion
@@ -32,7 +32,11 @@ namespace DotNetConsoleSdk.Component.Shell
                 var t = "  dotnet-console-sdk - Shell Sdk";
                 return new List<string> {
                         $"{Bdarkblue}{Cyan}{s}",
+#pragma warning disable IDE0071 // Simplifier l’interpolation
+#pragma warning disable IDE0071WithoutSuggestion // Simplifier l’interpolation
                         $"{Bdarkblue}{Cyan}|{t}{White}{"".PadLeft(Math.Max(0, bar.ActualWidth - 2 - t.Length))}{Cyan}|",
+#pragma warning restore IDE0071WithoutSuggestion // Simplifier l’interpolation
+#pragma warning restore IDE0071 // Simplifier l’interpolation
                         $"{Bdarkblue}{Cyan}{s}"
                     };
             }, ConsoleColor.DarkBlue, 0, 0, -1, 3, DrawStrategy.OnViewResizedOnly, false);
