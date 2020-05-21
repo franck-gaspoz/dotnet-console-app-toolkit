@@ -695,8 +695,28 @@ namespace DotNetConsoleSdk
                                             if (x0<txt.Length)
                                                 Print(txt.Substring(x0));
                                             Print(" ");
-                                            ShowCur();
                                             SetCursorLeft(x - 1);
+                                            ShowCur();
+                                        }
+                                    }
+                                    break;
+                                case ConsoleKey.Delete:
+                                    lock (ConsoleLock)
+                                    {
+                                        var x = CursorLeft;
+                                        var txt = r.ToString();
+                                        var x0 = x - beginOfLineCurPos.X;
+                                        if (x0 < txt.Length)
+                                        {
+                                            r.Remove(x0, 1);
+                                            txt = r.ToString();
+                                            HideCur();
+                                            if (x0 < txt.Length)
+                                                Print(txt.Substring(x0)+" ");
+                                            else
+                                                Print(" ");
+                                            SetCursorLeft(x);
+                                            ShowCur();
                                         }
                                     }
                                     break;
