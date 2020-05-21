@@ -629,6 +629,7 @@ namespace DotNetConsoleSdk
 
                             // handle special caracters - edition mode, movement
                             var printed = false;
+                            string printedStr="";
                             switch (c.Key)
                             {
                                 case ConsoleKey.Enter:
@@ -643,6 +644,25 @@ namespace DotNetConsoleSdk
                                         SetCursorPos(beginOfLineCurPos);
                                         ShowCur();
                                         r.Clear();
+                                    }
+                                    break;
+                                case ConsoleKey.Home:
+                                    lock (ConsoleLock)
+                                    {
+                                        SetCursorLeft(beginOfLineCurPos.X);
+                                    }
+                                    break;
+                                case ConsoleKey.End:
+                                    lock (ConsoleLock)
+                                    {
+                                        SetCursorLeft(r.ToString().Length + beginOfLineCurPos.X);
+                                    }
+                                    break;
+                                case ConsoleKey.Tab:
+                                    lock (ConsoleLock)
+                                    {
+                                        printedStr = "".PadLeft(7,' ');
+                                        printed = true;
                                     }
                                     break;
                                 case ConsoleKey.LeftArrow:
@@ -715,6 +735,7 @@ namespace DotNetConsoleSdk
                                     }
                                     break;
                                 default:
+                                    printedStr = c.KeyChar+"";
                                     printed = true;
                                     break;
                             }
@@ -733,17 +754,17 @@ namespace DotNetConsoleSdk
                                     {
                                         var substr = txt.Substring(x);
                                         HideCur();
-                                        SetCursorLeft(x0 + 1);
+                                        SetCursorLeft(x0 + printedStr.Length);
                                         Print(substr);
                                         SetCursorLeft(x0);
                                         ShowCur();
                                     }
-                                    ConsolePrint(c.KeyChar + "", false);
+                                    ConsolePrint(printedStr, false);
                                 }
                                 if (!insert)
-                                    r.Append(c.KeyChar);
+                                    r.Append(printedStr);
                                 else
-                                    r.Insert(x,c.KeyChar);
+                                    r.Insert(x, printedStr);
                             }
 
                             if (eol) break;
