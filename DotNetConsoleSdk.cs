@@ -10,6 +10,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using static DotNetConsoleSdk.Component.UIElement;
 using sc = System.Console;
@@ -58,6 +59,10 @@ namespace DotNetConsoleSdk
         static Dictionary<string, Script<object>> _csscripts = new Dictionary<string, Script<object>>();
 
         public static object ConsoleLock = new object();
+        static Thread _readerThread;
+
+        static List<string> _history = new List<string>();
+        static int _historyIndex = -1;
 
         #endregion
 
@@ -370,6 +375,34 @@ namespace DotNetConsoleSdk
             }
         }
 
+        public static string GetBackwardHistory()
+        {
+            if (_historyIndex < 0)
+                _historyIndex = _history.Count;
+            if (_historyIndex>=1)
+                _historyIndex--;
+            System.Diagnostics.Debug.WriteLine($"{_historyIndex}");
+            return (_historyIndex < 0 || _history.Count==0 || _historyIndex >= _history.Count) ? null : _history[_historyIndex];
+        }
+
+        public static string GetForwardHistory()
+        {
+            if (_historyIndex < 0 || _historyIndex >= _history.Count)
+                _historyIndex = _history.Count;
+            if (_historyIndex<_history.Count-1) _historyIndex++;
+
+            System.Diagnostics.Debug.WriteLine($"{_historyIndex}");
+            return (_historyIndex < 0 || _history.Count == 0 || _historyIndex >= _history.Count) ? null : _history[_historyIndex];
+        }
+
+        public static void HistoryAppend(string s)
+        {
+            _history.Add(s);
+            _historyIndex = _history.Count - 1;
+        }
+
+        public static void ClearHistory() => _history.Clear();
+
         #endregion
 
         #region data to text operations
@@ -555,23 +588,183 @@ namespace DotNetConsoleSdk
                     return r;
                 }, ConsoleColor.DarkBlue,0,-1,-1,1,DrawStrategy.OnTime,true,500);
 
+                Read(prompt);
+#if NO
                 var end = false;
                 while (!end)
                 {
                     try
                     {
-                        var s = Readln(prompt);
-                        Println(s);
+                        /*var s =*/ 
+                        //Println(s);
                     } catch (Exception interpretException)
                     {
                         LogError(interpretException);
                     }
                 }
+#endif
             } catch (Exception initException)
             {
                 LogError(initException);
                 Exit();
             }
+        }
+
+        public static void Read(string prompt = "")
+        {            
+            _readerThread = new Thread(() =>
+            {
+                try
+                {
+                    while (true)
+                    {
+                        var r = new StringBuilder();
+                        Print(prompt);
+                        var beginOfLineCurPos = CursorPos;
+                        var eol = false;
+                        while (!eol)
+                        { 
+                            var c = sc.ReadKey(true);
+                            System.Diagnostics.Debug.WriteLine($"{c.KeyChar}={c.Key}");
+
+                            // handle special caracters - edition mode, movement
+                            var printed = false;
+                            switch (c.Key)
+                            {
+                                case ConsoleKey.Enter:
+                                    eol = true;
+                                    break;
+                                case ConsoleKey.Escape:
+                                    lock (ConsoleLock)
+                                    {
+                                        HideCur();
+                                        SetCursorPos(beginOfLineCurPos);                                        
+                                        Print("".PadLeft(r.ToString().Length));
+                                        SetCursorPos(beginOfLineCurPos);
+                                        ShowCur();
+                                        r.Clear();
+                                    }
+                                    break;
+                                case ConsoleKey.LeftArrow:
+                                    lock (ConsoleLock)
+                                    {
+                                        var x = CursorLeft;
+                                        if (x > beginOfLineCurPos.X)
+                                            SetCursorLeft(x - 1);
+                                    }
+                                    break;
+                                case ConsoleKey.RightArrow:
+                                    lock (ConsoleLock)
+                                    {
+                                        var x = CursorLeft;
+                                        if (x < beginOfLineCurPos.X + r.ToString().Length)
+                                            SetCursorLeft(x + 1);
+                                    }
+                                    break;
+                                case ConsoleKey.Backspace:
+                                    lock (ConsoleLock)
+                                    {
+                                        var x = CursorLeft;
+                                        if (x > beginOfLineCurPos.X)
+                                        {
+                                            var x0 = x - beginOfLineCurPos.X -1;
+                                            r.Remove(x0, 1);
+                                            HideCur();
+                                            SetCursorLeft(x - 1);
+                                            var txt = r.ToString();
+                                            if (x0<txt.Length)
+                                                Print(txt.Substring(x0));
+                                            Print(" ");
+                                            ShowCur();
+                                            SetCursorLeft(x - 1);
+                                        }
+                                    }
+                                    break;
+                                case ConsoleKey.UpArrow:
+                                    var h = GetBackwardHistory();
+                                    if (h!=null)
+                                    {
+                                        lock (ConsoleLock)
+                                        {
+                                            HideCur();
+                                            SetCursorLeft(beginOfLineCurPos.X);
+                                            Print("".PadLeft(r.ToString().Length,' '));
+                                            SetCursorLeft(beginOfLineCurPos.X);
+                                            r.Clear();
+                                            r.Append(h);
+                                            Print(h);
+                                            ShowCur();
+                                        }
+                                    }
+                                    break;
+                                case ConsoleKey.DownArrow:
+                                    var fh = GetForwardHistory();
+                                    if (fh != null)
+                                    {
+                                        lock (ConsoleLock)
+                                        {
+                                            HideCur();
+                                            SetCursorLeft(beginOfLineCurPos.X);
+                                            Print("".PadLeft(r.ToString().Length, ' '));
+                                            SetCursorLeft(beginOfLineCurPos.X);
+                                            r.Clear();
+                                            r.Append(fh);
+                                            Print(fh);
+                                            ShowCur();
+                                        }
+                                    }
+                                    break;
+                                default:
+                                    printed = true;
+                                    break;
+                            }
+
+                            if (printed)
+                            {
+                                int x = 0; 
+                                var insert = false;
+                                lock (ConsoleLock)
+                                {
+                                    var x0 = CursorLeft;
+                                    x = x0 - beginOfLineCurPos.X;
+                                    var txt = r.ToString();
+                                    insert = x - txt.Length < 0;
+                                    if (insert)
+                                    {
+                                        var substr = txt.Substring(x);
+                                        HideCur();
+                                        SetCursorLeft(x0 + 1);
+                                        Print(substr);
+                                        SetCursorLeft(x0);
+                                        ShowCur();
+                                    }
+                                    ConsolePrint(c.KeyChar + "", false);
+                                }
+                                if (!insert)
+                                    r.Append(c.KeyChar);
+                                else
+                                    r.Insert(x,c.KeyChar);
+                            }
+
+                            if (eol) break;
+                        }
+
+                        // process input
+                        var s = r.ToString();
+                        lock (ConsoleLock)
+                        {
+                            LineBreak();
+                            Println(s);
+                        }
+                        HistoryAppend(s);
+                    }
+                }
+                catch { }
+            })
+            {
+                Name = "input stream reader"
+            };
+            _readerThread.Start();
         }
 
         public static string Arg(int n)
