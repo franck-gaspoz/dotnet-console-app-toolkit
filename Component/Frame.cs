@@ -91,7 +91,7 @@ namespace DotNetConsoleSdk.Component
             Println($"update draw (force draw={forceDraw} | must redraw background={MustRedrawBackground})");
             OutputTo();
 #endif
-            Draw(forceDraw || MustRedrawBackground);
+            Draw(/*forceDraw ||*/ MustRedrawBackground);
         }
     }
 }

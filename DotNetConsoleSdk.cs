@@ -261,6 +261,8 @@ namespace DotNetConsoleSdk
             if (_workArea.IsEmpty) return;
             try
             {
+                sc.WindowTop = 0;
+                sc.WindowLeft = 0;
                 sc.BufferWidth = sc.WindowWidth;
                 sc.BufferHeight = sc.WindowHeight;
             } catch (Exception) { }
@@ -410,6 +412,7 @@ namespace DotNetConsoleSdk
         {
             if (_redrawUIElementsEnabled && _uielements.Count>0)
             {
+                ApplyWorkArea();
                 _redrawUIElementsEnabled = false;
                 if (!skipErase && ClearOnViewResized && forceDraw)
                 {
@@ -418,7 +421,6 @@ namespace DotNetConsoleSdk
                 foreach (var o in _uielements)
                     o.Value.UpdateDraw(forceDraw & !ClearOnViewResized,forceDraw);
                 _redrawUIElementsEnabled = true;
-                ApplyWorkArea();
             }
         }
 
