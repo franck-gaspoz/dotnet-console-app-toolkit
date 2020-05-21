@@ -469,7 +469,7 @@ namespace DotNetConsoleSdk
                     Thread.Sleep(500);
                 }
             }
-            catch (ThreadInterruptedException inex) { interrupted = true;  }
+            catch (ThreadInterruptedException) { interrupted = true;  }
             catch (Exception ex)
             {
                 LogError(ex);
@@ -584,7 +584,7 @@ namespace DotNetConsoleSdk
                         +$" | {Green}bar pos: {White}X={Cyan}{bar.ActualX}{Green},{White}Y={Cyan}{bar.ActualY}{White}"
                         +$" | {Cyan}{System.DateTime.Now}"
                     };
-                }, ConsoleColor.DarkBlue,0,-1,-1,1,DrawStrategy.OnTime,true,500);
+                }, ConsoleColor.DarkBlue,0,-1,-1,1,DrawStrategy.OnTime,true,1000);
 
                 SetCursorPos(0, 4);
                 Infos();
