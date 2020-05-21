@@ -23,6 +23,8 @@ namespace DotNetConsoleSdk
     {
         #region attributes
 
+        public static int UIWatcherThreadDelay = 500;
+        public static ViewResizeStrategy ViewResizeStrategy = ViewResizeStrategy.FitViewSize;
         public static bool ClearOnViewResized = true;
         public static bool SaveColors = true;
         public static bool TraceCommandErrors = true;
@@ -425,15 +427,18 @@ namespace DotNetConsoleSdk
                         t = sc.WindowTop;
                         if (w != lastWinWidth || h != lastWinHeight || l != lastWinLeft || t != lastWinTop)
                         {
-                            RedrawUIElementsEnabled = true;
-                            RedrawUI(true);
+                            if (ViewResizeStrategy != ViewResizeStrategy.HostTerminalDefault)
+                            {
+                                RedrawUIElementsEnabled = true;
+                                RedrawUI(true);
+                            }
                         }
                     }
                     lastWinHeight = h;
                     lastWinWidth = w;
                     lastWinLeft = l;
                     lastWinTop = t;
-                    Thread.Sleep(500);
+                    Thread.Sleep(UIWatcherThreadDelay);
                 }
             }
             catch (ThreadInterruptedException) { interrupted = true;  }
@@ -498,12 +503,14 @@ namespace DotNetConsoleSdk
                 if (RedrawUIElementsEnabled && _uielements.Count > 0)
                 {
                     RedrawUIElementsEnabled = false;
-                    if (!skipErase && ClearOnViewResized && forceDraw)
+
+                    if (ViewResizeStrategy != ViewResizeStrategy.FixedViewSize)
                     {
-                        Clear();
+                        if (!skipErase && ClearOnViewResized && forceDraw)
+                            Clear();
+                        foreach (var o in _uielements)
+                            o.Value.UpdateDraw(forceDraw & !ClearOnViewResized, forceDraw);
                     }
-                    foreach (var o in _uielements)
-                        o.Value.UpdateDraw(forceDraw & !ClearOnViewResized, forceDraw);
 
                     if (forceDraw) ApplyWorkArea();
 
@@ -718,9 +725,9 @@ namespace DotNetConsoleSdk
                             k = s.IndexOf(CodeBlockEnd, firstCommandEndIndex);
                             if (k > -1)
                             {
-#pragma warning disable IDE0057 // Utiliser l'opérateur de plage
+#pragma warning disable IDE0057
                                 value = s.Substring(firstCommandEndIndex, k - firstCommandEndIndex);
-#pragma warning restore IDE0057 // Utiliser l'opérateur de plage
+#pragma warning restore IDE0057
                                 k += CodeBlockEnd.Length;
                             }
                             else
