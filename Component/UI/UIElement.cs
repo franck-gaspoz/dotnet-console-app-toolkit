@@ -98,8 +98,8 @@ namespace DotNetConsoleSdk.Component.UI
             }
         }
 
-        public abstract void Draw(bool drawBackground = true);
-        public abstract void UpdateDraw(bool erase = false,bool forceDraw=false);
+        public abstract void Draw(bool viewSizeChanged = true);
+        public abstract void UpdateDraw(bool viewSizeChanged = false);
         public abstract void Erase();
     }
 }

@@ -13,7 +13,7 @@ namespace DotNetConsoleSdk
             else
             {
                 //RunSampleCLI("(f=yellow,exec=[[!--System.IO.Path.GetFileName(System.Environment.CurrentDirectory)--]]) > ");
-                ShellSdk.RunShell("(f=yellow) > ");
+                ShellSdk.RunShell("(f=yellow)> ");
             }
         }
     }

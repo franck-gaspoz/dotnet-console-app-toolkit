@@ -13,7 +13,7 @@
         FitViewSize,
 
         /// <summary>
-        /// UI view size is fixed on startup. any changes would let host terminal to add scrollbars or resize content (depending on its own strategy)
+        /// UI view size is fixed on startup. any view size changes would let host terminal to add scrollbars or resize content (depending on its own strategy)
         /// </summary>
         FixedViewSize
     }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net.Http.Headers;
 using System.Threading;
 using static DotNetConsoleSdk.DotNetConsoleSdk;
 
@@ -14,17 +15,27 @@ namespace DotNetConsoleSdk.Component.UI
         public readonly int Id;
         public GetContentDelegate GetContent;
         public ConsoleColor BackgroundColor;
-        public int X = 0;
-        public int Y = -1;
-        public int W = -1;
-        public int H = -1;
-        public int ActualX = 0;
-        public int ActualY = -1;
-        public int ActualWidth = -1;
-        public int ActualHeight = -1;
-        public bool MustRedrawBackground = false;
+
+        public int X { get; protected set; }
+        public int Y { get; protected set; }
+        public int W { get; protected set; }
+        public int H { get; protected set; }
+
+        public int ActualX { get; protected set; } = -1;
+        public int ActualY { get; protected set; } = -1;
+        public int ActualWidth { get; protected set; } = -1;
+        public int ActualHeight { get; protected set; } = -1;
+
+        public int FixedX { get; protected set; } = -1;
+        public int FixedY { get; protected set; } = -1;
+        public int FixedWidth { get; protected set; } = -1;
+        public int FixedHeight { get; protected set; } = -1;
+
+        public bool AlwaysPaintBackground = false;
         public int UpdateTimerInterval = 500;
         public Thread _updateThread;
+
+        protected bool Painted = false;
 
         public Frame(
             GetContentDelegate getContent, 
@@ -45,7 +56,7 @@ namespace DotNetConsoleSdk.Component.UI
             Y = y;
             W = w;
             H = h;
-            MustRedrawBackground = mustRedrawBackground;
+            AlwaysPaintBackground = mustRedrawBackground;
             UpdateTimerInterval = updateTimerInterval;
             if (drawStrategy==DrawStrategy.OnTime)
             {
@@ -67,7 +78,7 @@ namespace DotNetConsoleSdk.Component.UI
                     lock (ConsoleLock)
                     {
                         BackupCursorPos();
-                        Draw(MustRedrawBackground);
+                        Draw(AlwaysPaintBackground);
                         RestoreCursorPos();
                     }
                 }
@@ -75,18 +86,34 @@ namespace DotNetConsoleSdk.Component.UI
             catch { }
         }
 
-        public override void Draw(bool drawBackground = true)
+        (int x,int y,int w,int h) GetCurrentCoords()
+        {
+            var (nx, ny, nw, nh) = GetCoords(X, Y, W, H);
+            if (DotNetConsoleSdk.ViewResizeStrategy == ViewResizeStrategy.FitViewSize)
+                return (nx, ny, nw, nh);
+            if (!Painted)
+            {
+                FixedX = nx;
+                FixedY = ny;
+                FixedWidth = nw;
+                FixedHeight = nh;
+                Painted = true;
+            }
+            return (FixedX, FixedY, FixedWidth, FixedHeight);
+        }
+
+        public override void Draw(bool viewSizeChanged = true)
         {
             lock (ConsoleLock)
             {
                 var redrawUIElementsEnabled = RedrawUIElementsEnabled;
                 RedrawUIElementsEnabled = false;
                 var p = CursorPos;
-                var (x, y, w, h) = GetCoords(X, Y, W, H);
+                var (x, y, w, h) = GetCurrentCoords();
                 BackupCoords(x, y, w, h);
                 var content = GetContent?.Invoke(this);
                 HideCur();
-                if (drawBackground)
+                if (viewSizeChanged || AlwaysPaintBackground)
                     DrawRectAt(BackgroundColor, x, y, w, h);
 
                 for (int i = 0; i < content.Count; i++)
@@ -120,17 +147,16 @@ namespace DotNetConsoleSdk.Component.UI
             }
         }
 
-        public override void UpdateDraw(
-            bool erase = false,
-            bool forceDraw = false)
+        public override void UpdateDraw( bool viewSizeChanged = false)
         {
             lock (ConsoleLock)
             {
-                if (erase) Erase();
+                if (viewSizeChanged && !ClearOnViewResized && DotNetConsoleSdk.ViewResizeStrategy != ViewResizeStrategy.HostTerminalDefault)
+                     Erase();
                 List<DrawStrategy> ignorableStrategies = new List<DrawStrategy>()
-            { DrawStrategy.OnPrint , DrawStrategy.OnTime };
-                if (!forceDraw && !ignorableStrategies.Contains(DrawStrategy)) return;
-                Draw(/*forceDraw ||*/ MustRedrawBackground);
+                    { DrawStrategy.OnPrint , DrawStrategy.OnTime };
+                if (!viewSizeChanged && !ignorableStrategies.Contains(DrawStrategy)) return;
+                Draw(viewSizeChanged);
             }
         }
     }

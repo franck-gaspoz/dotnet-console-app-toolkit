@@ -4,6 +4,8 @@ using DotNetConsoleSdk.Component.UI;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using static DotNetConsoleSdk.DotNetConsoleSdk;
@@ -41,19 +43,27 @@ namespace DotNetConsoleSdk.Component.Shell
                     };
             }, ConsoleColor.DarkBlue, 0, 0, -1, 3, DrawStrategy.OnViewResizedOnly, false);
 
+            string GetCurrentDriveInfo()
+            {
+                var rootDirectory = Path.GetPathRoot(Environment.CurrentDirectory);
+                var di = DriveInfo.GetDrives().Where(x => x.RootDirectory.FullName == rootDirectory).FirstOrDefault();
+                return (di==null)?"?":$"{rootDirectory} {HumanFormatOfSize(di.AvailableFreeSpace,0,"")}/{HumanFormatOfSize(di.TotalSize,0,"")} ({di.DriveFormat})";
+            }
+
             AddFrame((bar) =>
             {
                 return new List<string> {
-                        $"{Bdarkblue} {Green}Cur: {Cyan}{CursorLeft},{CursorTop}{White}"
-                        +$" | {Green}Win: {Cyan}{sc.WindowLeft},{sc.WindowTop}"
+                        $"{Bdarkblue} {Green}cur: {Cyan}{CursorLeft},{CursorTop}{White}"
+                        +$" | {Green}win: {Cyan}{sc.WindowLeft},{sc.WindowTop}"
                         +$",{sc.WindowWidth},{sc.WindowHeight}{White}"
-                        +$" | {(sc.CapsLock?$"{Cyan}Caps":$"{Darkgray}Caps")}{White}"
-                        +$" | {(sc.NumberLock?$"{Cyan}Num":$"{Darkgray}Num")}{White}"
-                        +$" | {Cyan}in={sc.InputEncoding.CodePage}{White}"
-                        +$" | {Cyan}out={sc.OutputEncoding.CodePage}{White}"
+                        +$" | {(sc.CapsLock?$"{Cyan}Caps":$"{Darkgray}Caps")}"
+                        +$",{(sc.NumberLock?$"{Cyan}Num":$"{Darkgray}Num")}{White}"
+                        +$" | {Cyan}in={sc.InputEncoding.CodePage}"
+                        +$",{Cyan}out={sc.OutputEncoding.CodePage}{White}"
+                        +$" | {Green}drive: {Cyan}{GetCurrentDriveInfo()}"
                         +$" | {Cyan}{System.DateTime.Now}{White}"
                     };
-            }, ConsoleColor.DarkBlue, 0, -1, -1, 1, DrawStrategy.OnTime, true, 1000);
+            }, ConsoleColor.DarkBlue, 0, -1, -1, 1, DrawStrategy.OnTime, false, 1000);
 
             SetCursorPos(0, 4);
             Infos();

@@ -216,7 +216,7 @@ namespace DotNetConsoleSdk
             Lock(() =>
             {
                 sc.Clear();
-                RedrawUI();
+                UpdateUI();
             }
             );
         }
@@ -225,7 +225,7 @@ namespace DotNetConsoleSdk
             Lock(() =>
             {
                 ConsolePrint(string.Empty, true);
-                RedrawUI();
+                UpdateUI();
             });
         }
         public static void Infos()
@@ -303,19 +303,22 @@ namespace DotNetConsoleSdk
                 ApplyWorkArea();
             }
         }
-        static void ApplyWorkArea()
+        static void ApplyWorkArea(bool viewSizeChanged=false)
         {
             lock (ConsoleLock)
             {
+                if ( ViewResizeStrategy!=ViewResizeStrategy.HostTerminalDefault &&
+                    (!viewSizeChanged ||
+                    (viewSizeChanged && ViewResizeStrategy==ViewResizeStrategy.FitViewSize)))
+                    try
+                    {
+                        sc.WindowTop = 0;
+                        sc.WindowLeft = 0;
+                        sc.BufferWidth = sc.WindowWidth;
+                        sc.BufferHeight = sc.WindowHeight;
+                    }
+                    catch (Exception) { }
                 if (_workArea.IsEmpty) return;
-                try
-                {
-                    sc.WindowTop = 0;
-                    sc.WindowLeft = 0;
-                    sc.BufferWidth = sc.WindowWidth;
-                    sc.BufferHeight = sc.WindowHeight;
-                }
-                catch (Exception) { }
             }
         }
 
@@ -388,6 +391,36 @@ namespace DotNetConsoleSdk
             return string.Join(',', t.Select(x => DumpAsText(x)));
         }
 
+        public static string HumanFormatOfSize(long bytes,int digits=1,string sep=" ",string bigPostFix="")
+        {
+            long absB = bytes == long.MinValue ? long.MaxValue : Math.Abs(bytes);
+            if (absB < 1024)
+            {
+                return bytes + sep + "B";
+            }
+            long value = absB;
+            Stack<long> values = new Stack<long>();
+            char ci='?';
+            var t = new char[] { 'K', 'M', 'G', 'T', 'P', 'E' };
+            int n = 0;
+            while (n<t.Length && value>0)
+            {                
+                for (int i = 40; i >= 0 && absB > 0xfffccccccccccccL >> i; i -= 10)
+                {
+                    value >>= 10;
+                    if (value > 0)
+                    {
+                        ci = t[n++];
+                        values.Push(value);
+                    }
+                }
+            }
+            value = values.Pop();
+            if (values.Count > 0) value = values.Pop();
+            value *= Math.Sign(bytes);
+            return String.Format("{0:F"+digits+"}"+sep+"{1}"+bigPostFix+"B", value/1024d, ci);
+        }
+
         #endregion
 
         #region UI elements methods
@@ -430,7 +463,7 @@ namespace DotNetConsoleSdk
                             if (ViewResizeStrategy != ViewResizeStrategy.HostTerminalDefault)
                             {
                                 RedrawUIElementsEnabled = true;
-                                RedrawUI(true);
+                                UpdateUI(true);
                             }
                         }
                     }
@@ -496,7 +529,7 @@ namespace DotNetConsoleSdk
             }
         }
 
-        static void RedrawUI(bool forceDraw = false,bool skipErase = false)
+        static void UpdateUI(bool viewSizeChanged=false)
         {
             lock (ConsoleLock)
             {
@@ -504,15 +537,14 @@ namespace DotNetConsoleSdk
                 {
                     RedrawUIElementsEnabled = false;
 
-                    if (ViewResizeStrategy != ViewResizeStrategy.FixedViewSize)
-                    {
-                        if (!skipErase && ClearOnViewResized && forceDraw)
-                            Clear();
-                        foreach (var o in _uielements)
-                            o.Value.UpdateDraw(forceDraw & !ClearOnViewResized, forceDraw);
-                    }
+                    if (ViewResizeStrategy == ViewResizeStrategy.FitViewSize
+                        && viewSizeChanged && ClearOnViewResized)
+                        Clear();
+                    
+                    foreach (var o in _uielements)
+                        o.Value.UpdateDraw(viewSizeChanged);
 
-                    if (forceDraw) ApplyWorkArea();
+                    if (viewSizeChanged) ApplyWorkArea(viewSizeChanged);
 
                     RedrawUIElementsEnabled = true;
                 }
@@ -673,7 +705,7 @@ namespace DotNetConsoleSdk
                 if (lineBreak) LineBreak();
 
                 RedrawUIElementsEnabled = redrawUIElementsEnabled;
-                RedrawUI(redrawUIElementsEnabled, true);
+                UpdateUI();
             }
         }
 
