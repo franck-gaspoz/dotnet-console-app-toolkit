@@ -41,6 +41,8 @@ namespace DotNetConsoleSdk
         public static string CodeBlockBegin = "[[";
         public static string CodeBlockEnd = "]]";
         public static bool ForwardLogsToSystemDiagnostics = true;
+        static Rectangle _workArea = Rectangle.Empty;
+        public static Rectangle WorkArea => new Rectangle(_workArea.X, _workArea.Y, _workArea.Width, _workArea.Height);
 
         public static EventHandler ViewSizeChanged;
         
@@ -49,7 +51,6 @@ namespace DotNetConsoleSdk
         static ConsoleColor _backgroundBackup = ConsoleColor.Black;
         static ConsoleColor _foregroundBackup = ConsoleColor.White;
         static readonly string[] _crlf = { Environment.NewLine };
-        static Rectangle _workArea = Rectangle.Empty;
 
         static Thread _watcherThread;
         static readonly Dictionary<int, UIElement> _uielements = new Dictionary<int, UIElement>();
@@ -220,12 +221,14 @@ namespace DotNetConsoleSdk
         public static void SetBackground(ConsoleColor c) => Lock(() => sc.BackgroundColor = c);
         public static void SetDefaultForeground(ConsoleColor c) => Lock(() => DefaultForeground = c);
         public static void SetDefaultBackground(ConsoleColor c) => Lock(() => DefaultBackground = c);
+        public static void RestoreDefaultColors() => Lock(() => { sc.ForegroundColor = DefaultForeground; sc.BackgroundColor = DefaultBackground; });
         public static void Clear()
         {
             Lock(() =>
             {
                 sc.Clear();
-                UpdateUI(true);
+                RestoreDefaultColors();
+                UpdateUI(true,false);
             }
             );
         }
@@ -569,7 +572,7 @@ namespace DotNetConsoleSdk
             }
         }
 
-        static void UpdateUI(bool viewSizeChanged=false)
+        static void UpdateUI(bool viewSizeChanged=false,bool enableViewSizeChangedEvent=true)
         {
             lock (ConsoleLock)
             {
@@ -597,7 +600,8 @@ namespace DotNetConsoleSdk
                                 SetCursorPos(cursorPosBackup);
                             else
                                 SetCursorAtBeginWorkArea();
-                        ViewSizeChanged?.Invoke(null,EventArgs.Empty);
+                        if (enableViewSizeChangedEvent)
+                            ViewSizeChanged?.Invoke(null,EventArgs.Empty);
                     }
 
                     RedrawUIElementsEnabled = true;
@@ -715,7 +719,6 @@ namespace DotNetConsoleSdk
             lock (ConsoleLock)
             {
                 var redrawUIElementsEnabled = RedrawUIElementsEnabled;
-                RedrawUIElementsEnabled = false;
                 if (!preserveColors && SaveColors)
                 {
                     BackupBackground();

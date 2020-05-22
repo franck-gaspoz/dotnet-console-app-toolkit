@@ -63,9 +63,9 @@ namespace DotNetConsoleSdk.Component.Shell
                         +$" | {Green}in={Cyan}{sc.InputEncoding.CodePage}"
                         +$" {Green}out={Cyan}{sc.OutputEncoding.CodePage}{White}"
                         +$" | {Green}drive: {Cyan}{GetCurrentDriveInfo()}{White}"
-                        +$" | {Cyan}{System.DateTime.Now}{White}"
+                        +$" | {Cyan}{System.DateTime.Now}{White}      "
                     };
-            }, ConsoleColor.DarkBlue, 0, -1, -1, 1, DrawStrategy.OnPrint, false, 1000);
+            }, ConsoleColor.DarkBlue, 0, -1, -1, 1, DrawStrategy.OnTime, false, 1000);
 
             SetCursorAtBeginWorkArea();
             Infos();
@@ -110,7 +110,10 @@ namespace DotNetConsoleSdk.Component.Shell
                 lock (ConsoleLock)
                 {
                     LineBreak();
-                    Println(s);
+                    Print(s);
+                    if (!WorkArea.IsEmpty && (WorkArea.Y != CursorTop || WorkArea.X != CursorLeft))
+                        LineBreak();
+                    RestoreDefaultColors();
                 }
                 if (!string.IsNullOrWhiteSpace(s))
                     HistoryAppend(s);
