@@ -23,6 +23,7 @@ namespace DotNetConsoleSdk
     {
         #region attributes
 
+        public static int CropX = -1;
         public static int UIWatcherThreadDelay = 500;
         public static ViewResizeStrategy ViewResizeStrategy = ViewResizeStrategy.FitViewSize;
         public static bool ClearOnViewResized = true;
@@ -37,8 +38,8 @@ namespace DotNetConsoleSdk
         public static char CommandSeparatorChar = ',';
         public static char CommandValueAssignationChar = '=';
         public static string DumpNullStringAsText = "{null}";
-        public static string CodeBlockBegin = "[[!--";
-        public static string CodeBlockEnd = "--]]";
+        public static string CodeBlockBegin = "[[";
+        public static string CodeBlockEnd = "]]";
         
         static int _cursorLeftBackup;
         static int _cursorTopBackup;
@@ -375,6 +376,29 @@ namespace DotNetConsoleSdk
             }
         }
 
+        public static void ConsolePrint(string s, bool lineBreak = false)
+        {
+            lock (ConsoleLock)
+            {
+                if (CropX==-1)
+                    sc.Write(s);
+                else
+                {
+                    var x = CursorLeft;
+                    var mx = Math.Max(x, CropX);
+                    if (mx>x)
+                    {
+                        var n = mx - x + 1;
+                        if (s.Length <= n)
+                            sc.Write(s);
+                        else
+                            sc.Write(s.Substring(0, n));
+                    }
+                }
+                if (lineBreak) sc.WriteLine(string.Empty);
+            }
+        }
+
         #endregion
 
         #region data to text operations
@@ -653,15 +677,6 @@ namespace DotNetConsoleSdk
             lock (ConsoleLock)
             {
                 return sc.CursorTop;
-            }
-        }
-
-        public static void ConsolePrint(string s, bool lineBreak = false)
-        {
-            lock (ConsoleLock)
-            {
-                sc.Write(s);
-                if (lineBreak) sc.WriteLine(string.Empty);
             }
         }
 

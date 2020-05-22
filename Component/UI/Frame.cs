@@ -2,7 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net.Http.Headers;
+using sc = System.Console;
 using System.Threading;
 using static DotNetConsoleSdk.DotNetConsoleSdk;
 
@@ -118,8 +118,13 @@ namespace DotNetConsoleSdk.Component.UI
 
                 for (int i = 0; i < content.Count; i++)
                 {
-                    SetCursorPos(x, y + i);
-                    Print(content[i]);
+                    if (i < h)
+                    {
+                        SetCursorPos(x, y + i);
+                        CropX = x + w - 1;
+                        Print(content[i]);
+                        CropX = -1;
+                    }
                 }
 
                 SetCursorPos(p);
