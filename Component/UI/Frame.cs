@@ -83,7 +83,11 @@ namespace DotNetConsoleSdk.Component.UI
                     }
                 }
             }
-            catch { }
+            catch (ThreadInterruptedException) { }
+            catch (Exception ex)
+            {
+                LogError($"update thread #{Id} crashed: " + ex.Message);
+            }
         }
 
         (int x,int y,int w,int h) GetCurrentCoords()

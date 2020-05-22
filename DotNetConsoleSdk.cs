@@ -217,7 +217,7 @@ namespace DotNetConsoleSdk
             Lock(() =>
             {
                 sc.Clear();
-                UpdateUI();
+                UpdateUI(true);
             }
             );
         }
@@ -320,6 +320,14 @@ namespace DotNetConsoleSdk
                     }
                     catch (Exception) { }
                 if (_workArea.IsEmpty) return;
+
+            }
+        }
+        public static void SetCursorAtBeginWorkArea()
+        {
+            if (_workArea.IsEmpty) return;
+            lock (ConsoleLock) {
+                SetCursorPos(_workArea.X, _workArea.Y);
             }
         }
 
@@ -456,7 +464,7 @@ namespace DotNetConsoleSdk
 
             _watcherThread = new Thread(WatcherThreadImpl)
             {
-                Name = "console tool watcher"
+                Name = "ui watcher"
             };
             _watcherThread.Start();
         }
@@ -501,7 +509,7 @@ namespace DotNetConsoleSdk
             catch (ThreadInterruptedException) { interrupted = true;  }
             catch (Exception ex)
             {
-                LogError(ex);
+                LogError("ui watcher crashed: " + ex.Message);
             }
             if (!interrupted)
             {

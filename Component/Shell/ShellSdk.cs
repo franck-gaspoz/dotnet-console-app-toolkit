@@ -65,7 +65,7 @@ namespace DotNetConsoleSdk.Component.Shell
                     };
             }, ConsoleColor.DarkBlue, 0, -1, -1, 1, DrawStrategy.OnTime, false, 1000);
 
-            SetCursorPos(0, 4);
+            SetCursorAtBeginWorkArea();
             Infos();
             LineBreak();
         }
@@ -295,7 +295,11 @@ namespace DotNetConsoleSdk.Component.Shell
                             );
                     }
                 }
-                catch { }
+                catch (ThreadInterruptedException) { }
+                catch (Exception ex)
+                {
+                    LogError("input stream reader crashed: " + ex.Message);
+                }
             })
             {
                 Name = "input stream reader"
