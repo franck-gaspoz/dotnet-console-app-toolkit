@@ -26,7 +26,7 @@ namespace DotNetConsoleSdk
         public static int CropX = -1;
         public static int UIWatcherThreadDelay = 500;
         public static ViewResizeStrategy ViewResizeStrategy = ViewResizeStrategy.FitViewSize;
-        public static bool ClearOnViewResized = true;
+        public static bool ClearOnViewResized = true;      // false not works properly in Windows Terminal + fit view size
         public static bool SaveColors = true;
         public static bool TraceCommandErrors = true;
         public static bool EnableColors = true;
@@ -40,6 +40,9 @@ namespace DotNetConsoleSdk
         public static string DumpNullStringAsText = "{null}";
         public static string CodeBlockBegin = "[[";
         public static string CodeBlockEnd = "]]";
+        public static bool ForwardLogsToSystemDiagnostics = true;
+
+        public static EventHandler ViewSizeChanged;
         
         static int _cursorLeftBackup;
         static int _cursorTopBackup;
@@ -68,6 +71,7 @@ namespace DotNetConsoleSdk
 
         public static void LogError(Exception ex)
         {
+            if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(ex+"");
             if (DumpExceptions)
                 LogException(ex);
             else
@@ -86,6 +90,7 @@ namespace DotNetConsoleSdk
 
         public static void LogException(Exception ex)
         {
+            if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(ex+"");
             var ls = (ex + "").Split(_crlf, StringSplitOptions.None)
                 .Select(x => ((EnableColors) ? $"{Red}" : "") + x);
             Println(ls);
@@ -93,6 +98,7 @@ namespace DotNetConsoleSdk
 
         public static void LogError(string s)
         {
+            if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(s);
             var ls = (s + "").Split(_crlf, StringSplitOptions.None)
                 .Select(x => ((EnableColors) ? $"{Red}" : "") + x);
             Println(ls);
@@ -100,6 +106,7 @@ namespace DotNetConsoleSdk
 
         public static void LogWarning(string s)
         {
+            if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(s);
             var ls = (s + "").Split(_crlf, StringSplitOptions.None)
                 .Select(x => ((EnableColors) ? $"{Yellow}" : "") + x);
             Println(ls);
@@ -107,6 +114,7 @@ namespace DotNetConsoleSdk
 
         public static void Log(string s)
         {
+            if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(s);
             Println(s.Split(_crlf, StringSplitOptions.None));
         }
 
@@ -565,14 +573,17 @@ namespace DotNetConsoleSdk
         {
             lock (ConsoleLock)
             {
-                if (RedrawUIElementsEnabled && _uielements.Count > 0)
+                if (RedrawUIElementsEnabled)
                 {
                     RedrawUIElementsEnabled = false;
                     var cursorPosBackup = CursorPos;
 
                     if (ViewResizeStrategy == ViewResizeStrategy.FitViewSize
-                        && viewSizeChanged && ClearOnViewResized)
-                        Clear();
+                        && viewSizeChanged)
+                    {
+                        if (ClearOnViewResized)
+                            Clear();
+                    }
 
                     foreach (var o in _uielements)
                         o.Value.UpdateDraw(viewSizeChanged);
@@ -582,7 +593,11 @@ namespace DotNetConsoleSdk
                         ApplyWorkArea(viewSizeChanged);
                         if (ViewResizeStrategy == ViewResizeStrategy.FitViewSize
                             && ClearOnViewResized)
-                            SetCursorPos(cursorPosBackup);
+                            if (_workArea.IsEmpty)
+                                SetCursorPos(cursorPosBackup);
+                            else
+                                SetCursorAtBeginWorkArea();
+                        ViewSizeChanged?.Invoke(null,EventArgs.Empty);
                     }
 
                     RedrawUIElementsEnabled = true;

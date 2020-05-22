@@ -149,9 +149,13 @@ namespace DotNetConsoleSdk.Component.UI
         {
             lock (ConsoleLock)
             {
+                var p = CursorPos;                
                 var redrawUIElementsEnabled = RedrawUIElementsEnabled;
                 RedrawUIElementsEnabled = false;
+                HideCur();
                 DrawRect(Console.BackgroundColor, ActualX, ActualY, ActualWidth, ActualHeight);
+                SetCursorPos(p);
+                ShowCur();
                 RedrawUIElementsEnabled = redrawUIElementsEnabled;
             }
         }
@@ -160,8 +164,8 @@ namespace DotNetConsoleSdk.Component.UI
         {
             lock (ConsoleLock)
             {
-                if (viewSizeChanged && !ClearOnViewResized && DotNetConsoleSdk.ViewResizeStrategy != ViewResizeStrategy.HostTerminalDefault)
-                     Erase();
+                if (viewSizeChanged && !ClearOnViewResized && DotNetConsoleSdk.ViewResizeStrategy == ViewResizeStrategy.FitViewSize)
+                    Erase();
                 List<DrawStrategy> ignorableStrategies = new List<DrawStrategy>()
                     { DrawStrategy.OnPrint , DrawStrategy.OnTime };
                 if (!viewSizeChanged && !ignorableStrategies.Contains(DrawStrategy)) return;

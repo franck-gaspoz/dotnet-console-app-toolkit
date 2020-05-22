@@ -17,9 +17,11 @@ namespace DotNetConsoleSdk.Component.Shell
     {
         #region attributes
 
-        static Thread _readerThread;
+        static Thread _inputReaderThread;
         static readonly List<string> _history = new List<string>();
         static int _historyIndex = -1;
+        static string _prompt;
+        static StringBuilder _inputReaderStringBuilder;
 
         #endregion
 
@@ -57,23 +59,39 @@ namespace DotNetConsoleSdk.Component.Shell
                         +$" | {Green}win: {Cyan}{sc.WindowLeft},{sc.WindowTop}"
                         +$",{sc.WindowWidth},{sc.WindowHeight}{White}"
                         +$" | {(sc.CapsLock?$"{Cyan}Caps":$"{Darkgray}Caps")}"
-                        +$",{(sc.NumberLock?$"{Cyan}Num":$"{Darkgray}Num")}{White}"
-                        +$" | {Cyan}in={sc.InputEncoding.CodePage}"
-                        +$",{Cyan}out={sc.OutputEncoding.CodePage}{White}"
-                        +$" | {Green}drive: {Cyan}{GetCurrentDriveInfo()}"
+                        +$" {(sc.NumberLock?$"{Cyan}Num":$"{Darkgray}Num")}{White}"
+                        +$" | {Green}in={Cyan}{sc.InputEncoding.CodePage}"
+                        +$" {Green}out={Cyan}{sc.OutputEncoding.CodePage}{White}"
+                        +$" | {Green}drive: {Cyan}{GetCurrentDriveInfo()}{White}"
                         +$" | {Cyan}{System.DateTime.Now}{White}"
                     };
-            }, ConsoleColor.DarkBlue, 0, -1, -1, 1, DrawStrategy.OnTime, false, 1000);
+            }, ConsoleColor.DarkBlue, 0, -1, -1, 1, DrawStrategy.OnPrint, false, 1000);
 
             SetCursorAtBeginWorkArea();
             Infos();
             LineBreak();
         }
 
+        static void Init()
+        {
+            ViewSizeChanged += (o, e) =>
+            {
+                if (_inputReaderThread != null)
+                {
+                    lock (ConsoleLock)
+                    {
+                        Print(_prompt);
+                        ConsolePrint(_inputReaderStringBuilder.ToString());
+                    }
+                }
+            };
+        }
+
         public static void RunShell(string prompt = null)
         {
             try
             {
+                Init();
                 InitUI();
                 BeginReadln(new AsyncCallback(ProcessInput),prompt);
             }
@@ -101,13 +119,14 @@ namespace DotNetConsoleSdk.Component.Shell
 
         public static void BeginReadln(AsyncCallback asyncCallback, string prompt = "")
         {
-            _readerThread = new Thread(() =>
+            _prompt = prompt;            
+            _inputReaderThread = new Thread(() =>
             {
                 try
                 {
                     while (true)
                     {
-                        var r = new StringBuilder();
+                        _inputReaderStringBuilder = new StringBuilder();
                         Point beginOfLineCurPos;
                         lock (ConsoleLock)
                         {
@@ -136,10 +155,10 @@ namespace DotNetConsoleSdk.Component.Shell
                                     {
                                         HideCur();
                                         SetCursorPos(beginOfLineCurPos);
-                                        Print("".PadLeft(r.ToString().Length));
+                                        Print("".PadLeft(_inputReaderStringBuilder.ToString().Length));
                                         SetCursorPos(beginOfLineCurPos);
                                         ShowCur();
-                                        r.Clear();
+                                        _inputReaderStringBuilder.Clear();
                                     }
                                     break;
                                 case ConsoleKey.Home:
@@ -151,7 +170,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                 case ConsoleKey.End:
                                     lock (ConsoleLock)
                                     {
-                                        SetCursorLeft(r.ToString().Length + beginOfLineCurPos.X);
+                                        SetCursorLeft(_inputReaderStringBuilder.ToString().Length + beginOfLineCurPos.X);
                                     }
                                     break;
                                 case ConsoleKey.Tab:
@@ -173,7 +192,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                     lock (ConsoleLock)
                                     {
                                         var x = CursorLeft;
-                                        if (x < beginOfLineCurPos.X + r.ToString().Length)
+                                        if (x < beginOfLineCurPos.X + _inputReaderStringBuilder.ToString().Length)
                                             SetCursorLeft(x + 1);
                                     }
                                     break;
@@ -184,10 +203,10 @@ namespace DotNetConsoleSdk.Component.Shell
                                         if (x > beginOfLineCurPos.X)
                                         {
                                             var x0 = x - beginOfLineCurPos.X - 1;
-                                            r.Remove(x0, 1);
+                                            _inputReaderStringBuilder.Remove(x0, 1);
                                             HideCur();
                                             SetCursorLeft(x - 1);
-                                            var txt = r.ToString();
+                                            var txt = _inputReaderStringBuilder.ToString();
                                             if (x0 < txt.Length)
                                                 Print(txt.Substring(x0));
                                             Print(" ");
@@ -200,12 +219,12 @@ namespace DotNetConsoleSdk.Component.Shell
                                     lock (ConsoleLock)
                                     {
                                         var x = CursorLeft;
-                                        var txt = r.ToString();
+                                        var txt = _inputReaderStringBuilder.ToString();
                                         var x0 = x - beginOfLineCurPos.X;
                                         if (x0 < txt.Length)
                                         {
-                                            r.Remove(x0, 1);
-                                            txt = r.ToString();
+                                            _inputReaderStringBuilder.Remove(x0, 1);
+                                            txt = _inputReaderStringBuilder.ToString();
                                             HideCur();
                                             if (x0 < txt.Length)
                                                 Print(txt.Substring(x0) + " ");
@@ -224,10 +243,10 @@ namespace DotNetConsoleSdk.Component.Shell
                                         {
                                             HideCur();
                                             SetCursorLeft(beginOfLineCurPos.X);
-                                            Print("".PadLeft(r.ToString().Length, ' '));
+                                            Print("".PadLeft(_inputReaderStringBuilder.ToString().Length, ' '));
                                             SetCursorLeft(beginOfLineCurPos.X);
-                                            r.Clear();
-                                            r.Append(h);
+                                            _inputReaderStringBuilder.Clear();
+                                            _inputReaderStringBuilder.Append(h);
                                             ConsolePrint(h);
                                             ShowCur();
                                         }
@@ -241,10 +260,10 @@ namespace DotNetConsoleSdk.Component.Shell
                                         {
                                             HideCur();
                                             SetCursorLeft(beginOfLineCurPos.X);
-                                            Print("".PadLeft(r.ToString().Length, ' '));
+                                            Print("".PadLeft(_inputReaderStringBuilder.ToString().Length, ' '));
                                             SetCursorLeft(beginOfLineCurPos.X);
-                                            r.Clear();
-                                            r.Append(fh);
+                                            _inputReaderStringBuilder.Clear();
+                                            _inputReaderStringBuilder.Append(fh);
                                             ConsolePrint(fh);
                                             ShowCur();
                                         }
@@ -266,7 +285,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                 {
                                     var x0 = CursorLeft;
                                     x = x0 - beginOfLineCurPos.X;
-                                    var txt = r.ToString();
+                                    var txt = _inputReaderStringBuilder.ToString();
                                     insert = x - txt.Length < 0;
                                     if (insert)
                                     {
@@ -280,16 +299,16 @@ namespace DotNetConsoleSdk.Component.Shell
                                     ConsolePrint(printedStr, false);
                                 }
                                 if (!insert)
-                                    r.Append(printedStr);
+                                    _inputReaderStringBuilder.Append(printedStr);
                                 else
-                                    r.Insert(x, printedStr);
+                                    _inputReaderStringBuilder.Insert(x, printedStr);
                             }
 
                             if (eol) break;
                         }
 
                         // process input
-                        var s = r.ToString();
+                        var s = _inputReaderStringBuilder.ToString();
                         asyncCallback?.Invoke(
                             new BeginReadlnAsyncResult(s)
                             );
@@ -304,13 +323,13 @@ namespace DotNetConsoleSdk.Component.Shell
             {
                 Name = "input stream reader"
             };
-            _readerThread.Start();
+            _inputReaderThread.Start();
         }
 
         public static void StopBeginReadln()
         {
-            _readerThread?.Interrupt();
-            _readerThread = null;
+            _inputReaderThread?.Interrupt();
+            _inputReaderThread = null;
         }
 
         #region shell control operations
