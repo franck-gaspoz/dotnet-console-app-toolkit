@@ -211,8 +211,8 @@ namespace DotNetConsoleSdk.Component.Shell
                                             SetCursorLeft(x - 1);
                                             var txt = _inputReaderStringBuilder.ToString();
                                             if (x0 < txt.Length)
-                                                Print(txt.Substring(x0));
-                                            Print(" ");
+                                                ConsolePrint(txt.Substring(x0));
+                                            ConsolePrint(" ");
                                             SetCursorLeft(x - 1);
                                             ShowCur();
                                         }
@@ -230,9 +230,9 @@ namespace DotNetConsoleSdk.Component.Shell
                                             txt = _inputReaderStringBuilder.ToString();
                                             HideCur();
                                             if (x0 < txt.Length)
-                                                Print(txt.Substring(x0) + " ");
+                                                ConsolePrint(txt.Substring(x0) + " ");
                                             else
-                                                Print(" ");
+                                                ConsolePrint(" ");
                                             SetCursorLeft(x);
                                             ShowCur();
                                         }
@@ -246,7 +246,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                         {
                                             HideCur();
                                             SetCursorLeft(beginOfLineCurPos.X);
-                                            Print("".PadLeft(_inputReaderStringBuilder.ToString().Length, ' '));
+                                            ConsolePrint("".PadLeft(_inputReaderStringBuilder.ToString().Length, ' '));
                                             SetCursorLeft(beginOfLineCurPos.X);
                                             _inputReaderStringBuilder.Clear();
                                             _inputReaderStringBuilder.Append(h);
@@ -263,7 +263,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                         {
                                             HideCur();
                                             SetCursorLeft(beginOfLineCurPos.X);
-                                            Print("".PadLeft(_inputReaderStringBuilder.ToString().Length, ' '));
+                                            ConsolePrint("".PadLeft(_inputReaderStringBuilder.ToString().Length, ' '));
                                             SetCursorLeft(beginOfLineCurPos.X);
                                             _inputReaderStringBuilder.Clear();
                                             _inputReaderStringBuilder.Append(fh);
