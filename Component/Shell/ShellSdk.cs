@@ -25,54 +25,7 @@ namespace DotNetConsoleSdk.Component.Shell
 
         #endregion
 
-        static void InitUI()
-        {
-            Clear();
-            SetWorkArea(0, 4, -1, 10);
-
-            AddFrame((bar) =>
-            {
-                var s = "".PadLeft(bar.ActualWidth, '-');
-                var t = "  dotnet-console-sdk - Shell Sdk";
-                return new List<string> {
-                        $"{Bdarkblue}{Cyan}{s}",
-#pragma warning disable IDE0071
-#pragma warning disable IDE0071WithoutSuggestion
-                        $"{Bdarkblue}{Cyan}|{t}{White}{"".PadLeft(Math.Max(0, bar.ActualWidth - 2 - t.Length))}{Cyan}|",
-#pragma warning restore IDE0071WithoutSuggestion
-#pragma warning restore IDE0071
-                        $"{Bdarkblue}{Cyan}{s}"
-                    };
-            }, ConsoleColor.DarkBlue, 0, 0, -1, 3, DrawStrategy.OnViewResizedOnly, false);
-
-            string GetCurrentDriveInfo()
-            {
-                var rootDirectory = Path.GetPathRoot(Environment.CurrentDirectory);
-                var di = DriveInfo.GetDrives().Where(x => x.RootDirectory.FullName == rootDirectory).FirstOrDefault();
-                return (di==null)?"?":$"{rootDirectory} {HumanFormatOfSize(di.AvailableFreeSpace,0,"")}/{HumanFormatOfSize(di.TotalSize,0,"")} ({di.DriveFormat})";
-            }
-
-            AddFrame((bar) =>
-            {
-                return new List<string> {
-                        $"{Bdarkblue} {Green}cur: {Cyan}{CursorLeft},{CursorTop}{White}"
-                        +$" | {Green}win: {Cyan}{sc.WindowLeft},{sc.WindowTop}"
-                        +$",{sc.WindowWidth},{sc.WindowHeight}{White}"
-                        +$" | {(sc.CapsLock?$"{Cyan}Caps":$"{Darkgray}Caps")}"
-                        +$" {(sc.NumberLock?$"{Cyan}Num":$"{Darkgray}Num")}{White}"
-                        +$" | {Green}in={Cyan}{sc.InputEncoding.CodePage}"
-                        +$" {Green}out={Cyan}{sc.OutputEncoding.CodePage}{White}"
-                        +$" | {Green}drive: {Cyan}{GetCurrentDriveInfo()}{White}"
-                        +$" | {Cyan}{System.DateTime.Now}{White}      "
-                    };
-            }, ConsoleColor.DarkBlue, 0, -1, -1, 1, DrawStrategy.OnTime, false, 1000);
-
-            SetCursorAtBeginWorkArea();
-            Infos();
-            LineBreak();
-        }
-
-        static void Init()
+        public static void Initialize()
         {
             ViewSizeChanged += (o, e) =>
             {
@@ -87,22 +40,7 @@ namespace DotNetConsoleSdk.Component.Shell
             };
         }
 
-        public static void RunShell(string prompt = null)
-        {
-            try
-            {
-                Init();
-                InitUI();
-                BeginReadln(new AsyncCallback(ProcessInput),prompt);
-            }
-            catch (Exception initException)
-            {
-                LogError(initException);
-                Exit();
-            }
-        }
-
-        static void ProcessInput(IAsyncResult asyncResult)
+        public static void ProcessInput(IAsyncResult asyncResult)
         {
             var s = (string)asyncResult.AsyncState;
             if (s != null)
@@ -118,6 +56,11 @@ namespace DotNetConsoleSdk.Component.Shell
                 if (!string.IsNullOrWhiteSpace(s))
                     HistoryAppend(s);
             }
+        }
+
+        public static void BeginReadln(string prompt="")
+        {
+            BeginReadln(new AsyncCallback(ShellSdk.ProcessInput), prompt);
         }
 
         public static void BeginReadln(AsyncCallback asyncCallback, string prompt = "")
@@ -143,6 +86,15 @@ namespace DotNetConsoleSdk.Component.Shell
 #if dbg
                             System.Diagnostics.Debug.WriteLine($"{c.KeyChar}={c.Key}");
 #endif
+                            #region constrain to workarea
+
+                            lock (ConsoleLock)
+                            {
+                                var (x, y, w, h) = ActualWorkArea;
+
+                            }
+
+                            #endregion
 
                             #region handle special caracters - edition mode, movement
 
@@ -340,7 +292,7 @@ namespace DotNetConsoleSdk.Component.Shell
         public static string GetBackwardHistory()
         {
             if (_historyIndex < 0)
-                _historyIndex = _history.Count;
+                _historyIndex = _history.Count+1;
             if (_historyIndex >= 1)
                 _historyIndex--;
             System.Diagnostics.Debug.WriteLine($"{_historyIndex}");

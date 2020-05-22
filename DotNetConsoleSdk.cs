@@ -315,6 +315,17 @@ namespace DotNetConsoleSdk
                 ApplyWorkArea();
             }
         }
+        public static (int x,int y,int w,int h) ActualWorkArea
+        {
+            get
+            {
+                var x0 = _workArea.IsEmpty ? 0 : _workArea.X;
+                var y0 = _workArea.IsEmpty ? 0 : _workArea.Y;
+                var w0 = _workArea.IsEmpty ? -1 : _workArea.Width;
+                var h0 = _workArea.IsEmpty ? -1 : _workArea.Height;
+                return GetCoords(x0, y0, w0, h0); 
+            }
+        }       
         static void ApplyWorkArea(bool viewSizeChanged=false)
         {
             lock (ConsoleLock)
