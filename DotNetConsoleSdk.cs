@@ -495,7 +495,7 @@ namespace DotNetConsoleSdk
                             if (ViewResizeStrategy != ViewResizeStrategy.HostTerminalDefault)
                             {
                                 RedrawUIElementsEnabled = true;
-                                UpdateUI(true);
+                                UpdateUI(true);                               
                             }
                         }
                     }
@@ -568,15 +568,22 @@ namespace DotNetConsoleSdk
                 if (RedrawUIElementsEnabled && _uielements.Count > 0)
                 {
                     RedrawUIElementsEnabled = false;
+                    var cursorPosBackup = CursorPos;
 
                     if (ViewResizeStrategy == ViewResizeStrategy.FitViewSize
                         && viewSizeChanged && ClearOnViewResized)
                         Clear();
-                    
+
                     foreach (var o in _uielements)
                         o.Value.UpdateDraw(viewSizeChanged);
 
-                    if (viewSizeChanged) ApplyWorkArea(viewSizeChanged);
+                    if (viewSizeChanged)
+                    {
+                        ApplyWorkArea(viewSizeChanged);
+                        if (ViewResizeStrategy == ViewResizeStrategy.FitViewSize
+                            && ClearOnViewResized)
+                            SetCursorPos(cursorPosBackup);
+                    }
 
                     RedrawUIElementsEnabled = true;
                 }
