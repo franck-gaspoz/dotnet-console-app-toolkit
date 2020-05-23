@@ -1,11 +1,8 @@
 ﻿//#define dbg
 
-using DotNetConsoleSdk.Component.UI;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using static DotNetConsoleSdk.DotNetConsoleSdk;
@@ -86,15 +83,6 @@ namespace DotNetConsoleSdk.Component.Shell
 #if dbg
                             System.Diagnostics.Debug.WriteLine($"{c.KeyChar}={c.Key}");
 #endif
-                            #region constrain to workarea
-
-                            lock (ConsoleLock)
-                            {
-                                var (x, y, w, h) = ActualWorkArea;
-
-                            }
-
-                            #endregion
 
                             #region handle special caracters - edition mode, movement
 

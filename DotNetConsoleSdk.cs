@@ -23,6 +23,7 @@ namespace DotNetConsoleSdk
     {
         #region attributes
 
+        public static bool EnableConstraintConsolePrintInsideWorkArea = false;
         public static int CropX = -1;
         public static int UIWatcherThreadDelay = 500;
         public static ViewResizeStrategy ViewResizeStrategy = ViewResizeStrategy.FitViewSize;
@@ -313,7 +314,13 @@ namespace DotNetConsoleSdk
                 FixCoords(ref x, ref y);
                 _workArea = new Rectangle(x, y, w, h);
                 ApplyWorkArea();
+                EnableConstraintConsolePrintInsideWorkArea = true;
             }
+        }
+        public static void UnsetWorkArea()
+        {
+            _workArea = Rectangle.Empty;
+            EnableConstraintConsolePrintInsideWorkArea = false;
         }
         public static (int x,int y,int w,int h) ActualWorkArea
         {
@@ -408,10 +415,11 @@ namespace DotNetConsoleSdk
 
         public static void ConsolePrint(string s, bool lineBreak = false)
         {
+            // any print goes here...
             lock (ConsoleLock)
             {
                 if (CropX==-1)
-                    sc.Write(s);
+                    ConsoleSubPrint(s,lineBreak);
                 else
                 {
                     var x = CursorLeft;
@@ -420,12 +428,82 @@ namespace DotNetConsoleSdk
                     {
                         var n = mx - x + 1;
                         if (s.Length <= n)
-                            sc.Write(s);
+                            ConsoleSubPrint(s,lineBreak);
                         else
-                            sc.Write(s.Substring(0, n));
+                            ConsoleSubPrint(s.Substring(0, n),lineBreak);
                     }
                 }
-                if (lineBreak) sc.WriteLine(string.Empty);
+            }
+        }
+
+        static void ConsoleSubPrint(string s,bool lineBreak = false)
+        {
+            lock (ConsoleLock)
+            {
+                var (x, y, w, h) = ActualWorkArea;
+                var x0 = CursorLeft;
+                var y0 = CursorTop;
+                if (EnableConstraintConsolePrintInsideWorkArea)
+                {
+                    var croppedLines = new List<string>();
+                    var xr = x0 + s.Length - 1;
+                    var xm = x + w - 1;
+                    System.Diagnostics.Debug.WriteLine($" xr={xr} xm={xm} x0={x0} x={x} w={w} s.length={s.Length} s={s}");
+                    if (xr > xm)
+                    {
+                        while (xr>xm && s.Length > 0)
+                        {
+                            var left = s.Substring(0, s.Length - (xr - xm));
+                            s = s.Substring(s.Length-(xr-xm), xr - xm);
+                            croppedLines.Add(left);
+                            xr = x + s.Length - 1;
+                        }
+                        if (s.Length>0)
+                            croppedLines.Add(s);
+                        if (lineBreak)
+                            croppedLines.Add("");
+                        var curx = x0;
+                        foreach ( var line in croppedLines )
+                        {
+                            SetCursorPosContraintedInWorkArea(ref x0, ref y0);
+                            sc.Write(line);
+                            y0++;
+                            x0 = x;
+                        }
+                    }
+                    else {
+                        sc.Write(s);
+                        if (lineBreak)
+                        {
+                            x0 = x;
+                            y0++;
+                            SetCursorPosContraintedInWorkArea(ref x0, ref y0);
+                        }
+                    }
+                }
+                else
+                {
+                    sc.Write(s);
+                    if (lineBreak) sc.WriteLine(string.Empty);
+                }
+            }
+        }
+
+        static void SetCursorPosContraintedInWorkArea(ref int cx,ref int cy)
+        {
+            lock (ConsoleLock)
+            {
+                var (x, y, w, h) = ActualWorkArea;
+                if (cy>h-1)
+                {
+                    cy--;
+                    var nh = h - y - 1;
+                    if (nh > 0)
+                        sc.MoveBufferArea(
+                            x, y + 1, w, nh,
+                            x, y, ' ', DefaultForeground, DefaultBackground);
+                }
+                SetCursorPos(cx, cy);
             }
         }
 

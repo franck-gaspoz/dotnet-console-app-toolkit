@@ -14,7 +14,7 @@ namespace DotNetConsoleSdk.Component.Shell
         static void InitUI()
         {
             Clear();
-            SetWorkArea(0, 4, -1, 10);
+            SetWorkArea(0, 4, -1, -3);
 
             AddFrame((frame) =>
             {
@@ -51,7 +51,7 @@ namespace DotNetConsoleSdk.Component.Shell
                         +$" | {Green}drive: {Cyan}{GetCurrentDriveInfo()}{White}"
                         +$" | {Cyan}{System.DateTime.Now}{White}      "
                     };
-            }, ConsoleColor.DarkBlue, 0, -1, -1, 1, DrawStrategy.OnTime, false, 1000);
+            }, ConsoleColor.DarkBlue, 0, -1, -1, 1, DrawStrategy.OnViewResizedOnly, false, 1000);
 
             SetCursorAtBeginWorkArea();
         }
@@ -62,6 +62,8 @@ namespace DotNetConsoleSdk.Component.Shell
             {
                 ShellSdk.Initialize();
                 InitUI();
+                ConsolePrint("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCC",true);
+                ConsolePrint("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCC",true);
                 BeginReadln(prompt);
             }
             catch (Exception initException)

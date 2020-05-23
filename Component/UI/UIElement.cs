@@ -31,10 +31,10 @@ namespace DotNetConsoleSdk.Component.UI
         {
             lock (ConsoleLock)
             {
-                if (x == -1) x = sc.WindowLeft + sc.WindowWidth - 1;
-                if (y == -1) y = sc.WindowTop + sc.WindowHeight - 1;
-                if (w == -1) w = sc.WindowWidth + ((AvoidConsoleAutoLineBreakAtEndOfLine)?-1:0);
-                if (h == -1) h = sc.WindowHeight;
+                if (x < 0) x = sc.WindowLeft + sc.WindowWidth + x;
+                if (y < 0) y = sc.WindowTop + sc.WindowHeight + y;
+                if (w < 0) w = sc.WindowWidth + ((AvoidConsoleAutoLineBreakAtEndOfLine)?-1:0) + (w+1);
+                if (h < 0) h = sc.WindowHeight + (h+1);
                 return (x, y, w, h);
             }
         }
