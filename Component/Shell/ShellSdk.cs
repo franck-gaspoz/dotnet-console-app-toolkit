@@ -20,6 +20,7 @@ namespace DotNetConsoleSdk.Component.Shell
         static int _historyIndex = -1;
         static string _prompt;
         static StringBuilder _inputReaderStringBuilder;
+        static Point _beginOfLineCurPos;
 
         #endregion
 
@@ -32,7 +33,9 @@ namespace DotNetConsoleSdk.Component.Shell
                     lock (ConsoleLock)
                     {
                         Print(_prompt);
+                        _beginOfLineCurPos = CursorPos;
                         ConsolePrint(_inputReaderStringBuilder.ToString());
+
                     }
                 }
             };
@@ -70,12 +73,11 @@ namespace DotNetConsoleSdk.Component.Shell
                 {
                     while (true)
                     {
-                        _inputReaderStringBuilder = new StringBuilder();
-                        Point beginOfLineCurPos;
+                        _inputReaderStringBuilder = new StringBuilder();                        
                         lock (ConsoleLock)
                         {
                             Print(prompt);
-                            beginOfLineCurPos = CursorPos;
+                            _beginOfLineCurPos = CursorPos;
                         }
                         var eol = false;
                         while (!eol)
@@ -84,7 +86,6 @@ namespace DotNetConsoleSdk.Component.Shell
 #if dbg
                             System.Diagnostics.Debug.WriteLine($"{c.KeyChar}={c.Key}");
 #endif
-
                             #region handle special caracters - edition mode, movement
 
                             var (wx, wy, ww, wh) = ActualWorkArea;
@@ -100,9 +101,9 @@ namespace DotNetConsoleSdk.Component.Shell
                                     lock (ConsoleLock)
                                     {
                                         HideCur();
-                                        SetCursorPos(beginOfLineCurPos);
+                                        SetCursorPos(_beginOfLineCurPos);
                                         Print("".PadLeft(_inputReaderStringBuilder.ToString().Length));
-                                        SetCursorPos(beginOfLineCurPos);
+                                        SetCursorPos(_beginOfLineCurPos);
                                         ShowCur();
                                         _inputReaderStringBuilder.Clear();
                                     }
@@ -110,13 +111,13 @@ namespace DotNetConsoleSdk.Component.Shell
                                 case ConsoleKey.Home:
                                     lock (ConsoleLock)
                                     {
-                                        SetCursorPos(beginOfLineCurPos);
+                                        SetCursorPos(_beginOfLineCurPos);
                                     }
                                     break;
                                 case ConsoleKey.End:
                                     lock (ConsoleLock)
                                     {
-                                        var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), beginOfLineCurPos);
+                                        var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
                                         var (txt, nx, ny, l) = slines.Last();
                                         SetCursorPos(nx+l,ny);
                                     }
@@ -132,9 +133,9 @@ namespace DotNetConsoleSdk.Component.Shell
                                     lock (ConsoleLock)
                                     {
                                         var p = CursorPos;
-                                        if (p.Y == beginOfLineCurPos.Y)
+                                        if (p.Y == _beginOfLineCurPos.Y)
                                         {
-                                            if (p.X > beginOfLineCurPos.X)
+                                            if (p.X > _beginOfLineCurPos.X)
                                                 SetCursorLeft(p.X - 1);
                                         }
                                         else
@@ -151,7 +152,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                     lock (ConsoleLock)
                                     {
                                         var txt = _inputReaderStringBuilder.ToString();
-                                        var index = GetIndexInWorkAreaConstraintedString(txt, beginOfLineCurPos, CursorPos);
+                                        var index = GetIndexInWorkAreaConstraintedString(txt, _beginOfLineCurPos, CursorPos);
                                         if (index < txt.Length)
                                             SetCursorPosConstraintedInWorkArea(CursorLeft + 1, CursorTop);
                                     }
@@ -160,7 +161,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                     lock (ConsoleLock)
                                     {
                                         var txt = _inputReaderStringBuilder.ToString();
-                                        var index = GetIndexInWorkAreaConstraintedString(txt, beginOfLineCurPos, CursorPos)-1;
+                                        var index = GetIndexInWorkAreaConstraintedString(txt, _beginOfLineCurPos, CursorPos)-1;
                                         var x = CursorLeft-1;
                                         var y = CursorTop;
                                         if (index >= 0)
@@ -181,7 +182,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                     lock (ConsoleLock)
                                     {
                                         var txt = _inputReaderStringBuilder.ToString();
-                                        var index = GetIndexInWorkAreaConstraintedString(txt, beginOfLineCurPos, CursorPos);
+                                        var index = GetIndexInWorkAreaConstraintedString(txt, _beginOfLineCurPos, CursorPos);
                                         var x = CursorLeft;
                                         var y = CursorTop;
                                         if (index >= 0 && index<txt.Length)
@@ -201,15 +202,15 @@ namespace DotNetConsoleSdk.Component.Shell
                                 case ConsoleKey.UpArrow:
                                     lock (ConsoleLock)
                                     {
-                                        if (CursorTop == beginOfLineCurPos.Y)
+                                        if (CursorTop == _beginOfLineCurPos.Y)
                                         {
                                             var h = GetBackwardHistory();
                                             if (h != null)
                                             {
                                                 HideCur();
-                                                SetCursorPos(beginOfLineCurPos);
+                                                SetCursorPos(_beginOfLineCurPos);
                                                 ConsolePrint("".PadLeft(_inputReaderStringBuilder.ToString().Length, ' '));
-                                                SetCursorPos(beginOfLineCurPos);
+                                                SetCursorPos(_beginOfLineCurPos);
                                                 _inputReaderStringBuilder.Clear();
                                                 _inputReaderStringBuilder.Append(h);
                                                 ConsolePrint(h);
@@ -224,16 +225,16 @@ namespace DotNetConsoleSdk.Component.Shell
                                 case ConsoleKey.DownArrow:
                                     lock (ConsoleLock)
                                     {
-                                        var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(),beginOfLineCurPos);
+                                        var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(),_beginOfLineCurPos);
                                         if (CursorTop == slines.Max(o => o.y))
                                         {
                                             var fh = GetForwardHistory();
                                             if (fh != null)
                                             {
                                                 HideCur();
-                                                SetCursorPos(beginOfLineCurPos);
+                                                SetCursorPos(_beginOfLineCurPos);
                                                 ConsolePrint("".PadLeft(_inputReaderStringBuilder.ToString().Length, ' '));
-                                                SetCursorPos(beginOfLineCurPos);
+                                                SetCursorPos(_beginOfLineCurPos);
                                                 _inputReaderStringBuilder.Clear();
                                                 _inputReaderStringBuilder.Append(fh);
                                                 ConsolePrint(fh);
@@ -264,7 +265,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                     var x0 = CursorLeft;
                                     var y0 = CursorTop;
                                     var txt = _inputReaderStringBuilder.ToString();
-                                    index = GetIndexInWorkAreaConstraintedString(txt, beginOfLineCurPos, x0, y0);
+                                    index = GetIndexInWorkAreaConstraintedString(txt, _beginOfLineCurPos, x0, y0);
                                     insert = index - txt.Length < 0;
 
                                     if (insert)
