@@ -528,10 +528,10 @@ namespace DotNetConsoleSdk
             }
         }
 
-        public static int GetCoordsOfConstraintedStringInWorkArea(string s, Point origin, Point cursorPos)
-            => GetCoordsOfConstraintedStringInWorkArea(s, origin, cursorPos.X, cursorPos.Y);
+        public static int GetIndexInWorkAreaConstraintedString(string s, Point origin, Point cursorPos)
+            => GetIndexInWorkAreaConstraintedString(s, origin, cursorPos.X, cursorPos.Y);
 
-        public static int GetCoordsOfConstraintedStringInWorkArea(string s,Point origin,int cursorX,int cursorY)
+        public static int GetIndexInWorkAreaConstraintedString(string s,Point origin,int cursorX,int cursorY)
         {
             lock (ConsoleLock)
             {
@@ -588,6 +588,11 @@ System.Diagnostics.Debug.WriteLine($"x0={x0} xr={xr} xm={xm} lines={Dump(cropped
                 if (EnableConstraintConsolePrintInsideWorkArea)
                 {
                     var (x, y, w, h) = ActualWorkArea;
+                    if (cx<x)
+                    {
+                        cx = w - 1;
+                        cy--;
+                    }
                     if (cx>=w)
                     {
                         cx = x;

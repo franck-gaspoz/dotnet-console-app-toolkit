@@ -148,7 +148,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                     lock (ConsoleLock)
                                     {
                                         var txt = _inputReaderStringBuilder.ToString();
-                                        var index = GetCoordsOfConstraintedStringInWorkArea(txt, beginOfLineCurPos, CursorPos);
+                                        var index = GetIndexInWorkAreaConstraintedString(txt, beginOfLineCurPos, CursorPos);
                                         if (index < txt.Length)
                                             SetCursorPosConstraintedInWorkArea(CursorLeft + 1, CursorTop);
                                     }
@@ -156,18 +156,20 @@ namespace DotNetConsoleSdk.Component.Shell
                                 case ConsoleKey.Backspace:
                                     lock (ConsoleLock)
                                     {
-                                        var x = CursorLeft;
-                                        if (x > beginOfLineCurPos.X)
+                                        var txt = _inputReaderStringBuilder.ToString();
+                                        var index = GetIndexInWorkAreaConstraintedString(txt, beginOfLineCurPos, CursorPos)-1;
+                                        var x = CursorLeft-1;
+                                        var y = CursorTop;
+                                        if (index >= 0)
                                         {
-                                            var x0 = x - beginOfLineCurPos.X - 1;
-                                            _inputReaderStringBuilder.Remove(x0, 1);
+                                            _inputReaderStringBuilder.Remove(index, 1);
                                             HideCur();
-                                            SetCursorLeft(x - 1);
-                                            var txt = _inputReaderStringBuilder.ToString();
-                                            if (x0 < txt.Length)
-                                                ConsolePrint(txt.Substring(x0));
+                                            SetCursorPosConstraintedInWorkArea(ref x, ref y);
+                                            txt = _inputReaderStringBuilder.ToString();
+                                            if (index < txt.Length)
+                                                ConsolePrint(txt.Substring(index));
                                             ConsolePrint(" ");
-                                            SetCursorLeft(x - 1);
+                                            SetCursorPos(x,y);
                                             ShowCur();
                                         }
                                     }
@@ -244,7 +246,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                     var y0 = CursorTop;
                                     //x = x0 - beginOfLineCurPos.X;
                                     var txt = _inputReaderStringBuilder.ToString();
-                                    index = GetCoordsOfConstraintedStringInWorkArea(txt, beginOfLineCurPos, x0, y0);
+                                    index = GetIndexInWorkAreaConstraintedString(txt, beginOfLineCurPos, x0, y0);
                                     insert = index - txt.Length < 0;
 
                                     System.Diagnostics.Debug.WriteLine($"cur={x0},{y0} index={index} insert={insert} txt={txt}");
