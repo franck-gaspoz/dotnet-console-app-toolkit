@@ -473,7 +473,7 @@ namespace DotNetConsoleSdk
                     var croppedLines = new List<string>();
                     var xr = x0 + s.Length - 1;
                     var xm = x + w - 1;
-                    //System.Diagnostics.Debug.WriteLine($" xr={xr} xm={xm} x0={x0} x={x} w={w} s.length={s.Length} s={s}");
+    System.Diagnostics.Debug.WriteLine($" xr={xr} xm={xm} x0={x0} x={x} w={w} s.length={s.Length} s={s}");
                     if (xr > xm)
                     {
                         while (xr > xm && s.Length > 0)
@@ -484,22 +484,27 @@ namespace DotNetConsoleSdk
                             xr = x + s.Length - 1;
                         }
                         if (s.Length > 0)
-                            croppedLines.Add(s);
-                        if (lineBreak)
-                            croppedLines.Add("");
+                            croppedLines.Add(s);                        
                         var curx = x0;
                         foreach (var line in croppedLines)
                         {
-                            SetCursorPosConstraintedInWorkArea(ref x0, ref y0);
                             sc.Write(line);
+                            x0 += line.Length;
+                            SetCursorPosConstraintedInWorkArea(ref x0, ref y0);
                             Echo(line);
-                            y0++;
+                        }
+                        if (lineBreak)
+                        {
                             x0 = x;
+                            y0++;
+                            SetCursorPosConstraintedInWorkArea(ref x0, ref y0);
                         }
                     }
                     else
                     {
                         sc.Write(s);
+                        x0 += s.Length;
+                        SetCursorPosConstraintedInWorkArea(ref x0, ref y0);
                         Echo(s);
                         if (lineBreak)
                         {
@@ -576,6 +581,11 @@ System.Diagnostics.Debug.WriteLine($"x0={x0} xr={xr} xm={xm}");
                 if (EnableConstraintConsolePrintInsideWorkArea)
                 {
                     var (x, y, w, h) = ActualWorkArea;
+                    if (cx>=w)
+                    {
+                        cx = x;
+                        cy++;
+                    }
                     if (cy > h - 1)
                     {
                         cy--;

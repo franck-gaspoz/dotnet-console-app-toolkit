@@ -66,8 +66,14 @@ namespace DotNetConsoleSdk.Component.Shell
             {
                 ShellSdk.Initialize();
                 InitUI();
-                ConsolePrint("AAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCC",true);
+
+                ConsolePrint( "".PadLeft(28,'A') + "".PadLeft(28,'B') + "CCCCC",true);
                 //ConsolePrint("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCC",true);
+                
+                /*for (int i = 0; i < 27; i++) ConsolePrint("a");
+                ConsolePrint("A");
+                ConsolePrint("b", true);*/
+
                 BeginReadln(prompt);
             }
             catch (Exception initException)
