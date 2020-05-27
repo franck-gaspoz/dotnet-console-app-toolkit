@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using static DotNetConsoleSdk.DotNetConsoleSdk;
@@ -196,36 +197,51 @@ namespace DotNetConsoleSdk.Component.Shell
                                     }
                                     break;
                                 case ConsoleKey.UpArrow:
-                                    var h = GetBackwardHistory();
-                                    if (h != null)
+                                    lock (ConsoleLock)
                                     {
-                                        lock (ConsoleLock)
+                                        if (CursorTop == beginOfLineCurPos.Y)
                                         {
-                                            HideCur();
-                                            SetCursorLeft(beginOfLineCurPos.X);
-                                            ConsolePrint("".PadLeft(_inputReaderStringBuilder.ToString().Length, ' '));
-                                            SetCursorLeft(beginOfLineCurPos.X);
-                                            _inputReaderStringBuilder.Clear();
-                                            _inputReaderStringBuilder.Append(h);
-                                            ConsolePrint(h);
-                                            ShowCur();
+                                            var h = GetBackwardHistory();
+                                            if (h != null)
+                                            {
+                                                HideCur();
+                                                SetCursorPos(beginOfLineCurPos);
+                                                ConsolePrint("".PadLeft(_inputReaderStringBuilder.ToString().Length, ' '));
+                                                SetCursorPos(beginOfLineCurPos);
+                                                _inputReaderStringBuilder.Clear();
+                                                _inputReaderStringBuilder.Append(h);
+                                                ConsolePrint(h);
+                                                ShowCur();
+                                            }
+                                        } else
+                                        {
+                                            SetCursorPos(CursorLeft, CursorTop - 1);
                                         }
                                     }
                                     break;
                                 case ConsoleKey.DownArrow:
-                                    var fh = GetForwardHistory();
-                                    if (fh != null)
+                                    lock (ConsoleLock)
                                     {
-                                        lock (ConsoleLock)
+                                        var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(),beginOfLineCurPos);
+                                        if (CursorTop == slines.Max(o => o.y))
                                         {
-                                            HideCur();
-                                            SetCursorLeft(beginOfLineCurPos.X);
-                                            ConsolePrint("".PadLeft(_inputReaderStringBuilder.ToString().Length, ' '));
-                                            SetCursorLeft(beginOfLineCurPos.X);
-                                            _inputReaderStringBuilder.Clear();
-                                            _inputReaderStringBuilder.Append(fh);
-                                            ConsolePrint(fh);
-                                            ShowCur();
+                                            var fh = GetForwardHistory();
+                                            if (fh != null)
+                                            {
+                                                HideCur();
+                                                SetCursorPos(beginOfLineCurPos);
+                                                ConsolePrint("".PadLeft(_inputReaderStringBuilder.ToString().Length, ' '));
+                                                SetCursorPos(beginOfLineCurPos);
+                                                _inputReaderStringBuilder.Clear();
+                                                _inputReaderStringBuilder.Append(fh);
+                                                ConsolePrint(fh);
+                                                ShowCur();
+                                            }
+                                        }
+                                        else
+                                        {
+                                            var (txt, nx, ny, l) = slines.Where(o => o.y == CursorTop+1).First();
+                                            SetCursorPos(Math.Min(CursorLeft, nx + l), CursorTop + 1);
                                         }
                                     }
                                     break;

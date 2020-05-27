@@ -475,7 +475,6 @@ namespace DotNetConsoleSdk
                     var croppedLines = new List<string>();
                     var xr = x0 + s.Length - 1;
                     var xm = x + w - 1;
-                    //System.Diagnostics.Debug.WriteLine($" xr={xr} xm={xm} x0={x0} x={x} w={w} s.length={s.Length} s={s}");
                     if (xr > xm)
                     {
                         while (xr > xm && s.Length > 0)
@@ -577,6 +576,49 @@ System.Diagnostics.Debug.WriteLine($"x0={x0} xr={xr} xm={xm} lines={Dump(cropped
                     return cursorX - x0;
                 return index;
             }
+        }
+
+        public static List<(string s,int x,int y,int l)> GetWorkAreaStringSplits(string s, Point origin)
+        {
+            var r = new List<(string, int,int, int)>();
+            lock (ConsoleLock)
+            {
+                int index = -1;
+                var (x, y, w, h) = ActualWorkArea;
+                var x0 = origin.X;
+                var y0 = origin.Y;
+
+                var croppedLines = new List<string>();
+                var xr = x0 + s.Length - 1;
+                var xm = x + w - 1;
+                if (xr >= xm)
+                {
+                    while (xr > xm && s.Length > 0)
+                    {
+                        var left = s.Substring(0, s.Length - (xr - xm));
+                        s = s.Substring(s.Length - (xr - xm), xr - xm);
+                        croppedLines.Add(left);
+                        xr = x + s.Length - 1;
+                    }
+                    if (s.Length > 0)
+                        croppedLines.Add(s);
+
+                    var curx = x0;
+                    int lineIndex = 0;
+                    index = 0;
+                    foreach (var line in croppedLines)
+                    {
+                        r.Add((line,x0,y0,line.Length));                        
+                        x0 += line.Length;
+                        index += line.Length;
+                        SetCursorPosConstraintedInWorkArea(ref x0, ref y0, false);
+                        lineIndex++;
+                    }
+                }
+                else
+                    r.Add((s,x0,y0,s.Length));
+            }
+            return r;
         }
 
         public static void SetCursorPosConstraintedInWorkArea(int cx,int cy, bool enableOutput = true)
