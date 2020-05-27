@@ -241,7 +241,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                         HideCur();
                                         SetCursorLeft(x0 + printedStr.Length);
                                         ConsolePrint(substr);
-                                        SetCursorLeft(x0);
+                                        SetCursorPos(x0,y0);
                                         ShowCur();
                                     }
                                     ConsolePrint(printedStr, false);
