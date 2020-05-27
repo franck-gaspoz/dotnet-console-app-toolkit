@@ -86,6 +86,8 @@ namespace DotNetConsoleSdk.Component.Shell
 
                             #region handle special caracters - edition mode, movement
 
+                            var (wx, wy, ww, wh) = ActualWorkArea;
+
                             var printed = false;
                             string printedStr = "";
                             switch (c.Key)
@@ -126,9 +128,20 @@ namespace DotNetConsoleSdk.Component.Shell
                                 case ConsoleKey.LeftArrow:
                                     lock (ConsoleLock)
                                     {
-                                        var x = CursorLeft;
-                                        if (x > beginOfLineCurPos.X)
-                                            SetCursorLeft(x - 1);
+                                        var p = CursorPos;
+                                        if (p.Y == beginOfLineCurPos.Y)
+                                        {
+                                            if (p.X > beginOfLineCurPos.X)
+                                                SetCursorLeft(p.X - 1);
+                                        }
+                                        else
+                                        {
+                                            var x = p.X - 1;
+                                            if (x < wx)
+                                                SetCursorPos(ww - 1, p.Y - 1);
+                                            else
+                                                SetCursorLeft(x);
+                                        }
                                     }
                                     break;
                                 case ConsoleKey.RightArrow:
