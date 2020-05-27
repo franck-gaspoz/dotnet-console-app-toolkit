@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Xml.Linq;
 using static DotNetConsoleSdk.Component.UI.UIElement;
 using sc = System.Console;
 
@@ -526,7 +527,10 @@ namespace DotNetConsoleSdk
                 }
             }
         }
-        
+
+        public static int GetCoordsOfConstraintedStringInWorkArea(string s, Point origin, Point cursorPos)
+            => GetCoordsOfConstraintedStringInWorkArea(s, origin, cursorPos.X, cursorPos.Y);
+
         public static int GetCoordsOfConstraintedStringInWorkArea(string s,Point origin,int cursorX,int cursorY)
         {
             lock (ConsoleLock)
@@ -573,6 +577,9 @@ System.Diagnostics.Debug.WriteLine($"x0={x0} xr={xr} xm={xm} lines={Dump(cropped
                 return index;
             }
         }
+
+        public static void SetCursorPosConstraintedInWorkArea(int cx,int cy, bool enableOutput = true)
+            => SetCursorPosConstraintedInWorkArea(ref cx, ref cy, enableOutput);
 
         public static void SetCursorPosConstraintedInWorkArea(ref int cx,ref int cy,bool enableOutput=true)
         {

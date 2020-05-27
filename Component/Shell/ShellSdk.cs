@@ -147,9 +147,10 @@ namespace DotNetConsoleSdk.Component.Shell
                                 case ConsoleKey.RightArrow:
                                     lock (ConsoleLock)
                                     {
-                                        var x = CursorLeft;
-                                        if (x < beginOfLineCurPos.X + _inputReaderStringBuilder.ToString().Length)
-                                            SetCursorLeft(x + 1);
+                                        var txt = _inputReaderStringBuilder.ToString();
+                                        var index = GetCoordsOfConstraintedStringInWorkArea(txt, beginOfLineCurPos, CursorPos);
+                                        if (index < txt.Length)
+                                            SetCursorPosConstraintedInWorkArea(CursorLeft + 1, CursorTop);
                                     }
                                     break;
                                 case ConsoleKey.Backspace:
@@ -252,10 +253,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                     {
                                         var substr = txt.Substring(index);
                                         HideCur();
-                                        //SetCursorLeft(x0 + printedStr.Length);
-                                        var nx = x0 + printedStr.Length;
-                                        var ny = y0;
-                                        SetCursorPosConstraintedInWorkArea(ref nx, ref ny);
+                                        SetCursorPosConstraintedInWorkArea(x0 + printedStr.Length, y0);
                                         ConsolePrint(substr);
                                         SetCursorPos(x0,y0);
                                         ShowCur();
