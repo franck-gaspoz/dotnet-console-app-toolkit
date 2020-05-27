@@ -121,7 +121,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                 case ConsoleKey.Tab:
                                     lock (ConsoleLock)
                                     {
-                                        printedStr = "".PadLeft(7, ' ');
+                                        printedStr = "".PadLeft(TabLength, ' ');
                                         printed = true;
                                     }
                                     break;

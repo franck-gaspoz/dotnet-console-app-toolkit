@@ -50,6 +50,7 @@ namespace DotNetConsoleSdk
         public static bool ForwardLogsToSystemDiagnostics = true;
         static Rectangle _workArea = Rectangle.Empty;
         public static Rectangle WorkArea => new Rectangle(_workArea.X, _workArea.Y, _workArea.Width, _workArea.Height);
+        public static int TabLength = 7;
 
         public static EventHandler ViewSizeChanged;
         
