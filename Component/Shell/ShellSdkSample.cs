@@ -13,7 +13,7 @@ namespace DotNetConsoleSdk.Component.Shell
     {
         static void InitUI()
         {
-            EchoOn(Path.Combine(TempPath, "trace.txt"));
+            //EchoOn(Path.Combine(TempPath, "trace.txt"));
 
             Clear();
             SetWorkArea(0, 4, -1, -3);
@@ -53,7 +53,9 @@ namespace DotNetConsoleSdk.Component.Shell
                         +$" | {Green}drive: {Cyan}{GetCurrentDriveInfo()}{White}"
                         +$" | {Cyan}{System.DateTime.Now}{White}      "
                     };
-            }, ConsoleColor.DarkBlue, 0, -1, -1, 1, DrawStrategy.OnViewResizedOnly, false, 1000);
+            },
+            // use w=-2 to prevent print a car at bottom right of the window that lead to scroll on main terminals (ore else use AvoidConsoleAutoLineBreakAtEndOfLine=true) 
+            ConsoleColor.DarkBlue, 0, -1, -2, 1, DrawStrategy.OnViewResizedOnly, false, 1000);
 
             SetCursorAtBeginWorkArea();
         }

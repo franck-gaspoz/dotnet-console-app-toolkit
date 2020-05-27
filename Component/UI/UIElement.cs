@@ -9,8 +9,7 @@ namespace DotNetConsoleSdk.Component.UI
     public abstract class UIElement
     {
         /// <summary>
-        /// this setting limit wide of lines (-1) to prevent sys console to automatically put a line break when reaching end of line (case if sys console has the setting 'auto line break when resizing' activated - see doc
-        /// <para>can unset "linebreak when resize" in sys console settings (if any) instead of setting this flag as a workaround</para>
+        /// this setting limit wide of lines (available width -1) to prevent sys console to automatically put a line break when reaching end of line (console bug ?)
         /// </summary>
         public static bool AvoidConsoleAutoLineBreakAtEndOfLine = false;
 

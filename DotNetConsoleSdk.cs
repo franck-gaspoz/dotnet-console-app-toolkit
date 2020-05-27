@@ -25,6 +25,7 @@ namespace DotNetConsoleSdk
         #region attributes
 
         public static bool FileEchoDumpDebugInfo = true;
+        public static bool FileEchoCommands = true;
         public static bool FileEchoAutoFlush = true;
         public static bool FileEchoAutoLineBreak = true;
         public static bool EnableConstraintConsolePrintInsideWorkArea = true;
@@ -70,6 +71,8 @@ namespace DotNetConsoleSdk
         static readonly Dictionary<string, Script<object>> _csscripts = new Dictionary<string, Script<object>>();
 
         public static object ConsoleLock = new object();
+
+        public static bool FileEchoEnabled => _echoStreamWriter != null;
 
         #endregion
 
@@ -381,16 +384,25 @@ namespace DotNetConsoleSdk
         public static void Echo(string s,bool lineBreak=false,[CallerMemberName]string callerMemberName="",[CallerLineNumber]int callerLineNumber=-1)
         {
             if (FileEchoDumpDebugInfo)
-                _echoStreamWriter?.Write($"x={CursorLeft},y={CursorTop},l={s.Length} [{callerMemberName}:{callerLineNumber}] :");
+                _echoStreamWriter?.Write($"x={CursorLeft},y={CursorTop},l={s.Length},w={sc.WindowWidth},h={sc.WindowHeight},wtop={sc.WindowTop} bw={sc.BufferWidth},bh={sc.BufferHeight},br={lineBreak} [{callerMemberName}:{callerLineNumber}] :");
             _echoStreamWriter?.Write(s);
             if (lineBreak | FileEchoAutoLineBreak) _echoStreamWriter?.WriteLine(string.Empty);
             if (FileEchoAutoFlush) _echoStreamWriter?.Flush();
         }
 
-        public static void EchoOn(string filepath)
+        public static void EchoOn(
+            string filepath,
+            bool fileEchoAutoFlush=true,
+            bool fileEchoAutoLineBreak=true,
+            bool fileEchoCommands=true,
+            bool fileEchoDumpDebugInfo=false)
         {
             if (!string.IsNullOrWhiteSpace(filepath) && _echoFileStream == null)
             {
+                FileEchoAutoFlush = fileEchoAutoFlush;
+                FileEchoAutoLineBreak = fileEchoAutoLineBreak;
+                FileEchoCommands = fileEchoCommands;
+                FileEchoDumpDebugInfo = fileEchoDumpDebugInfo;
                 _echoFileStream = new FileStream(filepath, FileMode.Append, FileAccess.Write);
                 _echoStreamWriter = new StreamWriter(_echoFileStream);
             }
@@ -441,9 +453,9 @@ namespace DotNetConsoleSdk
                     {
                         var n = mx - x + 1;
                         if (s.Length <= n)
-                            ConsoleSubPrint(s,lineBreak);
+                            ConsoleSubPrint(s, lineBreak);
                         else
-                            ConsoleSubPrint(s.Substring(0, n),lineBreak);
+                            ConsoleSubPrint(s.Substring(0, n), lineBreak);
                     }
                 }
             }
@@ -1019,10 +1031,14 @@ System.Diagnostics.Debug.WriteLine($"x0={x0} xr={xr} xm={xm}");
                         value = t[1];
                     }
                     result = cmd.Value.Value(value);
+                    if (FileEchoEnabled && FileEchoCommands)
+                        Echo(CommandBlockBeginChar + cmd.Value.Key + value + CommandBlockEndChar);
                 }
                 else
                 {
                     result = cmd.Value.Value(null);
+                    if (FileEchoEnabled && FileEchoCommands)
+                        Echo(CommandBlockBeginChar + cmd.Value.Key + CommandBlockEndChar);
                 }
                 if (result != null)
                     Print(result, false, true);
