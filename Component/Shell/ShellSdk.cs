@@ -177,19 +177,20 @@ namespace DotNetConsoleSdk.Component.Shell
                                 case ConsoleKey.Delete:
                                     lock (ConsoleLock)
                                     {
-                                        var x = CursorLeft;
                                         var txt = _inputReaderStringBuilder.ToString();
-                                        var x0 = x - beginOfLineCurPos.X;
-                                        if (x0 < txt.Length)
+                                        var index = GetIndexInWorkAreaConstraintedString(txt, beginOfLineCurPos, CursorPos);
+                                        var x = CursorLeft;
+                                        var y = CursorTop;
+                                        if (index >= 0 && index<txt.Length)
                                         {
-                                            _inputReaderStringBuilder.Remove(x0, 1);
-                                            txt = _inputReaderStringBuilder.ToString();
+                                            _inputReaderStringBuilder.Remove(index, 1);
                                             HideCur();
-                                            if (x0 < txt.Length)
-                                                ConsolePrint(txt.Substring(x0) + " ");
-                                            else
-                                                ConsolePrint(" ");
-                                            SetCursorLeft(x);
+                                            SetCursorPosConstraintedInWorkArea(ref x, ref y);
+                                            txt = _inputReaderStringBuilder.ToString();
+                                            if (index < txt.Length)
+                                                ConsolePrint(txt.Substring(index));
+                                            ConsolePrint(" ");
+                                            SetCursorPos(x, y);
                                             ShowCur();
                                         }
                                     }
