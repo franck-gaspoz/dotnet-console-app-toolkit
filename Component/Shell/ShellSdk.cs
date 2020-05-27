@@ -109,7 +109,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                 case ConsoleKey.Home:
                                     lock (ConsoleLock)
                                     {
-                                        SetCursorLeft(beginOfLineCurPos.X);
+                                        SetCursorPos(beginOfLineCurPos);
                                     }
                                     break;
                                 case ConsoleKey.End:
