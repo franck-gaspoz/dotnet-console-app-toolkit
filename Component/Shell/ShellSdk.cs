@@ -246,7 +246,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                     }
                                     ConsolePrint(printedStr, false);
 
-                                    System.Diagnostics.Debug.WriteLine($"cur={CursorLeft},{CursorTop}");
+                                    //System.Diagnostics.Debug.WriteLine($"cur={CursorLeft},{CursorTop}");
                                 }
                                 if (!insert)
                                     _inputReaderStringBuilder.Append(printedStr);

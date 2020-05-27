@@ -317,9 +317,9 @@ namespace DotNetConsoleSdk
         {
             lock (ConsoleLock)
             {
-                var (x, y, w, h) = GetCoords(wx, wy, width, height);
-                FixCoords(ref x, ref y);
-                _workArea = new Rectangle(x, y, w, h);
+                //var (x, y, w, h) = GetCoords(wx, wy, width, height);
+                //FixCoords(ref x, ref y);
+                _workArea = new Rectangle(wx, wy, width, height);
                 ApplyWorkArea();
                 EnableConstraintConsolePrintInsideWorkArea = true;
             }
@@ -473,7 +473,7 @@ namespace DotNetConsoleSdk
                     var croppedLines = new List<string>();
                     var xr = x0 + s.Length - 1;
                     var xm = x + w - 1;
-    System.Diagnostics.Debug.WriteLine($" xr={xr} xm={xm} x0={x0} x={x} w={w} s.length={s.Length} s={s}");
+                    //System.Diagnostics.Debug.WriteLine($" xr={xr} xm={xm} x0={x0} x={x} w={w} s.length={s.Length} s={s}");
                     if (xr > xm)
                     {
                         while (xr > xm && s.Length > 0)
@@ -539,8 +539,7 @@ namespace DotNetConsoleSdk
                 var croppedLines = new List<string>();
                 var xr = x0 + s.Length - 1;
                 var xm = x + w - 1;
-System.Diagnostics.Debug.WriteLine($"x0={x0} xr={xr} xm={xm}");
-                if (xr > xm)
+                if (xr >= xm)
                 {
                     while (xr > xm && s.Length > 0)
                     {
@@ -554,27 +553,28 @@ System.Diagnostics.Debug.WriteLine($"x0={x0} xr={xr} xm={xm}");
 
                     var curx = x0;
                     int lineIndex = 0;
+                    index = 0;
+System.Diagnostics.Debug.WriteLine($"x0={x0} xr={xr} xm={xm} lines={Dump(croppedLines.ToArray())}");
                     foreach (var line in croppedLines)
                     {
-                        SetCursorPosConstraintedInWorkArea(ref x0, ref y0);
                         if (cursorY == y0)
                         {
-                            index = cursorX - x0;
-                            for (int i = 0; i < lineIndex; i++)
-                                index += croppedLines[i].Length;
+                            index += cursorX - x0;
+                            break;
                         }
-                        y0++;
-                        x0 = x;
+                        x0 += line.Length;
+                        index += line.Length;
+                        SetCursorPosConstraintedInWorkArea(ref x0, ref y0,false);
                         lineIndex++;
                     }
                 }
                 else
-                    return s.Length;
+                    return cursorX - x0;
                 return index;
             }
         }
 
-        static void SetCursorPosConstraintedInWorkArea(ref int cx,ref int cy)
+        static void SetCursorPosConstraintedInWorkArea(ref int cx,ref int cy,bool enableOutput=true)
         {
             lock (ConsoleLock)
             {
@@ -586,7 +586,7 @@ System.Diagnostics.Debug.WriteLine($"x0={x0} xr={xr} xm={xm}");
                         cx = x;
                         cy++;
                     }
-                    if (cy > h - 1)
+                    if (enableOutput && cy > h - 1)
                     {
                         cy--;
                         var nh = h - y - 1;
@@ -596,7 +596,8 @@ System.Diagnostics.Debug.WriteLine($"x0={x0} xr={xr} xm={xm}");
                                 x, y, ' ', DefaultForeground, DefaultBackground);
                     }
                 }
-                SetCursorPos(cx, cy);
+                if (enableOutput)
+                    SetCursorPos(cx, cy);
             }
         }
 
