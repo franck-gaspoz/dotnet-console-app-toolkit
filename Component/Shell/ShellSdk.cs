@@ -252,7 +252,10 @@ namespace DotNetConsoleSdk.Component.Shell
                                     {
                                         var substr = txt.Substring(index);
                                         HideCur();
-                                        SetCursorLeft(x0 + printedStr.Length);
+                                        //SetCursorLeft(x0 + printedStr.Length);
+                                        var nx = x0 + printedStr.Length;
+                                        var ny = y0;
+                                        SetCursorPosConstraintedInWorkArea(ref nx, ref ny);
                                         ConsolePrint(substr);
                                         SetCursorPos(x0,y0);
                                         ShowCur();

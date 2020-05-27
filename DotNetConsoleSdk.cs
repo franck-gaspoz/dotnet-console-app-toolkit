@@ -574,7 +574,7 @@ System.Diagnostics.Debug.WriteLine($"x0={x0} xr={xr} xm={xm} lines={Dump(cropped
             }
         }
 
-        static void SetCursorPosConstraintedInWorkArea(ref int cx,ref int cy,bool enableOutput=true)
+        public static void SetCursorPosConstraintedInWorkArea(ref int cx,ref int cy,bool enableOutput=true)
         {
             lock (ConsoleLock)
             {
