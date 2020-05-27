@@ -222,17 +222,22 @@ namespace DotNetConsoleSdk.Component.Shell
 
                             if (printed)
                             {
-                                int x = 0;
+                                var index = 0;
                                 var insert = false;
                                 lock (ConsoleLock)
                                 {
                                     var x0 = CursorLeft;
-                                    x = x0 - beginOfLineCurPos.X;
+                                    var y0 = CursorTop;
+                                    //x = x0 - beginOfLineCurPos.X;
                                     var txt = _inputReaderStringBuilder.ToString();
-                                    insert = x - txt.Length < 0;
+                                    index = GetCoordsOfConstraintedStringInWorkArea(txt, beginOfLineCurPos, x0, y0);
+                                    insert = index - txt.Length < 0;
+
+                                    System.Diagnostics.Debug.WriteLine($"cur={x0},{y0} index={index} insert={insert} txt={txt}");
+
                                     if (insert)
                                     {
-                                        var substr = txt.Substring(x);
+                                        var substr = txt.Substring(index);
                                         HideCur();
                                         SetCursorLeft(x0 + printedStr.Length);
                                         ConsolePrint(substr);
@@ -240,11 +245,13 @@ namespace DotNetConsoleSdk.Component.Shell
                                         ShowCur();
                                     }
                                     ConsolePrint(printedStr, false);
+
+                                    System.Diagnostics.Debug.WriteLine($"cur={CursorLeft},{CursorTop}");
                                 }
                                 if (!insert)
                                     _inputReaderStringBuilder.Append(printedStr);
                                 else
-                                    _inputReaderStringBuilder.Insert(x, printedStr);
+                                    _inputReaderStringBuilder.Insert(index, printedStr);
                             }
 
                             if (eol) break;

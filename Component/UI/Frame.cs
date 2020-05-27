@@ -112,6 +112,8 @@ namespace DotNetConsoleSdk.Component.UI
             {
                 var redrawUIElementsEnabled = RedrawUIElementsEnabled;
                 RedrawUIElementsEnabled = false;
+                var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
+                EnableConstraintConsolePrintInsideWorkArea = false;
                 var p = CursorPos;
                 var (x, y, w, h) = GetCurrentCoords();
                 BackupCoords(x, y, w, h);
@@ -133,6 +135,7 @@ namespace DotNetConsoleSdk.Component.UI
 
                 SetCursorPos(p);
                 ShowCur();
+                EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
                 RedrawUIElementsEnabled = redrawUIElementsEnabled;
             }
         }
@@ -151,11 +154,14 @@ namespace DotNetConsoleSdk.Component.UI
             {
                 var p = CursorPos;                
                 var redrawUIElementsEnabled = RedrawUIElementsEnabled;
+                var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
+                EnableConstraintConsolePrintInsideWorkArea = false;
                 RedrawUIElementsEnabled = false;
                 HideCur();
                 DrawRect(Console.BackgroundColor, ActualX, ActualY, ActualWidth, ActualHeight);
                 SetCursorPos(p);
                 ShowCur();
+                EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
                 RedrawUIElementsEnabled = redrawUIElementsEnabled;
             }
         }

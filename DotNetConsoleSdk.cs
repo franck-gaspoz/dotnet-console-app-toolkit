@@ -10,6 +10,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using static DotNetConsoleSdk.Component.UI.UIElement;
 using sc = System.Console;
@@ -23,7 +24,10 @@ namespace DotNetConsoleSdk
     {
         #region attributes
 
-        public static bool EnableConstraintConsolePrintInsideWorkArea = false;
+        public static bool FileEchoDumpDebugInfo = true;
+        public static bool FileEchoAutoFlush = true;
+        public static bool FileEchoAutoLineBreak = true;
+        public static bool EnableConstraintConsolePrintInsideWorkArea = true;
         public static int CropX = -1;
         public static int UIWatcherThreadDelay = 500;
         public static ViewResizeStrategy ViewResizeStrategy = ViewResizeStrategy.FitViewSize;
@@ -374,6 +378,15 @@ namespace DotNetConsoleSdk
             return sc.ReadLine();
         }
 
+        public static void Echo(string s,bool lineBreak=false,[CallerMemberName]string callerMemberName="",[CallerLineNumber]int callerLineNumber=-1)
+        {
+            if (FileEchoDumpDebugInfo)
+                _echoStreamWriter?.Write($"x={CursorLeft},y={CursorTop},l={s.Length} [{callerMemberName}:{callerLineNumber}] :");
+            _echoStreamWriter?.Write(s);
+            if (lineBreak | FileEchoAutoLineBreak) _echoStreamWriter?.WriteLine(string.Empty);
+            if (FileEchoAutoFlush) _echoStreamWriter?.Flush();
+        }
+
         public static void EchoOn(string filepath)
         {
             if (!string.IsNullOrWhiteSpace(filepath) && _echoFileStream == null)
@@ -448,60 +461,118 @@ namespace DotNetConsoleSdk
                     var croppedLines = new List<string>();
                     var xr = x0 + s.Length - 1;
                     var xm = x + w - 1;
-                    System.Diagnostics.Debug.WriteLine($" xr={xr} xm={xm} x0={x0} x={x} w={w} s.length={s.Length} s={s}");
+                    //System.Diagnostics.Debug.WriteLine($" xr={xr} xm={xm} x0={x0} x={x} w={w} s.length={s.Length} s={s}");
                     if (xr > xm)
                     {
-                        while (xr>xm && s.Length > 0)
+                        while (xr > xm && s.Length > 0)
                         {
                             var left = s.Substring(0, s.Length - (xr - xm));
-                            s = s.Substring(s.Length-(xr-xm), xr - xm);
+                            s = s.Substring(s.Length - (xr - xm), xr - xm);
                             croppedLines.Add(left);
                             xr = x + s.Length - 1;
                         }
-                        if (s.Length>0)
+                        if (s.Length > 0)
                             croppedLines.Add(s);
                         if (lineBreak)
                             croppedLines.Add("");
                         var curx = x0;
-                        foreach ( var line in croppedLines )
+                        foreach (var line in croppedLines)
                         {
-                            SetCursorPosContraintedInWorkArea(ref x0, ref y0);
+                            SetCursorPosConstraintedInWorkArea(ref x0, ref y0);
                             sc.Write(line);
+                            Echo(line);
                             y0++;
                             x0 = x;
                         }
                     }
-                    else {
+                    else
+                    {
                         sc.Write(s);
+                        Echo(s);
                         if (lineBreak)
                         {
                             x0 = x;
                             y0++;
-                            SetCursorPosContraintedInWorkArea(ref x0, ref y0);
+                            SetCursorPosConstraintedInWorkArea(ref x0, ref y0);
                         }
                     }
                 }
                 else
                 {
                     sc.Write(s);
-                    if (lineBreak) sc.WriteLine(string.Empty);
+                    Echo(s);
+                    if (lineBreak)
+                    {
+                        sc.WriteLine(string.Empty);
+                        Echo(string.Empty,true);
+                    }
                 }
             }
         }
-
-        static void SetCursorPosContraintedInWorkArea(ref int cx,ref int cy)
+        
+        public static int GetCoordsOfConstraintedStringInWorkArea(string s,Point origin,int cursorX,int cursorY)
         {
             lock (ConsoleLock)
             {
+                int index = -1;
                 var (x, y, w, h) = ActualWorkArea;
-                if (cy>h-1)
+                var x0 = origin.X;
+                var y0 = origin.Y;
+
+                var croppedLines = new List<string>();
+                var xr = x0 + s.Length - 1;
+                var xm = x + w - 1;
+System.Diagnostics.Debug.WriteLine($"x0={x0} xr={xr} xm={xm}");
+                if (xr > xm)
                 {
-                    cy--;
-                    var nh = h - y - 1;
-                    if (nh > 0)
-                        sc.MoveBufferArea(
-                            x, y + 1, w, nh,
-                            x, y, ' ', DefaultForeground, DefaultBackground);
+                    while (xr > xm && s.Length > 0)
+                    {
+                        var left = s.Substring(0, s.Length - (xr - xm));
+                        s = s.Substring(s.Length - (xr - xm), xr - xm);
+                        croppedLines.Add(left);
+                        xr = x + s.Length - 1;
+                    }
+                    if (s.Length > 0)
+                        croppedLines.Add(s);
+
+                    var curx = x0;
+                    int lineIndex = 0;
+                    foreach (var line in croppedLines)
+                    {
+                        SetCursorPosConstraintedInWorkArea(ref x0, ref y0);
+                        if (cursorY == y0)
+                        {
+                            index = cursorX - x0;
+                            for (int i = 0; i < lineIndex; i++)
+                                index += croppedLines[i].Length;
+                        }
+                        y0++;
+                        x0 = x;
+                        lineIndex++;
+                    }
+                }
+                else
+                    return s.Length;
+                return index;
+            }
+        }
+
+        static void SetCursorPosConstraintedInWorkArea(ref int cx,ref int cy)
+        {
+            lock (ConsoleLock)
+            {
+                if (EnableConstraintConsolePrintInsideWorkArea)
+                {
+                    var (x, y, w, h) = ActualWorkArea;
+                    if (cy > h - 1)
+                    {
+                        cy--;
+                        var nh = h - y - 1;
+                        if (nh > 0)
+                            sc.MoveBufferArea(
+                                x, y + 1, w, nh,
+                                x, y, ' ', DefaultForeground, DefaultBackground);
+                    }
                 }
                 SetCursorPos(cx, cy);
             }
@@ -744,7 +815,7 @@ namespace DotNetConsoleSdk
             }
         }
 
-        public static string TempPath => Path.Combine( Assembly.GetExecutingAssembly().Location , "Temp" );
+        public static string TempPath => Path.Combine( Environment.CurrentDirectory , "Temp" );
 
         #endregion
 
