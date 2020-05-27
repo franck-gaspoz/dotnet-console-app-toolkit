@@ -116,7 +116,9 @@ namespace DotNetConsoleSdk.Component.Shell
                                 case ConsoleKey.End:
                                     lock (ConsoleLock)
                                     {
-                                        SetCursorLeft(_inputReaderStringBuilder.ToString().Length + beginOfLineCurPos.X);
+                                        var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), beginOfLineCurPos);
+                                        var (txt, nx, ny, l) = slines.Last();
+                                        SetCursorPos(nx+l,ny);
                                     }
                                     break;
                                 case ConsoleKey.Tab:
@@ -261,12 +263,9 @@ namespace DotNetConsoleSdk.Component.Shell
                                 {
                                     var x0 = CursorLeft;
                                     var y0 = CursorTop;
-                                    //x = x0 - beginOfLineCurPos.X;
                                     var txt = _inputReaderStringBuilder.ToString();
                                     index = GetIndexInWorkAreaConstraintedString(txt, beginOfLineCurPos, x0, y0);
                                     insert = index - txt.Length < 0;
-
-                                    System.Diagnostics.Debug.WriteLine($"cur={x0},{y0} index={index} insert={insert} txt={txt}");
 
                                     if (insert)
                                     {
@@ -278,8 +277,6 @@ namespace DotNetConsoleSdk.Component.Shell
                                         ShowCur();
                                     }
                                     ConsolePrint(printedStr, false);
-
-                                    //System.Diagnostics.Debug.WriteLine($"cur={CursorLeft},{CursorTop}");
                                 }
                                 if (!insert)
                                     _inputReaderStringBuilder.Append(printedStr);

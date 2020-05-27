@@ -558,7 +558,6 @@ namespace DotNetConsoleSdk
                     var curx = x0;
                     int lineIndex = 0;
                     index = 0;
-System.Diagnostics.Debug.WriteLine($"x0={x0} xr={xr} xm={xm} lines={Dump(croppedLines.ToArray())}");
                     foreach (var line in croppedLines)
                     {
                         if (cursorY == y0)
