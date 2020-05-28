@@ -251,8 +251,14 @@ namespace DotNetConsoleSdk.Component.Shell
                                                 ConsolePrint(h);
                                                 ShowCur();
                                             }
-                                        } else
-                                            SetCursorPosConstraintedInWorkArea(CursorLeft, CursorTop - 1);
+                                        }
+                                        else
+                                        {
+                                            SetCursorPosConstraintedInWorkArea(
+                                                (CursorTop - 1) == _beginOfLineCurPos.Y ? 
+                                                    Math.Max(_beginOfLineCurPos.X, CursorLeft):CursorLeft,
+                                                CursorTop - 1);
+                                        }
                                     }
                                     break;
                                 case ConsoleKey.DownArrow:
