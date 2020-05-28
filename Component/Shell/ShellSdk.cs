@@ -132,25 +132,9 @@ namespace DotNetConsoleSdk.Component.Shell
                                     eol = true;
                                     break;
                                 case ConsoleKey.Escape:
-                                    lock (ConsoleLock)
-                                    {
-                                        HideCur();
-                                        SetCursorPosConstraintedInWorkArea(_beginOfLineCurPos);
-                                        var txt = _inputReaderStringBuilder.ToString();
-                                        var slines = GetWorkAreaStringSplits(txt, _beginOfLineCurPos);
-                                        var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
-                                        EnableConstraintConsolePrintInsideWorkArea = false;
-                                        foreach (var (line, x, y, l) in slines)
-                                            if (y<=bottom)
-                                            {
-                                                SetCursorPos(x, y);
-                                                ConsolePrint("".PadLeft(right - left + 1, ' '));
-                                            }
-                                        EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
-                                        SetCursorPosConstraintedInWorkArea(_beginOfLineCurPos);
-                                        ShowCur();
-                                        _inputReaderStringBuilder.Clear();
-                                    }
+                                    HideCur();
+                                    CleanUpReadln();
+                                    ShowCur();
                                     break;
                                 case ConsoleKey.Home:
                                     lock (ConsoleLock)
@@ -252,10 +236,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                             if (h != null)
                                             {
                                                 HideCur();
-                                                SetCursorPos(_beginOfLineCurPos);
-                                                ConsolePrint("".PadLeft(_inputReaderStringBuilder.ToString().Length, ' '));
-                                                SetCursorPos(_beginOfLineCurPos);
-                                                _inputReaderStringBuilder.Clear();
+                                                CleanUpReadln();
                                                 _inputReaderStringBuilder.Append(h);
                                                 ConsolePrint(h);
                                                 ShowCur();
@@ -276,10 +257,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                             if (fh != null)
                                             {
                                                 HideCur();
-                                                SetCursorPos(_beginOfLineCurPos);
-                                                ConsolePrint("".PadLeft(_inputReaderStringBuilder.ToString().Length, ' '));
-                                                SetCursorPos(_beginOfLineCurPos);
-                                                _inputReaderStringBuilder.Clear();
+                                                CleanUpReadln();
                                                 _inputReaderStringBuilder.Append(fh);
                                                 ConsolePrint(fh);
                                                 ShowCur();
@@ -349,6 +327,31 @@ namespace DotNetConsoleSdk.Component.Shell
                 Name = "input stream reader"
             };
             _inputReaderThread.Start();
+        }
+
+        public static void CleanUpReadln()
+        {
+            if (_inputReaderThread != null)
+            {
+                lock (ConsoleLock)
+                {
+                    var (left, top, right, bottom) = ActualWorkArea;
+                    SetCursorPosConstraintedInWorkArea(_beginOfLineCurPos);
+                    var txt = _inputReaderStringBuilder.ToString();
+                    var slines = GetWorkAreaStringSplits(txt, _beginOfLineCurPos);
+                    var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
+                    EnableConstraintConsolePrintInsideWorkArea = false;
+                    foreach (var (line, x, y, l) in slines)
+                        if (y>=top && y<= bottom)
+                        {
+                            SetCursorPos(x, y);
+                            ConsolePrint("".PadLeft(right - left + 1, ' '));
+                        }
+                    EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
+                    SetCursorPosConstraintedInWorkArea(_beginOfLineCurPos);
+                    _inputReaderStringBuilder.Clear();
+                }
+            }
         }
 
         public static void StopBeginReadln()
