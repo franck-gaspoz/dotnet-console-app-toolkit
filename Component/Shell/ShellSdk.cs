@@ -48,7 +48,7 @@ namespace DotNetConsoleSdk.Component.Shell
                         _beginOfLineCurPos.X += e.DeltaX;
                         _beginOfLineCurPos.Y += e.DeltaY;
                         var p = CursorPos;
-                        var (left, top, right, bottom) = ActualWorkArea;
+                        var (id,left, top, right, bottom) = ActualWorkArea;
                         var txt = _inputReaderStringBuilder.ToString();
                         var index = GetIndexInWorkAreaConstraintedString(txt, _beginOfLineCurPos, p);
                         var slines = GetWorkAreaStringSplits(txt, _beginOfLineCurPos);
@@ -84,7 +84,7 @@ namespace DotNetConsoleSdk.Component.Shell
                 {
                     LineBreak();
                     Print(s);
-                    if (!WorkArea.IsEmpty && (WorkArea.Y != CursorTop || WorkArea.X != CursorLeft))
+                    if (!WorkArea.rect.IsEmpty && (WorkArea.rect.Y != CursorTop || WorkArea.rect.X != CursorLeft))
                         LineBreak();
                     RestoreDefaultColors();
                 }
@@ -122,7 +122,7 @@ namespace DotNetConsoleSdk.Component.Shell
 #endif
                             #region handle special caracters - edition mode, movement
 
-                            var (left, top, right, bottom) = ActualWorkArea;
+                            var (id,left, top, right, bottom) = ActualWorkArea;
 
                             var printed = false;
                             string printedStr = "";
@@ -359,7 +359,7 @@ namespace DotNetConsoleSdk.Component.Shell
             {
                 lock (ConsoleLock)
                 {
-                    var (left, top, right, bottom) = ActualWorkArea;
+                    var (id,left, top, right, bottom) = ActualWorkArea;
                     SetCursorPosConstraintedInWorkArea(_beginOfLineCurPos);
                     var txt = _inputReaderStringBuilder.ToString();
                     var slines = GetWorkAreaStringSplits(txt, _beginOfLineCurPos);

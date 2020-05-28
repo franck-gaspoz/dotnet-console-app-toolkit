@@ -48,8 +48,8 @@ namespace DotNetConsoleSdk
         public static string CodeBlockBegin = "[[";
         public static string CodeBlockEnd = "]]";
         public static bool ForwardLogsToSystemDiagnostics = true;
-        static Rectangle _workArea = Rectangle.Empty;
-        public static Rectangle WorkArea => new Rectangle(_workArea.X, _workArea.Y, _workArea.Width, _workArea.Height);
+        static (string id,Rectangle rect) _workArea = (null,Rectangle.Empty);
+        public static (string id,Rectangle rect) WorkArea => (_workArea.id,new Rectangle(_workArea.rect.X, _workArea.rect.Y, _workArea.rect.Width, _workArea.rect.Height));
         public static int TabLength = 7;
 
         public static EventHandler ViewSizeChanged;
@@ -317,31 +317,30 @@ namespace DotNetConsoleSdk
         public static void ShowCur() => Lock(()=>sc.CursorVisible = true);
         public static void Exit(int r=0) => Environment.Exit(r);
 
-        public static void SetWorkArea(int wx,int wy,int width,int height)
+        public static void SetWorkArea(string id,int wx,int wy,int width,int height)
         {
             lock (ConsoleLock)
             {
-                //var (x, y, w, h) = GetCoords(wx, wy, width, height);
-                //FixCoords(ref x, ref y);
-                _workArea = new Rectangle(wx, wy, width, height);
+                _workArea = (id,new Rectangle(wx, wy, width, height));
                 ApplyWorkArea();
                 EnableConstraintConsolePrintInsideWorkArea = true;
             }
         }
         public static void UnsetWorkArea()
         {
-            _workArea = Rectangle.Empty;
+            _workArea = (null,Rectangle.Empty);
             EnableConstraintConsolePrintInsideWorkArea = false;
         }
-        public static (int left,int top,int right,int bottom) ActualWorkArea
+        public static (string id,int left,int top,int right,int bottom) ActualWorkArea
         {
             get
             {
-                var x0 = _workArea.IsEmpty ? 0 : _workArea.X;
-                var y0 = _workArea.IsEmpty ? 0 : _workArea.Y;
-                var w0 = _workArea.IsEmpty ? -1 : _workArea.Width;
-                var h0 = _workArea.IsEmpty ? -1 : _workArea.Height;
-                return GetCoords(x0, y0, w0, h0); 
+                var x0 = _workArea.rect.IsEmpty ? 0 : _workArea.rect.X;
+                var y0 = _workArea.rect.IsEmpty ? 0 : _workArea.rect.Y;
+                var w0 = _workArea.rect.IsEmpty ? -1 : _workArea.rect.Width;
+                var h0 = _workArea.rect.IsEmpty ? -1 : _workArea.rect.Height;
+                var (x, y, w, h) = GetCoords(x0, y0, w0, h0);
+                return (_workArea.id,x,y,w,h);
             }
         }       
         static void ApplyWorkArea(bool viewSizeChanged=false)
@@ -359,15 +358,15 @@ namespace DotNetConsoleSdk
                         sc.BufferHeight = sc.WindowHeight;
                     }
                     catch (Exception) { }
-                if (_workArea.IsEmpty) return;
+                if (_workArea.rect.IsEmpty) return;
 
             }
         }
         public static void SetCursorAtBeginWorkArea()
         {
-            if (_workArea.IsEmpty) return;
+            if (_workArea.rect.IsEmpty) return;
             lock (ConsoleLock) {
-                SetCursorPos(_workArea.X, _workArea.Y);
+                SetCursorPos(_workArea.rect.X, _workArea.rect.Y);
             }
         }
 
@@ -470,7 +469,7 @@ namespace DotNetConsoleSdk
         {
             lock (ConsoleLock)
             {
-                var (x, y, w, h) = ActualWorkArea;
+                var (id,x, y, w, h) = ActualWorkArea;
                 var x0 = CursorLeft;
                 var y0 = CursorTop;
                 if (EnableConstraintConsolePrintInsideWorkArea)
@@ -539,7 +538,7 @@ namespace DotNetConsoleSdk
             lock (ConsoleLock)
             {
                 int index = -1;
-                var (x, y, w, h) = ActualWorkArea;
+                var (id,x, y, w, h) = ActualWorkArea;
                 var x0 = origin.X;
                 var y0 = origin.Y;
 
@@ -586,7 +585,7 @@ namespace DotNetConsoleSdk
             lock (ConsoleLock)
             {
                 int index = -1;
-                var (x, y, w, h) = ActualWorkArea;
+                var (id,x, y, w, h) = ActualWorkArea;
                 var x0 = origin.X;
                 var y0 = origin.Y;
 
@@ -642,7 +641,7 @@ namespace DotNetConsoleSdk
 
                 if (EnableConstraintConsolePrintInsideWorkArea)
                 {
-                    var (left, top, right, bottom) = ActualWorkArea;
+                    var (id,left, top, right, bottom) = ActualWorkArea;
                     if (cx<left)
                     {
                         cx = right - 1;
@@ -869,7 +868,7 @@ namespace DotNetConsoleSdk
                         ApplyWorkArea(viewSizeChanged);
                         if (ViewResizeStrategy == ViewResizeStrategy.FitViewSize
                             && ClearOnViewResized)
-                            if (_workArea.IsEmpty)
+                            if (_workArea.rect.IsEmpty)
                                 SetCursorPos(cursorPosBackup);
                             else
                                 SetCursorAtBeginWorkArea();

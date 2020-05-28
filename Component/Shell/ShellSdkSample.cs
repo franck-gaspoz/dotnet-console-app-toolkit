@@ -13,10 +13,8 @@ namespace DotNetConsoleSdk.Component.Shell
     {
         static void InitUI()
         {
-            //EchoOn(Path.Combine(TempPath, "trace.txt"));
-
             Clear();
-            SetWorkArea(0, 4, -1, -3);
+            SetWorkArea("shell.input",0, 4, -1, -3);
 
             AddFrame((frame) =>
             {
@@ -66,14 +64,6 @@ namespace DotNetConsoleSdk.Component.Shell
             {
                 ShellSdk.Initialize();
                 InitUI();
-
-                //ConsolePrint( "".PadLeft(28,'A') + "".PadLeft(28,'B') + "CCCCC",true);
-                //ConsolePrint("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCCC",true);
-
-                /*for (int i = 0; i < 27; i++) ConsolePrint("a");
-                 ConsolePrint("A");
-                 ConsolePrint("b", true);*/
-
                 BeginReadln(prompt);
             }
             catch (Exception initException)
