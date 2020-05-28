@@ -143,8 +143,9 @@ namespace DotNetConsoleSdk
          *      commandSeparatorChar := ,
          *      value := string_without_CommandBlockBegin_and_CommandBlockEnd) | ( codeBlockBegin any codeBlockEnd )
          *      any := string
-         *      codeBlockBegin ::= [[!--
-         *      codeBlockEnd ::= --]]
+         *      codeBlockBegin ::= [[
+         *      codeBlockEnd ::= ]]
+         *      syntactic elements can be changed for convenience & personal preference
          * colors: 
          *      set foreground:     f=consoleColor
          *      set background:     b=consoleColor
@@ -395,21 +396,22 @@ namespace DotNetConsoleSdk
 
         public static void EchoOn(
             string filepath,
-            bool fileEchoAutoFlush=true,
-            bool fileEchoAutoLineBreak=true,
-            bool fileEchoCommands=true,
-            bool fileEchoDumpDebugInfo=false)
+            bool autoFlush=true,
+            bool autoLineBreak=true,
+            bool echoCommands=true,
+            bool echoDebugInfo=false)
         {
             if (!string.IsNullOrWhiteSpace(filepath) && _echoFileStream == null)
             {
-                FileEchoAutoFlush = fileEchoAutoFlush;
-                FileEchoAutoLineBreak = fileEchoAutoLineBreak;
-                FileEchoCommands = fileEchoCommands;
-                FileEchoDumpDebugInfo = fileEchoDumpDebugInfo;
+                FileEchoAutoFlush = autoFlush;
+                FileEchoAutoLineBreak = autoLineBreak;
+                FileEchoCommands = echoCommands;
+                FileEchoDumpDebugInfo = echoDebugInfo;
                 _echoFileStream = new FileStream(filepath, FileMode.Append, FileAccess.Write);
                 _echoStreamWriter = new StreamWriter(_echoFileStream);
             }
         }
+        
         public static void EchoOff()
         { 
             if (_echoFileStream!=null)

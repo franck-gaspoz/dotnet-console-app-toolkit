@@ -64,7 +64,7 @@ namespace DotNetConsoleSdk.Component.Shell
                             if (y>= top && y<=bottom)
                             {
                                 SetCursorPos(x, y);
-                                ConsolePrint("".PadLeft(right-left+1,' '));
+                                ConsolePrint("".PadLeft(right-x,' '));
                                 SetCursorPos(x, y);
                                 ConsolePrint(s);
                             }
@@ -195,12 +195,22 @@ namespace DotNetConsoleSdk.Component.Shell
                                         if (index >= 0)
                                         {
                                             _inputReaderStringBuilder.Remove(index, 1);
+                                            _inputReaderStringBuilder.Append(" ");
                                             HideCur();
                                             SetCursorPosConstraintedInWorkArea(ref x, ref y);
-                                            txt = _inputReaderStringBuilder.ToString();
-                                            if (index < txt.Length)
-                                                ConsolePrint(txt.Substring(index));
-                                            ConsolePrint(" ");
+                                            var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
+                                            var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
+                                            EnableConstraintConsolePrintInsideWorkArea = false;
+                                            foreach (var (line, lx, ly, l) in slines)
+                                                if (ly >= top && ly <= bottom)
+                                                {
+                                                    SetCursorPos(lx, ly);
+                                                    ConsolePrint("".PadLeft(right - lx, ' '));
+                                                    SetCursorPos(lx, ly);
+                                                    ConsolePrint(line);
+                                                }
+                                            _inputReaderStringBuilder.Remove(_inputReaderStringBuilder.Length - 1,1);
+                                            EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
                                             SetCursorPos(x,y);
                                             ShowCur();
                                         }
@@ -297,12 +307,12 @@ namespace DotNetConsoleSdk.Component.Shell
                                         SetCursorPos(x0,y0);
                                         ShowCur();
                                     }
+                                    if (!insert)
+                                        _inputReaderStringBuilder.Append(printedStr);
+                                    else
+                                        _inputReaderStringBuilder.Insert(index, printedStr);
                                     ConsolePrint(printedStr, false);
                                 }
-                                if (!insert)
-                                    _inputReaderStringBuilder.Append(printedStr);
-                                else
-                                    _inputReaderStringBuilder.Insert(index, printedStr);
                             }
 
                             if (eol) break;
@@ -343,7 +353,7 @@ namespace DotNetConsoleSdk.Component.Shell
                         if (y>=top && y<= bottom)
                         {
                             SetCursorPos(x, y);
-                            ConsolePrint("".PadLeft(right - left + 1, ' '));
+                            ConsolePrint("".PadLeft(right - x, ' '));
                         }
                     EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
                     SetCursorPosConstraintedInWorkArea(_beginOfLineCurPos);
