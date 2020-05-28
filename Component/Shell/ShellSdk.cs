@@ -49,16 +49,35 @@ namespace DotNetConsoleSdk.Component.Shell
                         _beginOfLineCurPos.Y += e.DeltaY;
                         var p = CursorPos;
                         var (left, top, right, bottom) = ActualWorkArea;
+                        var txt = _inputReaderStringBuilder.ToString();
+                        var index = GetIndexInWorkAreaConstraintedString(txt, _beginOfLineCurPos, p);
+                        var slines = GetWorkAreaStringSplits(txt, _beginOfLineCurPos);
                         if (e.DeltaY>0 && CursorTop==top)
                         {
                             SetCursorLeft(left);
                             Print(_prompt);
-                            var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
                             var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
                             EnableConstraintConsolePrintInsideWorkArea = false;
                             foreach ( var (s, x, y, l) in slines )
                                 if (y<=bottom)
                                 {
+                                    SetCursorPos(x, y);
+                                    ConsolePrint("".PadLeft(right-left+1,' '));
+                                    SetCursorPos(x, y);
+                                    ConsolePrint(s);
+                                }
+                            EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
+                            SetCursorPos(p);
+                        }
+                        if (e.DeltaY<0 && CursorTop==slines.Max(o=>o.y))
+                        {
+                            var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
+                            EnableConstraintConsolePrintInsideWorkArea = false;
+                            foreach (var (s, x, y, l) in slines)
+                                if (y>=top && y <= bottom)
+                                {
+                                    SetCursorPos(x, y);
+                                    ConsolePrint("".PadLeft(right - left + 1, ' '));
                                     SetCursorPos(x, y);
                                     ConsolePrint(s);
                                 }
@@ -148,7 +167,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                     {
                                         var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
                                         var (txt, nx, ny, l) = slines.Last();
-                                        SetCursorPos(nx+l,ny);
+                                        SetCursorPosConstraintedInWorkArea(nx+l,ny);
                                     }
                                     break;
                                 case ConsoleKey.Tab:
