@@ -316,18 +316,30 @@ namespace DotNetConsoleSdk.Component.Shell
 
                                     if (insert)
                                     {
-                                        var substr = txt.Substring(index);
                                         HideCur();
-                                        SetCursorPosConstraintedInWorkArea(x0 + printedStr.Length, y0);
-                                        ConsolePrint(substr);
-                                        SetCursorPos(x0,y0);
+                                        var x = x0;
+                                        var y = y0;
+                                        SetCursorPosConstraintedInWorkArea(ref x, ref y);
+                                        _inputReaderStringBuilder.Insert(index, printedStr);
+                                        var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
+                                        var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
+                                        EnableConstraintConsolePrintInsideWorkArea = false;
+                                        foreach (var (line, lx, ly, l) in slines)
+                                            if (ly >= top && ly <= bottom)
+                                            {                                                
+                                                SetCursorPos(lx, ly);
+                                                ConsolePrint(line);
+                                            }
+                                        EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
+                                        x++;
+                                        SetCursorPosConstraintedInWorkArea(ref x, ref y);
                                         ShowCur();
                                     }
                                     if (!insert)
+                                    {
                                         _inputReaderStringBuilder.Append(printedStr);
-                                    else
-                                        _inputReaderStringBuilder.Insert(index, printedStr);
-                                    ConsolePrint(printedStr, false);
+                                        ConsolePrint(printedStr, false);
+                                    }
                                 }
                             }
 
