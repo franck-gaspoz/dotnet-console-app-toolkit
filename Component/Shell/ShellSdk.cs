@@ -223,15 +223,25 @@ namespace DotNetConsoleSdk.Component.Shell
                                         var index = GetIndexInWorkAreaConstraintedString(txt, _beginOfLineCurPos, CursorPos);
                                         var x = CursorLeft;
                                         var y = CursorTop;
-                                        if (index >= 0 && index<txt.Length)
+                                        if (index >= 0 && index < txt.Length)
                                         {
                                             _inputReaderStringBuilder.Remove(index, 1);
+                                            _inputReaderStringBuilder.Append(" ");
                                             HideCur();
                                             SetCursorPosConstraintedInWorkArea(ref x, ref y);
-                                            txt = _inputReaderStringBuilder.ToString();
-                                            if (index < txt.Length)
-                                                ConsolePrint(txt.Substring(index));
-                                            ConsolePrint(" ");
+                                            var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
+                                            var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
+                                            EnableConstraintConsolePrintInsideWorkArea = false;
+                                            foreach (var (line, lx, ly, l) in slines)
+                                                if (ly >= top && ly <= bottom)
+                                                {
+                                                    SetCursorPos(lx, ly);
+                                                    ConsolePrint("".PadLeft(right - lx, ' '));
+                                                    SetCursorPos(lx, ly);
+                                                    ConsolePrint(line);
+                                                }
+                                            _inputReaderStringBuilder.Remove(_inputReaderStringBuilder.Length - 1, 1);
+                                            EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
                                             SetCursorPos(x, y);
                                             ShowCur();
                                         }
