@@ -52,38 +52,24 @@ namespace DotNetConsoleSdk.Component.Shell
                         var txt = _inputReaderStringBuilder.ToString();
                         var index = GetIndexInWorkAreaConstraintedString(txt, _beginOfLineCurPos, p);
                         var slines = GetWorkAreaStringSplits(txt, _beginOfLineCurPos);
-                        if (e.DeltaY>0 && CursorTop==top)
+                        
+                        if (CursorTop == slines.Min(o=>o.y))
                         {
                             SetCursorLeft(left);
                             Print(_prompt);
-                            var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
-                            EnableConstraintConsolePrintInsideWorkArea = false;
-                            foreach ( var (s, x, y, l) in slines )
-                                if (y<=bottom)
-                                {
-                                    SetCursorPos(x, y);
-                                    ConsolePrint("".PadLeft(right-left+1,' '));
-                                    SetCursorPos(x, y);
-                                    ConsolePrint(s);
-                                }
-                            EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
-                            SetCursorPos(p);
                         }
-                        if (e.DeltaY<0 && CursorTop==slines.Max(o=>o.y))
-                        {
-                            var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
-                            EnableConstraintConsolePrintInsideWorkArea = false;
-                            foreach (var (s, x, y, l) in slines)
-                                if (y>=top && y <= bottom)
-                                {
-                                    SetCursorPos(x, y);
-                                    ConsolePrint("".PadLeft(right - left + 1, ' '));
-                                    SetCursorPos(x, y);
-                                    ConsolePrint(s);
-                                }
-                            EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
-                            SetCursorPos(p);
-                        }
+                        var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
+                        EnableConstraintConsolePrintInsideWorkArea = false;
+                        foreach ( var (s, x, y, l) in slines )
+                            if (y>= top && y<=bottom)
+                            {
+                                SetCursorPos(x, y);
+                                ConsolePrint("".PadLeft(right-left+1,' '));
+                                SetCursorPos(x, y);
+                                ConsolePrint(s);
+                            }
+                        EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
+                        SetCursorPos(p);                        
                     }
                 }
             };
