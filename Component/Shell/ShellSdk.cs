@@ -135,9 +135,20 @@ namespace DotNetConsoleSdk.Component.Shell
                                     lock (ConsoleLock)
                                     {
                                         HideCur();
-                                        SetCursorPos(_beginOfLineCurPos);
-                                        Print("".PadLeft(_inputReaderStringBuilder.ToString().Length));
-                                        SetCursorPos(_beginOfLineCurPos);
+                                        SetCursorPosConstraintedInWorkArea(_beginOfLineCurPos);
+                                        var txt = _inputReaderStringBuilder.ToString();
+                                        var slines = GetWorkAreaStringSplits(txt, _beginOfLineCurPos);
+                                        var (left, top, right, bottom) = ActualWorkArea;
+                                        var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
+                                        EnableConstraintConsolePrintInsideWorkArea = false;
+                                        foreach (var (line, x, y, l) in slines)
+                                            if (y<=bottom)
+                                            {
+                                                SetCursorPos(x, y);
+                                                ConsolePrint("".PadLeft(right - left + 1, ' '));
+                                            }
+                                        EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
+                                        SetCursorPosConstraintedInWorkArea(_beginOfLineCurPos);
                                         ShowCur();
                                         _inputReaderStringBuilder.Clear();
                                     }
