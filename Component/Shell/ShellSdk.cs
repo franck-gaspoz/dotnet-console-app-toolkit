@@ -242,9 +242,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                                 ShowCur();
                                             }
                                         } else
-                                        {
-                                            SetCursorPos(CursorLeft, CursorTop - 1);
-                                        }
+                                            SetCursorPosConstraintedInWorkArea(CursorLeft, CursorTop - 1);
                                     }
                                     break;
                                 case ConsoleKey.DownArrow:
@@ -266,7 +264,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                         else
                                         {
                                             var (txt, nx, ny, l) = slines.Where(o => o.y == CursorTop+1).First();
-                                            SetCursorPos(Math.Min(CursorLeft, nx + l), CursorTop + 1);
+                                            SetCursorPosConstraintedInWorkArea(Math.Min(CursorLeft, nx + l), CursorTop + 1);
                                         }
                                     }
                                     break;
