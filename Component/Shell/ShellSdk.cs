@@ -39,6 +39,35 @@ namespace DotNetConsoleSdk.Component.Shell
                     }
                 }
             };
+            WorkAreaScrolled += (o, e) =>
+            {
+                if (_inputReaderThread != null)
+                {
+                    lock (ConsoleLock)
+                    {
+                        _beginOfLineCurPos.X += e.DeltaX;
+                        _beginOfLineCurPos.Y += e.DeltaY;
+                        var p = CursorPos;
+                        var (left, top, right, bottom) = ActualWorkArea;
+                        if (e.DeltaY>0 && CursorTop==top)
+                        {
+                            SetCursorLeft(left);
+                            Print(_prompt);
+                            var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
+                            var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
+                            EnableConstraintConsolePrintInsideWorkArea = false;
+                            foreach ( var (s, x, y, l) in slines )
+                                if (y<=bottom)
+                                {
+                                    SetCursorPos(x, y);
+                                    ConsolePrint(s);
+                                }
+                            EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
+                            SetCursorPos(p);
+                        }
+                    }
+                }
+            };
         }
 
         public static void ProcessInput(IAsyncResult asyncResult)
@@ -111,7 +140,7 @@ namespace DotNetConsoleSdk.Component.Shell
                                 case ConsoleKey.Home:
                                     lock (ConsoleLock)
                                     {
-                                        SetCursorPos(_beginOfLineCurPos);
+                                        SetCursorPosConstraintedInWorkArea(_beginOfLineCurPos);
                                     }
                                     break;
                                 case ConsoleKey.End:

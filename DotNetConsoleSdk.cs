@@ -53,6 +53,7 @@ namespace DotNetConsoleSdk
         public static int TabLength = 7;
 
         public static EventHandler ViewSizeChanged;
+        public static EventHandler<WorkAreaScrollEventArgs> WorkAreaScrolled;
         
         static int _cursorLeftBackup;
         static int _cursorTopBackup;
@@ -331,7 +332,7 @@ namespace DotNetConsoleSdk
             _workArea = Rectangle.Empty;
             EnableConstraintConsolePrintInsideWorkArea = false;
         }
-        public static (int x,int y,int w,int h) ActualWorkArea
+        public static (int left,int top,int right,int bottom) ActualWorkArea
         {
             get
             {
@@ -620,6 +621,13 @@ namespace DotNetConsoleSdk
             return r;
         }
 
+        public static void SetCursorPosConstraintedInWorkArea(Point pos, bool enableOutput = true)
+        {
+            var x = pos.X;
+            var y = pos.Y;
+            SetCursorPosConstraintedInWorkArea(ref x, ref y, enableOutput);            
+        }
+
         public static void SetCursorPosConstraintedInWorkArea(int cx,int cy, bool enableOutput = true)
             => SetCursorPosConstraintedInWorkArea(ref cx, ref cy, enableOutput);
 
@@ -627,31 +635,57 @@ namespace DotNetConsoleSdk
         {
             lock (ConsoleLock)
             {
+                int dx = 0;
+                int dy = 0;
+
                 if (EnableConstraintConsolePrintInsideWorkArea)
                 {
-                    var (x, y, w, h) = ActualWorkArea;
-                    if (cx<x)
+                    var (left, top, right, bottom) = ActualWorkArea;
+                    if (cx<left)
                     {
-                        cx = w - 1;
+                        cx = right - 1;
                         cy--;
                     }
-                    if (cx>=w)
+                    if (cx>=right)
                     {
-                        cx = x;
+                        cx = left;
                         cy++;
                     }
-                    if (enableOutput && cy > h - 1)
+
+                    if (enableOutput && cy < top)
                     {
-                        cy--;
-                        var nh = h - y - 1;
-                        if (nh > 0)
+                        dy = top-cy;
+                        cy += dy;
+                        if (top+1<=bottom)
                             sc.MoveBufferArea(
-                                x, y + 1, w, nh,
-                                x, y, ' ', DefaultForeground, DefaultBackground);
+                                left,top,right,bottom-top,
+                                left,top+1,
+                                ' ',
+                                DefaultForeground, DefaultBackground);
+                    }
+
+                    if (enableOutput && cy > bottom /*- 1*/)
+                    {
+                        dy = bottom /*- 1*/ - cy;
+                        cy+=dy;
+                        var nh = bottom - top + dy + 1;
+                        if (nh > 0)
+                        {
+                            sc.MoveBufferArea(
+                                left, top - dy, right, nh,
+                                left, top, 
+                                ' ', 
+                                DefaultForeground, DefaultBackground);
+                        }
                     }
                 }
+
                 if (enableOutput)
+                {
                     SetCursorPos(cx, cy);
+                    if (dx != 0 || dy != 0)
+                        WorkAreaScrolled?.Invoke(null, new WorkAreaScrollEventArgs(0, dy));
+                }
             }
         }
 
