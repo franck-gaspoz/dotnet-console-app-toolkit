@@ -122,7 +122,7 @@ namespace DotNetConsoleSdk.Component.Shell
 #endif
                             #region handle special caracters - edition mode, movement
 
-                            var (wx, wy, ww, wh) = ActualWorkArea;
+                            var (left, top, right, bottom) = ActualWorkArea;
 
                             var printed = false;
                             string printedStr = "";
@@ -138,7 +138,6 @@ namespace DotNetConsoleSdk.Component.Shell
                                         SetCursorPosConstraintedInWorkArea(_beginOfLineCurPos);
                                         var txt = _inputReaderStringBuilder.ToString();
                                         var slines = GetWorkAreaStringSplits(txt, _beginOfLineCurPos);
-                                        var (left, top, right, bottom) = ActualWorkArea;
                                         var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
                                         EnableConstraintConsolePrintInsideWorkArea = false;
                                         foreach (var (line, x, y, l) in slines)
@@ -186,8 +185,8 @@ namespace DotNetConsoleSdk.Component.Shell
                                         else
                                         {
                                             var x = p.X - 1;
-                                            if (x < wx)
-                                                SetCursorPos(ww - 1, p.Y - 1);
+                                            if (x < left)
+                                                SetCursorPosConstraintedInWorkArea(right - 1, p.Y - 1);
                                             else
                                                 SetCursorLeft(x);
                                         }
