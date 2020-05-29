@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using static DotNetConsoleSdk.DotNetConsole;
-using static DotNetConsoleSdk.Component.CLI.CommandEngine;
+using static DotNetConsoleSdk.Component.CommandLine.CommandEngine;
 using sc = System.Console;
 
 namespace DotNetConsoleSdk.Component.Shell
