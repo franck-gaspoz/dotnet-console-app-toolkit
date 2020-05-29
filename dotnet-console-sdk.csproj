@@ -15,4 +15,8 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.7.0-1.final" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ConsoleAppFramework\src\ConsoleAppFramework\ConsoleAppFramework.csproj" />
+  </ItemGroup>
+
 </Project>

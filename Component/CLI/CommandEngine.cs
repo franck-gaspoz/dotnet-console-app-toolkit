@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ConsoleAppFramework;
+using Microsoft.Extensions.Hosting;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -10,6 +12,7 @@ namespace DotNetConsoleSdk.Component.CLI
         public static int ReturnCodeError = 1;
 
         static string[] _args;
+        static HostBuilder _hostBuilder;
 
         #region cli methods
 
@@ -40,11 +43,53 @@ namespace DotNetConsoleSdk.Component.CLI
         /// 1. parse command line
         /// 2. execute command        
         /// </summary>
-        /// <param name="command"></param>
+        /// <param name="expr">expression to be evaluated</param>
         /// <returns></returns>
-        public static int Eval(string command)
+        public static int Eval(string expr)
         {
+            var splits = SplitExpr(expr);
+            _hostBuilder = new HostBuilder();            
+            var task = _hostBuilder.RunConsoleAppFrameworkAsync(splits);
+            task.Wait();
             return ReturnCodeOK;
+        }
+
+        public static string[] SplitExpr(string expr)
+        {
+            if (expr == null) return new string[] { };
+            var splits = new List<string>();
+            var t = expr.Trim().ToCharArray();
+            var inQuotedStr = false;
+            int i = 0;
+            var curStr = "";
+            while (i < t.Length )
+            {
+                var c = t[i];
+                if (!inQuotedStr)
+                {
+                    if (c == ' ')
+                    {
+                        splits.Add(curStr);
+                        curStr = "";
+                    } else
+                    {
+                        if (c == '"')
+                            inQuotedStr = true;
+                        else
+                            curStr += c;
+                    }
+                } else
+                {
+                    if (c == '"')
+                        inQuotedStr = false;
+                    else
+                        curStr += c;
+                }
+                i++;
+            }
+            if (!string.IsNullOrWhiteSpace(curStr))
+                splits.Add(curStr);
+            return splits.ToArray();
         }
 
         #endregion
