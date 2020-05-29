@@ -1,6 +1,4 @@
-﻿using ConsoleAppFramework;
-using Microsoft.Extensions.Hosting;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -12,7 +10,6 @@ namespace DotNetConsoleSdk.Component.CLI
         public static int ReturnCodeError = 1;
 
         static string[] _args;
-        static HostBuilder _hostBuilder;
 
         #region cli methods
 
@@ -44,13 +41,11 @@ namespace DotNetConsoleSdk.Component.CLI
         /// 2. execute command        
         /// </summary>
         /// <param name="expr">expression to be evaluated</param>
-        /// <returns></returns>
+        /// <returns>return code</returns>
         public static int Eval(string expr)
         {
             var splits = SplitExpr(expr);
-            _hostBuilder = new HostBuilder();            
-            var task = _hostBuilder.RunConsoleAppFrameworkAsync(splits);
-            task.Wait();
+            
             return ReturnCodeOK;
         }
 

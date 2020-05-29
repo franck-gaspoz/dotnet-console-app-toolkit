@@ -1,11 +1,9 @@
-﻿using ConsoleAppFramework;
-
-namespace DotNetConsoleSdk.Component.CLI
+﻿namespace DotNetConsoleSdk.Component.CLI
 {
-    internal class InternalCommands : ConsoleAppBase
+    internal class InternalCommands
     {
-        [Command("print")]
-        public void Print([Option(0,"expression to be evaluated and printed to the output stream")]string expr)
+        
+        public void Print(string expr)
         {
             DotNetConsole.Print(expr);
         }
