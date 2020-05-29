@@ -1,1 +1,4 @@
-nom: dotnet-console-sdk
+name: dotnet-console-sdk
+
+nuget:
+Install-Package Microsoft.CodeAnalysis.CSharp.Scripting -Version 3.7.0-1.final
