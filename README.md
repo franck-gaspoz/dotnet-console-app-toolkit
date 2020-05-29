@@ -1,5 +1,5 @@
 # dotnet-console-sdk
-dotnet core sdk helps build fastly nice console applications with C#
+dotnet console sdk helps build fastly nice multi-plateforms (windows,linux,macos) console applications with C#
 <hr/>
 
 

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace DotNetConsoleSdk.Component.CLI
 {
-    public static class CLI
+    public static class CommandEngine
     {
         public static int ReturnCodeOK = 0;
         public static int ReturnCodeError = 1;
@@ -27,7 +27,7 @@ namespace DotNetConsoleSdk.Component.CLI
             _args = (string[])args?.Clone();
         }
 
-        public static void InitializeCLI(string[] args)
+        public static void InitializeCommandEngine(string[] args)
         {
             SetArgs(args);
         }

@@ -7,12 +7,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using static DotNetConsoleSdk.DotNetConsole;
-using static DotNetConsoleSdk.Component.CLI.CLI;
+using static DotNetConsoleSdk.Component.CLI.CommandEngine;
 using sc = System.Console;
 
 namespace DotNetConsoleSdk.Component.Shell
 {
-    public static class Shell
+    public static class Terminal
     {
         #region attributes
 
@@ -28,7 +28,7 @@ namespace DotNetConsoleSdk.Component.Shell
 
         #endregion
 
-        public static void InitializeShell(EvalCommandDelegate evalCommandDelegate)
+        public static void InitializeTerminal(EvalCommandDelegate evalCommandDelegate)
         {
             _evalCommandDelegate = evalCommandDelegate ?? Eval;
             ViewSizeChanged += (o, e) =>
@@ -105,7 +105,7 @@ namespace DotNetConsoleSdk.Component.Shell
 
         public static int Readln(string prompt="")
         {
-            return BeginReadln(new AsyncCallback(Shell.ProcessInput), prompt);
+            return BeginReadln(new AsyncCallback(Terminal.ProcessInput), prompt);
         }
 
         public static int BeginReadln(AsyncCallback asyncCallback, string prompt = "")
