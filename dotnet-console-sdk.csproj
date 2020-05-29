@@ -1,23 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <RootNamespace>DotNetConsoleSdk</RootNamespace>
+    <AssemblyName>dotnet-console-sdk</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="csdk.bat" />
-    <None Remove="Temp\this is an embeded temp folder.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="csdk.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Temp\this is an embeded temp folder.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <Compile Remove="Component\Shell\ShellSample.cs" />
+    <Compile Remove="Program.cs" />
   </ItemGroup>
 
   <ItemGroup>
