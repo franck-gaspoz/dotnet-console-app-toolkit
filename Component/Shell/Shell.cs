@@ -6,26 +6,31 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using static DotNetConsoleSdk.DotNetConsoleSdk;
+using static DotNetConsoleSdk.DotNetConsole;
+using static DotNetConsoleSdk.Component.CLI.CLI;
 using sc = System.Console;
 
 namespace DotNetConsoleSdk.Component.Shell
 {
-    public static class ShellSdk
+    public static class Shell
     {
         #region attributes
 
+        public delegate int EvalCommandDelegate(string com);
+        
         static Thread _inputReaderThread;
         static readonly List<string> _history = new List<string>();
         static int _historyIndex = -1;
         static string _prompt;
         static StringBuilder _inputReaderStringBuilder;
         static Point _beginOfLineCurPos;
+        static EvalCommandDelegate _evalCommandDelegate;
 
         #endregion
 
-        public static void Initialize()
+        public static void InitializeShell(EvalCommandDelegate evalCommandDelegate)
         {
+            _evalCommandDelegate = evalCommandDelegate ?? Eval;
             ViewSizeChanged += (o, e) =>
             {
                 if (_inputReaderThread != null)
@@ -75,6 +80,8 @@ namespace DotNetConsoleSdk.Component.Shell
             };
         }
 
+        #region input processing
+
         public static void ProcessInput(IAsyncResult asyncResult)
         {
             var s = (string)asyncResult.AsyncState;
@@ -83,7 +90,10 @@ namespace DotNetConsoleSdk.Component.Shell
                 lock (ConsoleLock)
                 {
                     LineBreak();
-                    Print(s);
+                    //Print(s);
+                    
+                    var returnCode = _evalCommandDelegate(s);
+
                     if (!WorkArea.rect.IsEmpty && (WorkArea.rect.Y != CursorTop || WorkArea.rect.X != CursorLeft))
                         LineBreak();
                     RestoreDefaultColors();
@@ -93,12 +103,12 @@ namespace DotNetConsoleSdk.Component.Shell
             }
         }
 
-        public static void BeginReadln(string prompt="")
+        public static int Readln(string prompt="")
         {
-            BeginReadln(new AsyncCallback(ShellSdk.ProcessInput), prompt);
+            return BeginReadln(new AsyncCallback(Shell.ProcessInput), prompt);
         }
 
-        public static void BeginReadln(AsyncCallback asyncCallback, string prompt = "")
+        public static int BeginReadln(AsyncCallback asyncCallback, string prompt = "")
         {
             _prompt = prompt;            
             _inputReaderThread = new Thread(() =>
@@ -363,6 +373,8 @@ namespace DotNetConsoleSdk.Component.Shell
                 Name = "input stream reader"
             };
             _inputReaderThread.Start();
+            _inputReaderThread.Join();
+            return ReturnCodeOK;
         }
 
         public static void CleanUpReadln()
@@ -395,6 +407,8 @@ namespace DotNetConsoleSdk.Component.Shell
             _inputReaderThread?.Interrupt();
             _inputReaderThread = null;
         }
+
+        #endregion
 
         #region shell control operations
 

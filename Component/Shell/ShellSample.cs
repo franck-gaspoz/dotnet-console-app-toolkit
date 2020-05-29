@@ -3,15 +3,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using static DotNetConsoleSdk.Component.Shell.ShellSdk;
-using static DotNetConsoleSdk.DotNetConsoleSdk;
+using static DotNetConsoleSdk.Component.Shell.Shell;
+using static DotNetConsoleSdk.Component.CLI.CLI;
+using static DotNetConsoleSdk.DotNetConsole;
 using sc = System.Console;
+using static DotNetConsoleSdk.Lib.Str;
 
 namespace DotNetConsoleSdk.Component.Shell
 {
-    public static class ShellSdkSample
+    public static class ShellSample
     {
-        static void InitUI()
+        static void InitializeUI()
         {
             Clear();
             SetWorkArea("shell.input",0, 4, -1, -3);
@@ -53,24 +55,26 @@ namespace DotNetConsoleSdk.Component.Shell
                     };
             },
             // use w=-2 to prevent print a car at bottom right of the window that lead to scroll on main terminals (ore else use AvoidConsoleAutoLineBreakAtEndOfLine=true) 
-            ConsoleColor.DarkBlue, 0, -1, -2, 1, DrawStrategy.OnViewResizedOnly, false, 1000);
+            ConsoleColor.DarkBlue, 0, -1, -2, 1, DrawStrategy.OnTime, false, 1000);
 
             SetCursorAtBeginWorkArea();
         }
 
-        public static void RunShell(string prompt = null)
+        public static int RunShell(string[] args,string prompt = null)
         {
             try
             {
-                ShellSdk.Initialize();
-                InitUI();
-                BeginReadln(prompt);
+                InitializeCLI(args);
+                InitializeShell(Eval);
+                InitializeUI();
+                return Shell.Readln(prompt);
             }
             catch (Exception initException)
             {
                 LogError(initException);
-                Exit();
+                Exit(ReturnCodeError);
             }
+            return ReturnCodeError;
         }
     }
 }

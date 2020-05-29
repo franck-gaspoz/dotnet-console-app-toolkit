@@ -9,19 +9,18 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Xml.Linq;
 using static DotNetConsoleSdk.Component.UI.UIElement;
 using sc = System.Console;
+using static DotNetConsoleSdk.Lib.Str;
 
 namespace DotNetConsoleSdk
 {
     /// <summary>
     /// dotnet core sdk helps build fastly nice console applications
     /// </summary>
-    public static class DotNetConsoleSdk
+    public static class DotNetConsole
     {
         #region attributes
 
@@ -44,7 +43,6 @@ namespace DotNetConsoleSdk
         public static char CommandBlockEndChar = ')';
         public static char CommandSeparatorChar = ',';
         public static char CommandValueAssignationChar = '=';
-        public static string DumpNullStringAsText = "{null}";
         public static string CodeBlockBegin = "[[";
         public static string CodeBlockEnd = "]]";
         public static bool ForwardLogsToSystemDiagnostics = true;
@@ -63,8 +61,7 @@ namespace DotNetConsoleSdk
 
         static Thread _watcherThread;
         static readonly Dictionary<int, UIElement> _uielements = new Dictionary<int, UIElement>();
-
-        static string[] _args;
+        
         static TextWriter _outputWriter;
         static StreamWriter _outputStreamWriter;
         static FileStream _outputFileStream;
@@ -692,53 +689,7 @@ namespace DotNetConsoleSdk
 
         #endregion
 
-        #region data to text operations
-
-        static string DumpAsText(object o)
-        {
-            if (o == null)
-                return DumpNullStringAsText ?? "";
-            return o.ToString();
-        }
-
-        public static string Dump(object[] t)
-        {
-            return string.Join(',', t.Select(x => DumpAsText(x)));
-        }
-
-        public static string HumanFormatOfSize(long bytes,int digits=1,string sep=" ",string bigPostFix="")
-        {
-            long absB = bytes == long.MinValue ? long.MaxValue : Math.Abs(bytes);
-            if (absB < 1024)
-            {
-                return bytes + sep + "B";
-            }
-            long value = absB;
-            Stack<long> values = new Stack<long>();
-            char ci='?';
-            var t = new char[] { 'K', 'M', 'G', 'T', 'P', 'E' };
-            int n = 0;
-            while (n<t.Length && value>0)
-            {                
-                for (int i = 40; i >= 0 && absB > 0xfffccccccccccccL >> i; i -= 10)
-                {
-                    value >>= 10;
-                    if (value > 0)
-                    {
-                        ci = t[n++];
-                        values.Push(value);
-                    }
-                }
-            }
-            value = values.Pop();
-            if (values.Count > 0) value = values.Pop();
-            value *= Math.Sign(bytes);
-            return String.Format("{0:F"+digits+"}"+sep+"{1}"+bigPostFix+"B", value/1024d, ci);
-        }
-
-        #endregion
-
-        #region UI elements methods
+        #region UI operations
 
         static void RunUIElementWatcher()
         {
@@ -892,26 +843,10 @@ namespace DotNetConsoleSdk
         }
 
         #endregion
-
-        #region cli methods
-
-        public static string Arg(int n)
-        {
-            if (_args == null) return null;
-            if (_args.Length <= n) return null;
-            return _args[n];
-        }
-
-        public static bool HasArgs => _args != null && _args.Length > 0;
-
-        public static void SetArgs(string[] args)
-        {
-            _args = (string[])args?.Clone();
-        }
-
+        
         #region stream methods
 
-        public static void OutputTo(string filepath = null)
+        public static void RedirectOutput(string filepath = null)
         {
             if (filepath!=null)
             {
@@ -927,9 +862,11 @@ namespace DotNetConsoleSdk
             }
         }
 
-        public static string TempPath => Path.Combine( Environment.CurrentDirectory , "Temp" );
-
         #endregion
+
+        #region disk operations
+
+        public static string TempPath => Path.Combine( Environment.CurrentDirectory , "Temp" );
 
         #endregion
 

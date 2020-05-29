@@ -2,7 +2,7 @@
 
 using sc = System.Console;
 using System;
-using static DotNetConsoleSdk.DotNetConsoleSdk;
+using static DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Component.UI
 {

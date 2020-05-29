@@ -1,5 +1,6 @@
-﻿using DotNetConsoleSdk.Component.Shell;
-using static DotNetConsoleSdk.DotNetConsoleSdk;
+﻿using static DotNetConsoleSdk.Component.CLI.CLI;
+using DotNetConsoleSdk.Component.Shell;
+using static DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk
 {
@@ -7,13 +8,13 @@ namespace DotNetConsoleSdk
     {
         static void Main(string[] args)
         {
-            SetArgs(args);
+            InitializeCLI(args);
             if (HasArgs)
                 Print(Arg(0));
             else
             {
-                //RunSampleCLI("(f=yellow,exec=[[!--System.IO.Path.GetFileName(System.Environment.CurrentDirectory)--]]) > ");
-                ShellSdkSample.RunShell("(f=yellow)> ");
+                //RunSampleCLI("(f=yellow,exec=[[System.IO.Path.GetFileName(System.Environment.CurrentDirectory)]]) > ");
+                var returnCode = ShellSample.RunShell(args,"(f=yellow)> ");
             }
         }
     }

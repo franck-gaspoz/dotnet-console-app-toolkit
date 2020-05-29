@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using sc = System.Console;
 using System.Threading;
-using static DotNetConsoleSdk.DotNetConsoleSdk;
+using static DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Component.UI
 {
@@ -93,7 +93,7 @@ namespace DotNetConsoleSdk.Component.UI
         (int x,int y,int w,int h) GetCurrentCoords()
         {
             var (nx, ny, nw, nh) = GetCoords(X, Y, W, H);
-            if (DotNetConsoleSdk.ViewResizeStrategy == ViewResizeStrategy.FitViewSize)
+            if (DotNetConsole.ViewResizeStrategy == ViewResizeStrategy.FitViewSize)
                 return (nx, ny, nw, nh);
             if (!Painted)
             {
@@ -170,7 +170,7 @@ namespace DotNetConsoleSdk.Component.UI
         {
             lock (ConsoleLock)
             {
-                if (viewSizeChanged && !ClearOnViewResized && DotNetConsoleSdk.ViewResizeStrategy == ViewResizeStrategy.FitViewSize)
+                if (viewSizeChanged && !ClearOnViewResized && DotNetConsole.ViewResizeStrategy == ViewResizeStrategy.FitViewSize)
                     Erase();
                 List<DrawStrategy> ignorableStrategies = new List<DrawStrategy>()
                     { DrawStrategy.OnPrint , DrawStrategy.OnTime };
