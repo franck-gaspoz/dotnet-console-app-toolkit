@@ -14,7 +14,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
 
         static string[] _args;
 
-        static readonly Dictionary<string, CommandSpecification> _commands = new Dictionary<string, CommandSpecification>();
+        static readonly Dictionary<string, List<CommandSpecification>> _commands = new Dictionary<string, List<CommandSpecification>>();
 
         #region cli methods
 
@@ -73,9 +73,10 @@ namespace DotNetConsoleSdk.Component.CommandLine
                         paramspecs.Add(pspec);
                     }
                     var cmdspec = new CommandSpecification(method.Name.ToLower(), cmd.Description, method,paramspecs);
-                    if (_commands.ContainsKey(cmdspec.Name))
-                        throw new Exception($"duplicated command name: class={type.FullName} method={method.Name}");
-                    _commands.Add(cmdspec.Name, cmdspec);
+                    if (_commands.TryGetValue(cmdspec.Name, out var cmdlst))
+                        cmdlst.Add(cmdspec);
+                    else
+                        _commands.Add(cmdspec.Name, new List<CommandSpecification> { cmdspec });
                 }
             }
         }

@@ -36,7 +36,7 @@ namespace DotNetConsoleSdk
         public static bool SaveColors = true;
         public static bool TraceCommandErrors = true;
         public static bool EnableColors = true;
-        public static bool DumpExceptions = false;
+        public static bool DumpExceptions = true;
         public static ConsoleColor DefaultForeground = ConsoleColor.White;
         public static ConsoleColor DefaultBackground = ConsoleColor.Black;
         public static char CommandBlockBeginChar = '(';
@@ -97,11 +97,18 @@ namespace DotNetConsoleSdk
             }
         }
 
-        public static void LogException(Exception ex)
+        public static void LogException(Exception ex,string message = "")
         {
-            if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(ex+"");
-            var ls = (ex + "").Split(_crlf, StringSplitOptions.None)
-                .Select(x => ((EnableColors) ? $"{Red}" : "") + x);
+            if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(message+_crlf+ex+"");
+            var ls = new List<string>();
+            if (DumpExceptions)
+            {
+                ls = (ex + "").Split(_crlf, StringSplitOptions.None)
+                .Select(x => ((EnableColors) ? $"{Red}" : "") + x)
+                .ToList();
+                if (message != null) ls.Insert(0, $"{Red}{message}");
+            } else
+                ls.Insert(0, $"{Red}{message}: {ex.Message}");
             Println(ls);
         }
 
@@ -253,9 +260,11 @@ namespace DotNetConsoleSdk
         {
             Lock(() =>
             {
+                Println($"OS={Environment.OSVersion} {(Environment.Is64BitOperatingSystem ? "64" : "32")}bits");
                 Println($"{White}{Bkf}{Green}window:{Rf} left={Cyan}{sc.WindowLeft}{Rf},top={Cyan}{sc.WindowTop}{Rf},width={Cyan}{sc.WindowWidth}{Rf},height={Cyan}{sc.WindowHeight}{Rf},largest width={Cyan}{sc.LargestWindowWidth}{Rf},largest height={Cyan}{sc.LargestWindowHeight}{Rf}");
                 Println($"{Green}buffer:{Rf} width={Cyan}{sc.BufferWidth}{Rf},height={Cyan}{sc.BufferHeight}{Rf} | input encoding={Cyan}{sc.InputEncoding.EncodingName}{Rf} | output encoding={Cyan}{sc.OutputEncoding.EncodingName}{Rf}");
-                Println($"number lock={Cyan}{sc.NumberLock}{Rf} | capslock={Cyan}{sc.CapsLock}{Rf} | cursor visible={Cyan}{sc.CursorVisible}{Rf} | cursor size={Cyan}{sc.CursorSize}");
+                //Println($"number lock={Cyan}{sc.NumberLock}{Rf} | capslock={Cyan}{sc.CapsLock}{Rf}";  // not supported on linux ubuntu 18.04 wsl
+                //Println($"cursor visible={Cyan}{sc.CursorVisible}{Rf} | cursor size={Cyan}{sc.CursorSize}");   // not supported on linux ubuntu 18.04 wsl
             });
         }
         public static void BackupCursorPos()

@@ -366,7 +366,7 @@ namespace DotNetConsoleSdk.Component.Shell
                 catch (ThreadInterruptedException) { }
                 catch (Exception ex)
                 {
-                    LogError("input stream reader crashed: " + ex.Message);
+                    LogException(ex,"input stream reader crashed");
                 }
             })
             {

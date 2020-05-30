@@ -38,7 +38,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
             var r = $"Name";
             if (OptionName != null) r = $"-{OptionName} {r}";
             if (IsOptional) r = $"({r})?";
-            if (HasDefaultValue) r += $"={(DefaultValue==null?"null":DefaultValue)}";
+            if (HasDefaultValue) r += $"={(DefaultValue ?? "null")}";
             return r;
         }
     }
