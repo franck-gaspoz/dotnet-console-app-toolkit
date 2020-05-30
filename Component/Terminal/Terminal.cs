@@ -6,10 +6,9 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using static DotNetConsoleSdk.DotNetConsole;
 using static DotNetConsoleSdk.Component.CommandLine.CommandEngine;
+using static DotNetConsoleSdk.DotNetConsole;
 using sc = System.Console;
-using Microsoft.CodeAnalysis;
 
 namespace DotNetConsoleSdk.Component.Shell
 {
@@ -95,7 +94,6 @@ namespace DotNetConsoleSdk.Component.Shell
                 lock (ConsoleLock)
                 {
                     LineBreak();
-                    //Print(s);
                     
                     var returnCode = _evalCommandDelegate(s);
 

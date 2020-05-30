@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using static DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
 {
@@ -35,10 +36,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
 
         public override string ToString()
         {
-            var r = $"Name";
-            if (OptionName != null) r = $"-{OptionName} {r}";
-            if (IsOptional) r = $"({r})?";
-            if (HasDefaultValue) r += $"={(DefaultValue ?? "null")}";
+            var f = White;
+            var r = $"{Yellow}{Name}{f}";
+            if (OptionName != null) r = $"{Cyan}-{Green}{OptionName}{f} {r}";
+            if (IsOptional) r = $"{Cyan}({r}{Cyan})?{f}";
+            if (HasDefaultValue) r += $"{Cyan}={($"{Darkyellow}{DefaultValue}{f}" ?? $"{Darkyellow}null{f}")}";
             return r;
         }
     }

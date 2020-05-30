@@ -19,6 +19,24 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
 
         }
 
+        [Command("He")]
+        public void He()
+        {
+
+        }
+
+        [Command("Hel")]
+        public void Hel()
+        {
+
+        }
+
+        [Command("Helpr")]
+        public void Helpr()
+        {
+
+        }
+
         static string DumpCommandHelp(CommandSpecification cmdspec)
         {
             return null;

@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Linq;
+using System;
 
 namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
 {
@@ -28,12 +29,16 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
         {
             var r = $"{Name}";
             var parameters = new SortedList<int, string>();
+            var maxIndex = 0;
             foreach (var p in _parametersSpecifications.Values)
                 if (p.Index > -1)
+                {
+                    maxIndex = Math.Max(p.Index, maxIndex);
                     parameters.Add(p.Index, p.ToString());
+                }
             foreach (var p in _parametersSpecifications.Values)
-                if (p.Index > -1)
-                    parameters.Add(parameters.Keys.Max()+1, p.ToString());
+                if (p.Index == -1)
+                    parameters.Add(++maxIndex, p.ToString());
             return r+((parameters.Values.Count==0)?"":(" "+string.Join(' ',parameters.Values)));
         }
     }

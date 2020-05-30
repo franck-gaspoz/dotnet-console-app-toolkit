@@ -1,11 +1,14 @@
-﻿using System;
+﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
+using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 {
     public static class CommandLineParser
     {
+        public static StringComparison SyntaxMatchingRule = StringComparison.InvariantCultureIgnoreCase;
+
         public static string[] SplitExpr(string expr)
         {
             if (expr == null) return new string[] { };
@@ -48,5 +51,22 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             return splits.ToArray();
         }
 
+        public static (ParseResult parseResult,CommandSpecification comSpec) 
+            Parse(SyntaxAnalyser syntaxAnalyzer, string expr)
+        {
+            if (expr == null) return (ParseResult.Empty,null);
+            expr = expr.Trim();
+            if (string.IsNullOrEmpty(expr)) return (ParseResult.Empty,null);
+            
+            var splits = SplitExpr(expr);
+            var token = splits.First();
+            var ctokens = syntaxAnalyzer.FindSyntaxesFromToken(token, false, SyntaxMatchingRule);
+
+            if (ctokens.Count == 0) return (ParseResult.NotIdentified, null);
+
+            
+
+            return (ParseResult.Valid,null);
+        }
     }
 }

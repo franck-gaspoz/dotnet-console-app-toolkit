@@ -1,10 +1,12 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using DotNetConsoleSdk.Component.CommandLine.Commands;
+using static DotNetConsoleSdk.Component.CommandLine.Parsing.CommandLineParser;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Text;
+using DotNetConsoleSdk.Component.CommandLine.Parsing;
 
 namespace DotNetConsoleSdk.Component.CommandLine
 {
@@ -14,10 +16,13 @@ namespace DotNetConsoleSdk.Component.CommandLine
         public static int ReturnCodeError = 1;
 
         static string[] _args;
+        static bool _isInitialized = false;
 
         static readonly Dictionary<string, List<CommandSpecification>> _commands = new Dictionary<string, List<CommandSpecification>>();
 
         public static readonly ReadOnlyDictionary<string, List<CommandSpecification>> Commands = new ReadOnlyDictionary<string, List<CommandSpecification>>(_commands);
+
+        static readonly SyntaxAnalyser _syntaxAnalyzer = new SyntaxAnalyser();
 
         #region cli methods
 
@@ -42,8 +47,12 @@ namespace DotNetConsoleSdk.Component.CommandLine
         public static void InitializeCommandEngine(string[] args)
         {
             SetArgs(args);
-            RegisterClass(typeof(CommandEngineCommands));
-            RegisterClass(typeof(StdoutCommands));
+            if (!_isInitialized)
+            {
+                _isInitialized = true;
+                RegisterClass(typeof(CommandEngineCommands));
+                RegisterClass(typeof(StdoutCommands));
+            }
         }
 
         public static void RegisterModule(string assemblyPath)
@@ -80,6 +89,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
                         cmdlst.Add(cmdspec);
                     else
                         _commands.Add(cmdspec.Name, new List<CommandSpecification> { cmdspec });
+                    _syntaxAnalyzer.Add(cmdspec);
                 }
             }
         }
@@ -99,8 +109,10 @@ namespace DotNetConsoleSdk.Component.CommandLine
         /// <returns>return code</returns>
         public static int Eval(string expr)
         {
-            //var splits = SplitExpr(expr);
-            
+            var parseResult = Parse(_syntaxAnalyzer,expr);
+
+
+
             return ReturnCodeOK;
         }
         
