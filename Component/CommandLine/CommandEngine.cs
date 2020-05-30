@@ -2,6 +2,7 @@
 using DotNetConsoleSdk.Component.CommandLine.Commands;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Text;
 
@@ -15,6 +16,8 @@ namespace DotNetConsoleSdk.Component.CommandLine
         static string[] _args;
 
         static readonly Dictionary<string, List<CommandSpecification>> _commands = new Dictionary<string, List<CommandSpecification>>();
+
+        public static readonly ReadOnlyDictionary<string, List<CommandSpecification>> Commands = new ReadOnlyDictionary<string, List<CommandSpecification>>(_commands);
 
         #region cli methods
 
