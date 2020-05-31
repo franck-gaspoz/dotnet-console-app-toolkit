@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Text;
 using DotNetConsoleSdk.Component.CommandLine.Parsing;
+using System.Linq;
 
 namespace DotNetConsoleSdk.Component.CommandLine
 {
@@ -14,6 +15,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
     {
         public static int ReturnCodeOK = 0;
         public static int ReturnCodeError = 1;
+        public static int ReturnCodeNotDefined = 1;
 
         static string[] _args;
         static bool _isInitialized = false;
@@ -21,6 +23,17 @@ namespace DotNetConsoleSdk.Component.CommandLine
         static readonly Dictionary<string, List<CommandSpecification>> _commands = new Dictionary<string, List<CommandSpecification>>();
 
         public static readonly ReadOnlyDictionary<string, List<CommandSpecification>> Commands = new ReadOnlyDictionary<string, List<CommandSpecification>>(_commands);
+
+        public static List<CommandSpecification> AllCommands {
+            get {
+                var coms = new List<CommandSpecification>();
+                foreach (var kvp in _commands)
+                    foreach (var com in kvp.Value)
+                        coms.Add(com);
+                coms.Sort(new Comparison<CommandSpecification>((x, y) => x.Name.CompareTo(y.Name)));
+                return coms;
+            }
+        }
 
         static readonly SyntaxAnalyser _syntaxAnalyzer = new SyntaxAnalyser();
 
@@ -50,18 +63,20 @@ namespace DotNetConsoleSdk.Component.CommandLine
             if (!_isInitialized)
             {
                 _isInitialized = true;
-                RegisterClass(typeof(CommandEngineCommands));
-                RegisterClass(typeof(StdoutCommands));
+                RegisterCommandsClass<CommandEngineCommands>();
+                RegisterCommandsClass<StdoutCommands>();
             }
         }
 
-        public static void RegisterModule(string assemblyPath)
+        public static void RegisterCommandsModule(string assemblyPath)
         {
-
+            
         }
 
-        public static void RegisterClass(Type type) 
+        static void RegisterCommandsClass<T>() 
         {
+            var type = typeof(T);
+            object instance = Activator.CreateInstance<T>();            
             var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             foreach ( var method in methods )
             {
@@ -84,7 +99,12 @@ namespace DotNetConsoleSdk.Component.CommandLine
                             parameter); ;
                         paramspecs.Add(pspec);
                     }
-                    var cmdspec = new CommandSpecification(method.Name.ToLower(), cmd.Description, method,paramspecs);
+                    var cmdspec = new CommandSpecification(
+                        method.Name.ToLower(), 
+                        cmd.Description, 
+                        method,
+                        instance,
+                        paramspecs);
                     if (_commands.TryGetValue(cmdspec.Name, out var cmdlst))
                         cmdlst.Add(cmdspec);
                     else
@@ -107,13 +127,34 @@ namespace DotNetConsoleSdk.Component.CommandLine
         /// </summary>
         /// <param name="expr">expression to be evaluated</param>
         /// <returns>return code</returns>
-        public static int Eval(string expr)
+        public static ExpressionEvaluationResult Eval(string expr)
         {
-            var parseResult = Parse(_syntaxAnalyzer,expr);
+            var result = Parse(_syntaxAnalyzer,expr);
+            ExpressionEvaluationResult r = null;
 
+            switch (result.parseResult)
+            {
+                case ParseResult.Valid:
+                    // TODO: need parameters values (pname->value) (from parser)
+                    result.commandSpecifications.First().Invoke();
+                    break;
+                case ParseResult.Empty:
+                    r = new ExpressionEvaluationResult(null, result.parseResult, null, ReturnCodeOK, null);
+                    break;
+                case ParseResult.NotValid:
+                    var syntaxError = "";
+                    r = new ExpressionEvaluationResult(syntaxError, result.parseResult, null, ReturnCodeNotDefined, null);
+                    break;
+                case ParseResult.Ambiguous:
+                    var ambiguousSyntaxError = "";
+                    r = new ExpressionEvaluationResult(ambiguousSyntaxError, result.parseResult, null, ReturnCodeNotDefined, null);
+                    break;
+                case ParseResult.NotIdentified:
+                    r = new ExpressionEvaluationResult(null, result.parseResult, null, ReturnCodeNotDefined, null);
+                    break;
+            }
 
-
-            return ReturnCodeOK;
+            return r;
         }
         
         #endregion

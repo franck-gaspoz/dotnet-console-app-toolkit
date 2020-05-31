@@ -263,8 +263,8 @@ namespace DotNetConsoleSdk
                 Println($"OS={Environment.OSVersion} {(Environment.Is64BitOperatingSystem ? "64" : "32")}bits");
                 Println($"{White}{Bkf}{Green}window:{Rf} left={Cyan}{sc.WindowLeft}{Rf},top={Cyan}{sc.WindowTop}{Rf},width={Cyan}{sc.WindowWidth}{Rf},height={Cyan}{sc.WindowHeight}{Rf},largest width={Cyan}{sc.LargestWindowWidth}{Rf},largest height={Cyan}{sc.LargestWindowHeight}{Rf}");
                 Println($"{Green}buffer:{Rf} width={Cyan}{sc.BufferWidth}{Rf},height={Cyan}{sc.BufferHeight}{Rf} | input encoding={Cyan}{sc.InputEncoding.EncodingName}{Rf} | output encoding={Cyan}{sc.OutputEncoding.EncodingName}{Rf}");
-                //Println($"number lock={Cyan}{sc.NumberLock}{Rf} | capslock={Cyan}{sc.CapsLock}{Rf}";  // not supported on linux ubuntu 18.04 wsl
-                //Println($"cursor visible={Cyan}{sc.CursorVisible}{Rf} | cursor size={Cyan}{sc.CursorSize}");   // not supported on linux ubuntu 18.04 wsl
+                Println($"number lock={Cyan}{sc.NumberLock}{Rf} | capslock={Cyan}{sc.CapsLock}{Rf}");            // TODO: not supported on linux ubuntu 18.04 wsl
+                Println($"cursor visible={Cyan}{sc.CursorVisible}{Rf} | cursor size={Cyan}{sc.CursorSize}");     // TODO: not supported on linux ubuntu 18.04 wsl
             });
         }
         public static void BackupCursorPos()
@@ -378,8 +378,26 @@ namespace DotNetConsoleSdk
 
         public static void Println(IEnumerable<string> ls) { foreach (var s in ls) Println(s); }
         public static void Print(IEnumerable<string> ls) { foreach (var s in ls) Print(s); }
-        public static void Println(string s) => Print(s, true);
-        public static void Print(string s) => Print(s, false);
+        public static void Println(string s="") => Print(s, true);
+        public static void Print(string s="") => Print(s, false);
+
+        public static string GetPrint(string s,bool lineBreak=false)
+        {
+            lock (ConsoleLock)
+            {
+                var ms = new MemoryStream(s.Length * 4);
+                var sw = new StreamWriter(ms);
+                RedirectOutputTo(sw);
+                Print(s, lineBreak,false);
+                sw.Flush();
+                ms.Position = 0;
+                var rw = new StreamReader(ms);
+                var txt = rw.ReadToEnd();
+                rw.Close();
+                RedirectOutputTo(null);
+                return txt;
+            }
+        }
 
         public static string Readln(string prompt = null)
         {
@@ -664,7 +682,7 @@ namespace DotNetConsoleSdk
                         dy = top-cy;
                         cy += dy;
                         if (top+1<=bottom)
-                            sc.MoveBufferArea(
+                            sc.MoveBufferArea(      // TODO: not supported on linux (ubuntu 18.04 wsl)
                                 left,top,right,bottom-top,
                                 left,top+1,
                                 ' ',
@@ -678,7 +696,7 @@ namespace DotNetConsoleSdk
                         var nh = bottom - top + dy + 1;
                         if (nh > 0)
                         {
-                            sc.MoveBufferArea(
+                            sc.MoveBufferArea(      // TODO: not supported on linux (ubuntu 18.04 wsl)
                                 left, top - dy, right, nh,
                                 left, top, 
                                 ' ', 
@@ -855,6 +873,21 @@ namespace DotNetConsoleSdk
         
         #region stream methods
 
+        public static void RedirectOutputTo(StreamWriter sw)
+        {
+            if (sw != null)
+            {
+                _outputWriter = Console.Out;
+                _outputStreamWriter = sw;
+                sc.SetOut(_outputStreamWriter);
+            } else
+            {
+                _outputStreamWriter.Flush();
+                _outputStreamWriter.Close();
+                sc.SetOut(_outputWriter);
+            }
+        }
+
         public static void RedirectOutput(string filepath = null)
         {
             if (filepath!=null)
@@ -932,7 +965,7 @@ namespace DotNetConsoleSdk
             }
         }
 
-        static void Print(object s, bool lineBreak = false, bool preserveColors = false, bool parseCommands = true)
+        static void Print(object s, bool lineBreak = false,bool updateUI=true, bool preserveColors = false, bool parseCommands = true)
         {
             lock (ConsoleLock)
             {
@@ -971,7 +1004,7 @@ namespace DotNetConsoleSdk
                 if (lineBreak) LineBreak();
 
                 RedrawUIElementsEnabled = redrawUIElementsEnabled;
-                UpdateUI();
+                if (updateUI) UpdateUI();
             }
         }
 

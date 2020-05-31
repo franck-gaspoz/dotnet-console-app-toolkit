@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 {
@@ -51,22 +52,44 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             return splits.ToArray();
         }
 
-        public static (ParseResult parseResult,CommandSpecification comSpec) 
+        public static (
+            ParseResult parseResult,
+            List<CommandSpecification> commandSpecifications,
+            List<ParseError> parseErrors
+            ) 
             Parse(SyntaxAnalyser syntaxAnalyzer, string expr)
         {
-            if (expr == null) return (ParseResult.Empty,null);
+            if (expr == null) return (ParseResult.Empty,null,null);
             expr = expr.Trim();
-            if (string.IsNullOrEmpty(expr)) return (ParseResult.Empty,null);
+            if (string.IsNullOrEmpty(expr)) return (ParseResult.Empty,null,null);
             
             var splits = SplitExpr(expr);
+            var segments = splits.Skip(1).ToArray();
             var token = splits.First();
             var ctokens = syntaxAnalyzer.FindSyntaxesFromToken(token, false, SyntaxMatchingRule);
 
-            if (ctokens.Count == 0) return (ParseResult.NotIdentified, null);
+            if (ctokens.Count == 0) return (ParseResult.NotIdentified, null,null);
 
-            
-
-            return (ParseResult.Valid,null);
+            if (ctokens.Count > 0)
+            {
+                int nbValid = 0;
+                var totalParseErrors = new List<ParseError>();
+                foreach ( var syntax in ctokens )
+                {
+                    var parseErrors = syntax.Match(segments,token.Length+1);
+                    if (parseErrors.Count == 0) 
+                        nbValid++;
+                    else
+                        totalParseErrors.AddRange(parseErrors);
+                }
+                if (nbValid == 0)
+                    return (ParseResult.NotValid, ctokens.Select(x => x.CommandSpecification).ToList(), totalParseErrors);
+                if (nbValid > 1)
+                    return (ParseResult.Ambiguous, ctokens.Select(x => x.CommandSpecification).ToList(), new List<ParseError>());
+                if (nbValid == 1)
+                    return (ParseResult.Valid, new List<CommandSpecification> { ctokens.First().CommandSpecification }, totalParseErrors);
+            }
+            throw new InvalidOperationException();
         }
     }
 }

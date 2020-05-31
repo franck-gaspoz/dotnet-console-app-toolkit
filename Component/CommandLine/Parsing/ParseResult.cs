@@ -9,6 +9,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
         Valid,
         NotValid,
         NotIdentified,
-        Empty
+        Empty,
+        Ambiguous
     }
 }

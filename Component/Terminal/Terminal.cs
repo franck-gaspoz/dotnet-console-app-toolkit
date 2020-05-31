@@ -1,5 +1,6 @@
 ﻿//#define dbg
 
+using DotNetConsoleSdk.Component.CommandLine;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -16,7 +17,7 @@ namespace DotNetConsoleSdk.Component.Shell
     {
         #region attributes
 
-        public delegate int EvalCommandDelegate(string com);
+        public delegate ExpressionEvaluationResult ExpressionEvaluationCommandDelegate(string com);
         
         static Thread _inputReaderThread;
         static readonly List<string> _history = new List<string>();
@@ -24,7 +25,7 @@ namespace DotNetConsoleSdk.Component.Shell
         static string _prompt;
         static StringBuilder _inputReaderStringBuilder;
         static Point _beginOfLineCurPos;
-        static EvalCommandDelegate _evalCommandDelegate;
+        static ExpressionEvaluationCommandDelegate _evalCommandDelegate;
         static string _sentInput = null;
         static AsyncCallback _readlnAsyncCallback;
         static bool _waitForReaderExited;
@@ -32,7 +33,7 @@ namespace DotNetConsoleSdk.Component.Shell
 
         #endregion
 
-        public static void InitializeTerminal(EvalCommandDelegate evalCommandDelegate)
+        public static void InitializeTerminal(ExpressionEvaluationCommandDelegate evalCommandDelegate)
         {
             _evalCommandDelegate = evalCommandDelegate ?? Eval;
             ViewSizeChanged += (o, e) =>

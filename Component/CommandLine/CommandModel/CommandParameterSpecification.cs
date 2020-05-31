@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿#define coloredToString
+
+using System.Reflection;
 using static DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
@@ -41,6 +43,9 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
             if (OptionName != null) r = $"{Cyan}-{Green}{OptionName}{f} {r}";
             if (IsOptional) r = $"{Cyan}({r}{Cyan})?{f}";
             if (HasDefaultValue) r += $"{Cyan}={($"{Darkyellow}{DefaultValue}{f}" ?? $"{Darkyellow}null{f}")}";
+#if !coloredToString
+            r = GetPrint(r);
+#endif
             return r;
         }
     }
