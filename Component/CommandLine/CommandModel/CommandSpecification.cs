@@ -91,5 +91,22 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
                     parameters.Add(++maxIndex, p.ToString());
             return r+((parameters.Values.Count==0)?"":(" "+string.Join(' ',parameters.Values)));
         }
+
+        public string ToColorizedString()
+        {
+            var r = $"{Name}";
+            var parameters = new SortedList<int, string>();
+            var maxIndex = 0;
+            foreach (var p in _parametersSpecifications.Values)
+                if (p.Index > -1)
+                {
+                    maxIndex = Math.Max(p.Index, maxIndex);
+                    parameters.Add(p.Index, p.ToString());
+                }
+            foreach (var p in _parametersSpecifications.Values)
+                if (p.Index == -1)
+                    parameters.Add(++maxIndex, p.ToColorizedString());
+            return r + ((parameters.Values.Count == 0) ? "" : (" " + string.Join(' ', parameters.Values)));
+        }
     }
 }

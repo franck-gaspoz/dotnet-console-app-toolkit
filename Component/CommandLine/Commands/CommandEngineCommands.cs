@@ -1,5 +1,4 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
-using System.Collections.Generic;
 using System.Linq;
 using static DotNetConsoleSdk.DotNetConsole;
 
@@ -8,7 +7,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
     public class CommandEngineCommands
     {
         [Command("print help about commands")]
-        public void Help()
+        public void Help([Parameter("short","if set limit output to short view",true)]bool shortview=false)
         {
             var coms = CommandEngine.AllCommands;
             var maxcnamelength = coms.Select(x => x.Name.Length).Max()+TabLength;
@@ -21,11 +20,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
                 Println($"{com.Name.PadRight(maxcnamelength, ' ')}{com.Description}");
                 if (com.ParametersCount > 0)
                 {
-                    Println($"{col}{Cyan}syntax: {White}{com.ToString()}");
-                    var mpl = com.ParametersSpecifications.Values.Select(x => GetPrint(x.ToString()).Length).Max() + TabLength;
+                    Println($"{col}{Cyan}syntax: {White}{com.ToColorizedString()}");
+                    var mpl = com.ParametersSpecifications.Values.Select(x => x.ToString().Length).Max() + TabLength;
                     Println();
                     foreach (var kvp in com.ParametersSpecifications)
-                        Println($"{col}{Tab}{GetPrint(kvp.Value.ToString()).PadRight(mpl,' ')}{kvp.Value.Description}");
+                        Println($"{col}{Tab}{kvp.Value.ToString().PadRight(mpl,' ')}{kvp.Value.Description}");
                 }
                 Println();
                 Println($"{col}{Cyan}defined in: {Gray}{com.MethodInfo.DeclaringType.FullName}");

@@ -1,9 +1,6 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 {
@@ -17,21 +14,26 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
         {
             CommandSpecification = commandSpecification;
             foreach (var kvp in commandSpecification.ParametersSpecifications)
-                _parameterSyntaxes.Add(new ParameterSyntax(kvp.Value));
+                _parameterSyntaxes.Add(new ParameterSyntax(commandSpecification,kvp.Value));
         }
 
-        public List<ParseError> Match(string[] segments,int firstIndex=0)
+        public (MatchingParameters matchingParameters,List<ParseError> parseErrors) Match(string[] segments,int firstIndex=0)
         {
+            var matchingParameters = new MatchingParameters();
+            
             if (segments.Length < MinAttemptedSegments)
-                return new List<ParseError>{ 
-                    new ParseError(
-                         $"missing parameter(s). minimum attempted is {MinAttemptedSegments}, founded {segments.Length}",
-                         0,
-                         firstIndex,
-                         CommandSpecification,
-                         AttemptedParameters(0)
-                         )};
-            var r = new List<ParseError>();
+                return (matchingParameters,
+                    new List<ParseError>{ 
+                        new ParseError(
+                             $"missing parameter(s). minimum attempted is {MinAttemptedSegments}, founded {segments.Length}",
+                             0,
+                             firstIndex,
+                             CommandSpecification,
+                             AttemptedParameters(0)
+                             )});
+
+            // segments must match some of the parameters
+            var parseErrors = new List<ParseError>();
             for (int i=0;i<segments.Length;i++)
             {
                 string[] rightSegments;
@@ -42,11 +44,25 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                 var parseError = MatchSegment(segments[i], i, rightSegments, firstIndex); ;
                 if (parseError != null)
                 {
-                    r.Add(parseError);
+                    parseErrors.Add(parseError);
                     break;
                 }
             }
-            return r;
+
+            // non given parameters must be optional
+            // TODO: handle syntax 'ParamName ParamValue'
+            foreach ( var psyx in _parameterSyntaxes)
+            {
+                var optionName = psyx.CommandParameterSpecification.OptionName;
+                if (psyx.CommandParameterSpecification.IsOptional &&
+                    !matchingParameters.Contains(optionName))
+                {
+                    var mparam = psyx.GetMatchingParameter(psyx.CommandParameterSpecification.DefaultValue);
+                    matchingParameters.Add(optionName, mparam);
+                }
+            }
+
+            return (matchingParameters,parseErrors);
         }
 
         int MinAttemptedSegments => CommandSpecification.FixedParametersCount
@@ -55,10 +71,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
         List<CommandParameterSpecification> AttemptedParameters(int position)
         {
             var r = new List<CommandParameterSpecification>();
-            var pspecs = CommandSpecification.ParametersSpecifications.Values.ToArray();
-            for (int i = 0; i < pspecs.Length; i++)
+            var psyxs = _parameterSyntaxes.ToArray();  // TODO: ordered by position
+            for (int i = 0; i < psyxs.Length; i++)
             {
-                var pspec = pspecs[i];
+                var psyx = psyxs[i];
                 //if (pspec.Index==-1)
             }
             return r;

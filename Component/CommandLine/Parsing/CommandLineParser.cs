@@ -76,7 +76,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                 var totalParseErrors = new List<ParseError>();
                 foreach ( var syntax in ctokens )
                 {
-                    var parseErrors = syntax.Match(segments,token.Length+1);
+                    var (matchingParameters,parseErrors) = syntax.Match(segments,token.Length+1);
                     if (parseErrors.Count == 0) 
                         nbValid++;
                     else
