@@ -173,7 +173,7 @@ namespace DotNetConsoleSdk.Component.UI
                 if (viewSizeChanged && !ClearOnViewResized && DotNetConsole.ViewResizeStrategy == ViewResizeStrategy.FitViewSize)
                     Erase();
                 List<DrawStrategy> ignorableStrategies = new List<DrawStrategy>()
-                    { DrawStrategy.OnPrint , DrawStrategy.OnTime };
+                    { /*DrawStrategy.OnPrint ,*/ DrawStrategy.OnTime };
                 if (!viewSizeChanged && !ignorableStrategies.Contains(DrawStrategy)) return;
                 Draw(viewSizeChanged);
             }

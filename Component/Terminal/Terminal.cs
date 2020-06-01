@@ -401,6 +401,7 @@ namespace DotNetConsoleSdk.Component.Shell
 
                         // process input
                         var s = _inputReaderStringBuilder.ToString();
+                        _inputReaderStringBuilder.Clear();
                         asyncCallback?.Invoke(
                             new BeginReadlnAsyncResult(s)
                             );

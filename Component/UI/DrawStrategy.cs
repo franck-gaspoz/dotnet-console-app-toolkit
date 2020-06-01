@@ -3,7 +3,7 @@
     public enum DrawStrategy
     {        
         OnViewResizedOnly,
-        OnPrint,
+        //OnPrint,
         OnTime
     }
 }

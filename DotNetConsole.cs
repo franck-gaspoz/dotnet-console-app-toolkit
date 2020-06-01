@@ -253,7 +253,7 @@ namespace DotNetConsoleSdk
             Lock(() =>
             {
                 ConsolePrint(string.Empty, true);
-                UpdateUI();
+                //UpdateUI();
             });
         }
         public static void Infos()
@@ -1004,7 +1004,7 @@ namespace DotNetConsoleSdk
                 if (lineBreak) LineBreak();
 
                 RedrawUIElementsEnabled = redrawUIElementsEnabled;
-                if (updateUI) UpdateUI();
+                //if (updateUI) UpdateUI();
             }
         }
 
