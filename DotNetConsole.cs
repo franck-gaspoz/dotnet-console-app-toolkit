@@ -388,7 +388,10 @@ namespace DotNetConsoleSdk
                 var ms = new MemoryStream(s.Length * 4);
                 var sw = new StreamWriter(ms);
                 RedirectOutputTo(sw);
+                var e = EnableConstraintConsolePrintInsideWorkArea;
+                EnableConstraintConsolePrintInsideWorkArea = false;
                 Print(s, lineBreak,false);
+                EnableConstraintConsolePrintInsideWorkArea = e;
                 sw.Flush();
                 ms.Position = 0;
                 var rw = new StreamReader(ms);
@@ -1191,6 +1194,8 @@ namespace DotNetConsoleSdk
         public static string Cr(int x, int y) => $"{GetCmd(KeyWords.crx , x +"" )}{GetCmd(KeyWords.cry , y+"" )}";
 
         public static string Exec(string csharpText) => GetCmd(KeyWords.exec , csharpText);
+
+        public static string Tab => "".PadLeft(TabLength, ' ');
 
         #endregion
 

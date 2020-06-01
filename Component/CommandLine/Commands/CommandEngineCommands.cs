@@ -11,15 +11,24 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
         public void Help()
         {
             var coms = CommandEngine.AllCommands;
-            var maxcnamelength = coms.Select(x => x.Name.Length).Max()+DotNetConsole.TabLength;
+            var maxcnamelength = coms.Select(x => x.Name.Length).Max()+TabLength;
             foreach ( var com in coms )
             {
 #pragma warning disable IDE0071 // Simplifier l’interpolation
 #pragma warning disable IDE0071WithoutSuggestion // Simplifier l’interpolation
 
+                var col = "".PadRight(maxcnamelength, ' ');
                 Println($"{com.Name.PadRight(maxcnamelength, ' ')}{com.Description}");
-                if (com.ParametersCount>0)
-                    Println($"{"".PadRight(maxcnamelength, ' ')}{Cyan}syntax: {White}{com.ToString()}");
+                if (com.ParametersCount > 0)
+                {
+                    Println($"{col}{Cyan}syntax: {White}{com.ToString()}");
+                    var mpl = com.ParametersSpecifications.Values.Select(x => GetPrint(x.ToString()).Length).Max() + TabLength;
+                    Println();
+                    foreach (var kvp in com.ParametersSpecifications)
+                        Println($"{col}{Tab}{GetPrint(kvp.Value.ToString()).PadRight(mpl,' ')}{kvp.Value.Description}");
+                }
+                Println();
+                Println($"{col}{Cyan}defined in: {Gray}{com.MethodInfo.DeclaringType.FullName}");
                 Println();
 
 #pragma warning restore IDE0071WithoutSuggestion // Simplifier l’interpolation
