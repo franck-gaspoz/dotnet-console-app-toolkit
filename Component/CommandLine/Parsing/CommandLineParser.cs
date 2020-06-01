@@ -52,23 +52,18 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             return splits.ToArray();
         }
 
-        public static (
-            ParseResult parseResult,
-            List<CommandSpecification> commandSpecifications,
-            List<ParseError> parseErrors
-            ) 
-            Parse(SyntaxAnalyser syntaxAnalyzer, string expr)
+        public static ParseResult Parse(SyntaxAnalyser syntaxAnalyzer, string expr)
         {
-            if (expr == null) return (ParseResult.Empty,null,null);
+            if (expr == null) return new ParseResult(ParseResultType.Empty,null,null);
             expr = expr.Trim();
-            if (string.IsNullOrEmpty(expr)) return (ParseResult.Empty,null,null);
+            if (string.IsNullOrEmpty(expr)) return new ParseResult(ParseResultType.Empty,null,null);
             
             var splits = SplitExpr(expr);
             var segments = splits.Skip(1).ToArray();
             var token = splits.First();
             var ctokens = syntaxAnalyzer.FindSyntaxesFromToken(token, false, SyntaxMatchingRule);
 
-            if (ctokens.Count == 0) return (ParseResult.NotIdentified, null,null);
+            if (ctokens.Count == 0) return new ParseResult(ParseResultType.NotIdentified, null,null);
 
             if (ctokens.Count > 0)
             {
@@ -83,11 +78,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                         totalParseErrors.AddRange(parseErrors);
                 }
                 if (nbValid == 0)
-                    return (ParseResult.NotValid, ctokens.Select(x => x.CommandSpecification).ToList(), totalParseErrors);
+                    return new ParseResult(ParseResultType.NotValid, ctokens.Select(x => x.CommandSpecification).ToList(), totalParseErrors);
                 if (nbValid > 1)
-                    return (ParseResult.Ambiguous, ctokens.Select(x => x.CommandSpecification).ToList(), new List<ParseError>());
+                    return new ParseResult(ParseResultType.Ambiguous, ctokens.Select(x => x.CommandSpecification).ToList(), new List<ParseError>());
                 if (nbValid == 1)
-                    return (ParseResult.Valid, new List<CommandSpecification> { ctokens.First().CommandSpecification }, totalParseErrors);
+                    return new ParseResult(ParseResultType.Valid, new List<CommandSpecification> { ctokens.First().CommandSpecification }, totalParseErrors);
             }
             throw new InvalidOperationException();
         }

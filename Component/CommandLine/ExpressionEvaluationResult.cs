@@ -8,12 +8,12 @@ namespace DotNetConsoleSdk.Component.CommandLine
         public readonly string SyntaxError;
         public readonly object Result;
         public readonly int EvalResultCode;
-        public readonly ParseResult ParseResult;
+        public readonly ParseResultType ParseResult;
         public readonly Exception EvalError;
 
         public ExpressionEvaluationResult(
             string syntaxError,
-            ParseResult parseResult, 
+            ParseResultType parseResult, 
             object result, 
             int evalResultCode,
             Exception evalError)

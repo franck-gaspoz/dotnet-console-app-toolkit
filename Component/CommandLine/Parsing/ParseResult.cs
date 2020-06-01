@@ -1,15 +1,19 @@
-﻿using System;
+﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using System.Collections.Generic;
-using System.Text;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 {
-    public enum ParseResult
+    public class ParseResult
     {
-        Valid,
-        NotValid,
-        NotIdentified,
-        Empty,
-        Ambiguous
+        public readonly ParseResultType ParseResultType;
+        public readonly List<CommandSpecification> CommandSpecifications;
+        public readonly List<ParseError> ParseErrors;
+
+        public ParseResult(ParseResultType parseResultType, List<CommandSpecification> commandSpecifications, List<ParseError> parseErrors)
+        {
+            ParseResultType = parseResultType;
+            CommandSpecifications = commandSpecifications;
+            ParseErrors = parseErrors;
+        }
     }
 }

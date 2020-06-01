@@ -129,28 +129,28 @@ namespace DotNetConsoleSdk.Component.CommandLine
         /// <returns>return code</returns>
         public static ExpressionEvaluationResult Eval(string expr)
         {
-            var result = Parse(_syntaxAnalyzer,expr);
+            var parseResult = Parse(_syntaxAnalyzer,expr);
             ExpressionEvaluationResult r = null;
 
-            switch (result.parseResult)
+            switch (parseResult.ParseResultType)
             {
-                case ParseResult.Valid:
+                case ParseResultType.Valid:
                     // TODO: need parameters values (pname->value) (from parser)
-                    result.commandSpecifications.First().Invoke();
+                    parseResult.CommandSpecifications.First().Invoke();
                     break;
-                case ParseResult.Empty:
-                    r = new ExpressionEvaluationResult(null, result.parseResult, null, ReturnCodeOK, null);
+                case ParseResultType.Empty:
+                    r = new ExpressionEvaluationResult(null, parseResult.ParseResultType, null, ReturnCodeOK, null);
                     break;
-                case ParseResult.NotValid:
+                case ParseResultType.NotValid:
                     var syntaxError = "";
-                    r = new ExpressionEvaluationResult(syntaxError, result.parseResult, null, ReturnCodeNotDefined, null);
+                    r = new ExpressionEvaluationResult(syntaxError, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);
                     break;
-                case ParseResult.Ambiguous:
+                case ParseResultType.Ambiguous:
                     var ambiguousSyntaxError = "";
-                    r = new ExpressionEvaluationResult(ambiguousSyntaxError, result.parseResult, null, ReturnCodeNotDefined, null);
+                    r = new ExpressionEvaluationResult(ambiguousSyntaxError, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);
                     break;
-                case ParseResult.NotIdentified:
-                    r = new ExpressionEvaluationResult(null, result.parseResult, null, ReturnCodeNotDefined, null);
+                case ParseResultType.NotIdentified:
+                    r = new ExpressionEvaluationResult(null, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);
                     break;
             }
 
