@@ -1,10 +1,13 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using System;
+using System.Data;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 {
     public class ParameterSyntax
     {
+        public static string OptionPrefix = "-";
+
         public readonly CommandSpecification CommandSpecification;
         public readonly CommandParameterSpecification CommandParameterSpecification;
 
@@ -17,10 +20,38 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             CommandParameterSpecification = commandParameterSpecification;
         }
 
-        public ParseError MatchSegment(string segment, int position, string[] rightSegments, int firstIndex)
+        public (ParseError parseError, ParameterSyntax parameterSyntax) MatchSegment(
+            StringComparison syntaxMatchingRule,
+            MatchingParameters matchingParameters,
+            string segment, 
+            int position, 
+            int index,
+            string[] rightSegments, 
+            int firstIndex)
         {
+            var csp = CommandParameterSpecification;
+            var syntax = $"{ParameterSyntax.OptionPrefix}{csp.OptionName}";
+            if (matchingParameters.Contains(csp.ParameterName))
+                return (new ParseError($"parameter already defined: {syntax}", position, index, CommandSpecification),this);
 
-            return null;
+            if (csp.OptionName != null)
+                // option
+                return syntax.Equals(segment, syntaxMatchingRule) ?
+                    (null,this)
+                    : (new ParseError($"parameter mismatch. attempted: {syntax}, found: {segment}", position, index, CommandSpecification),this);
+            else
+            {
+                if (csp.Name != null)
+                {
+                    // named parameter
+                    //return (csp.Index==position )
+                } else
+                {
+                    // fixed parameter (no name)
+
+                }
+            }
+            throw new ConstraintException();
         }
 
         public IMatchingParameter GetMatchingParameter(object value)

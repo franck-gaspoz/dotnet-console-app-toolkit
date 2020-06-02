@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using DotNetConsoleSdk.Component.CommandLine.Parsing;
+using System;
+using System.Reflection;
 using static DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
@@ -42,7 +44,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
         public override string ToString()
         {
             var r = $"{Name}";
-            if (OptionName != null) r = $"-{OptionName}";
+            if (OptionName != null) r = $"{ParameterSyntax.OptionPrefix}{OptionName}";
             if (IsOptional) r = $"({r})?";
             if (HasDefaultValue) r += $"{{={($"{DefaultValue}" ?? $"null")}}}";
             return r;
@@ -52,7 +54,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
         {
             var f = White;
             var r = $"{Yellow}{Name}{f}";
-            if (OptionName != null) r = $"{Cyan}-{Green}{OptionName}{f}";
+            if (OptionName != null) r = $"{Cyan}{ParameterSyntax.OptionPrefix}{Green}{OptionName}{f}";
             if (IsOptional) r = $"{Cyan}({r}{Cyan})?{f}";
             if (HasDefaultValue) r += $"{Cyan}{{={($"{Darkyellow}{DefaultValue}{f}" ?? $"{Darkyellow}null{f}}}")}";
             return r;

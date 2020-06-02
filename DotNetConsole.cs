@@ -1150,7 +1150,7 @@ namespace DotNetConsoleSdk
         public static string Bdarkcyan => GetCmd(KeyWords.b , "darkcyan");
         public static string Bdarkred => GetCmd(KeyWords.b , "darkred");
         public static string Bdarkmagenta => GetCmd(KeyWords.b , "darkmagenta");
-        public static string Bdarkyellow => GetCmd(KeyWords.b , "darkyelllow");
+        public static string Bdarkyellow => GetCmd(KeyWords.b , "darkyellow");
         public static string Bgray => GetCmd(KeyWords.b , "gray");
         public static string Bdarkgray => GetCmd(KeyWords.b , "darkgray");
         public static string Bblue => GetCmd(KeyWords.b , "blue");
@@ -1166,7 +1166,7 @@ namespace DotNetConsoleSdk
         public static string Darkcyan => GetCmd(KeyWords.f , "darkcyan");
         public static string Darkred => GetCmd(KeyWords.f , "darkred");
         public static string Darkmagenta => GetCmd(KeyWords.f , "darkmagenta");
-        public static string Darkyellow => GetCmd(KeyWords.f , "darkyelllow");
+        public static string Darkyellow => GetCmd(KeyWords.f , "darkyellow");
         public static string Gray => GetCmd(KeyWords.f , "gray");
         public static string Darkgray => GetCmd(KeyWords.f , "darkgray");
         public static string Blue => GetCmd(KeyWords.f , "blue");

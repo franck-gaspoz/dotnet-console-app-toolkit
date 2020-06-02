@@ -1,4 +1,5 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -18,7 +19,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                 _parameterSyntaxes.Add(new ParameterSyntax(commandSpecification,kvp.Value));
         }
 
-        public (MatchingParameters matchingParameters,List<ParseError> parseErrors) Match(string[] segments,int firstIndex=0)
+        public (MatchingParameters matchingParameters,List<ParseError> parseErrors) Match(StringComparison syntaxMatchingRule,string[] segments,int firstIndex=0)
         {
             var matchingParameters = new MatchingParameters();
             
@@ -33,8 +34,9 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                              AttemptedParameters(0)
                              )});
 
-            // segments must match some of the parameters
+            // segments must match one time some of the parameters
             var parseErrors = new List<ParseError>();
+            var index = 0;
             for (int i=0;i<segments.Length;i++)
             {
                 string[] rightSegments;
@@ -42,12 +44,29 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                     rightSegments = segments[(i + 1)..^1];
                 else
                     rightSegments = new string[] { };
-                var parseError = MatchSegment(segments[i], i, rightSegments, firstIndex); ;
+
+                var (parseError,parameterSyntax) = MatchSegment(
+                    syntaxMatchingRule,
+                    matchingParameters, 
+                    segments[i], 
+                    i,
+                    index,
+                    rightSegments, 
+                    firstIndex);
+                
                 if (parseError != null)
                 {
                     parseErrors.Add(parseError);
-                    break;
+                } else
+                {
+                    matchingParameters.Add(
+                        parameterSyntax.CommandParameterSpecification.ParameterName,
+                        null
+                        );
                 }
+
+                if (i > 0) index++;
+                index += segments[i].Length;
             }
 
             // non given parameters must be optional
@@ -56,10 +75,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             {
                 var optionName = psyx.CommandParameterSpecification.OptionName;
                 if (psyx.CommandParameterSpecification.IsOptional &&
-                    !matchingParameters.Contains(optionName))
+                    !matchingParameters.Contains(psyx.CommandParameterSpecification.ParameterName))
                 {
                     var mparam = psyx.GetMatchingParameter(psyx.CommandParameterSpecification.DefaultValue);
-                    matchingParameters.Add(optionName, mparam);
+                    matchingParameters.Add(psyx.CommandParameterSpecification.ParameterName, mparam);
                 }
             }
 
@@ -81,21 +100,36 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             return r;
         } 
 
-        ParseError MatchSegment(string segment, int position, string[] rightSegments, int firstIndex)
+        (ParseError parseError,ParameterSyntax parameterSyntax) MatchSegment(
+            StringComparison syntaxMatchingRule, 
+            MatchingParameters matchingParameters, 
+            string segment, 
+            int position,
+            int index,
+            string[] rightSegments, 
+            int firstIndex)
         {
-            for (int i=0;i< _parameterSyntaxes.Count;i++)
+            ParseError parseError = null;
+            for (int i = 0; i < _parameterSyntaxes.Count; i++)
             {
-                var parseError = _parameterSyntaxes[i].MatchSegment(segment, position, rightSegments, firstIndex);
-                if (parseError != null) return parseError;
+                var (prsError,parameterSyntax) = _parameterSyntaxes[i].MatchSegment(syntaxMatchingRule, matchingParameters,segment, position, index, rightSegments, firstIndex);
+                if (prsError == null) return (null, parameterSyntax);
             }
-            return null;
+            return (parseError,null);
         }
 
         public object Invoke(MatchingParameters matchingParameters)
         {
-            var parameters = new object[] { };
+            var parameters = new List<object>();
+            foreach ( var parameter in CommandSpecification.MethodInfo.GetParameters() )
+            {
+                if (matchingParameters.TryGet(parameter.Name, out var matchingParameter))
+                    parameters.Add(matchingParameter.GetValue());
+                else 
+                    throw new System.InvalidOperationException($"parameter not found: '{parameter.Name}' when invoking command: {CommandSpecification}");
+            }
             var r = CommandSpecification.MethodInfo
-                .Invoke(CommandSpecification.MethodOwner, parameters);
+                .Invoke(CommandSpecification.MethodOwner, parameters.ToArray());
             return r;
         }
 
