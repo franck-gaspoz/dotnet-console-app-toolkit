@@ -44,7 +44,9 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
 
         public string ParameterValueTypeName => ParameterInfo.ParameterType.Name;
 
-        public override string ToString()
+        public override string ToString() => Dump();
+
+        public string Dump(bool grammarSymbolsVisible = true)
         {
             var r = $"{ParameterName}";
             if (IsOption)
@@ -52,12 +54,12 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
                 var optVal = (HasValue) ? $" {ParameterValueTypeName}" : "";
                 r = $"{ParameterSyntax.OptionPrefix}{OptionName}{optVal}";
             }
-            if (IsOptional) r = $"[{r}]";
-            if (HasDefaultValue) r += $"{{={($"{DefaultValue}" ?? $"null")}}}";
+            if (IsOptional && grammarSymbolsVisible) r = $"[{r}]";
+            if (HasDefaultValue && grammarSymbolsVisible) r += $"{{={($"{DefaultValue}" ?? $"null")}}}";
             return r;
         }
 
-        public string ToColorizedString()
+        public string ToColorizedString(bool grammarSymbolsVisible=true)
         {
             var f = White;
             var r = $"{Yellow}{ParameterName}{f}";
@@ -66,8 +68,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
                 var optVal = (HasValue) ? $" {Darkyellow}{ParameterValueTypeName}" : "";
                 r = $"{Darkyellow}{ParameterSyntax.OptionPrefix}{Yellow}{OptionName}{optVal}{f}";
             }
-            if (IsOptional) r = $"{Cyan}[{r}{Cyan}]{f}";
-            if (HasDefaultValue) r += $"{Cyan}{{={($"{Darkyellow}{DefaultValue}{Cyan}}}{f}" ?? $"{Darkyellow}null{Cyan}}}{f}")}";
+            if (IsOptional && grammarSymbolsVisible) r = $"{Cyan}[{r}{Cyan}]{f}";
+            if (HasDefaultValue && grammarSymbolsVisible) r += $"{Cyan}{{={($"{Darkyellow}{DefaultValue}{Cyan}}}{f}" ?? $"{Darkyellow}null{Cyan}}}{f}")}";
             return r;
         }
     }
