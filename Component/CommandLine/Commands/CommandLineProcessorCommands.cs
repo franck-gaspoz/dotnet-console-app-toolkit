@@ -57,8 +57,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
         [Command("test find command")]
         public List<string> Find(
             [Parameter("search path")]string path,
-            [Option("-file","searched filename pattern",true)]string filename,
-            [Option("-contains","files that contains the string",true)]string contains
+            [Option("file","searched filename pattern",true)]string filename,
+            [Option("contains","files that contains the string",true)]string contains
             )
         {
             return null;

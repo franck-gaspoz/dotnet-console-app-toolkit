@@ -153,6 +153,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
         {
             var parseResult = Parse(_syntaxAnalyzer,expr);
             ExpressionEvaluationResult r = null;
+            var errorText = "";
 
             switch (parseResult.ParseResultType)
             {
@@ -166,18 +167,19 @@ namespace DotNetConsoleSdk.Component.CommandLine
                     break;
 
                 case ParseResultType.NotValid:
-                    var syntaxError = "";
-
                     foreach (var prs in parseResult.SyntaxParsingResults)
                         foreach (var pr in prs.ParseErrors)
-                            Println($"{Red}{pr}. for syntax: {prs.CommandSyntax}");
-
-                    r = new ExpressionEvaluationResult(syntaxError, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);
+                            errorText += $"{Red}{pr}. for syntax: {prs.CommandSyntax}{Br}";
+                    Print(errorText);
+                    r = new ExpressionEvaluationResult(errorText, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);
                     break;
 
                 case ParseResultType.Ambiguous:
-                    var ambiguousSyntaxError = "";
-                    r = new ExpressionEvaluationResult(ambiguousSyntaxError, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);
+                    errorText += $"{Red}ambiguous syntaxes:{Br}";
+                    foreach (var prs in parseResult.SyntaxParsingResults)
+                        errorText += $"{Red}{prs.CommandSyntax}{Br}";
+                    Print(errorText);
+                    r = new ExpressionEvaluationResult(errorText, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);
                     break;
 
                 case ParseResultType.NotIdentified:
