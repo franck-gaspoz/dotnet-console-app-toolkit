@@ -54,9 +54,9 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             throw new ConstraintException();
         }
 
-        public IMatchingParameter GetMatchingParameter(object value)
+        public IMatchingParameter BuildMatchingParameter(object value)
         {
-            var mparam = GetMatchingParameter();
+            var mparam = BuildMatchingParameter();
             mparam.SetValue(value);
             return mparam;
         }
@@ -167,7 +167,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             return result;
         }
 
-        public IMatchingParameter GetMatchingParameter()
+        public IMatchingParameter BuildMatchingParameter()
         {
             IMatchingParameter mparam = null;
             var comspec = CommandParameterSpecification;

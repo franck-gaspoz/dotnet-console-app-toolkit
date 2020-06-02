@@ -64,7 +64,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                 } else
                 {
                     var cps = parameterSyntax.CommandParameterSpecification;
-                    var mparam = parameterSyntax.GetMatchingParameter(cps.DefaultValue);
+                    var mparam = parameterSyntax.BuildMatchingParameter(cps.DefaultValue);
                     if (cps.IsOption && !cps.HasValue )
                         mparam.SetValue(true);
                     else
@@ -92,7 +92,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                 if (psyx.CommandParameterSpecification.IsOptional &&
                     !matchingParameters.Contains(psyx.CommandParameterSpecification.ParameterName))
                 {
-                    var mparam = psyx.GetMatchingParameter(psyx.CommandParameterSpecification.DefaultValue);
+                    var mparam = psyx.BuildMatchingParameter(psyx.CommandParameterSpecification.DefaultValue);
                     matchingParameters.Add(psyx.CommandParameterSpecification.ParameterName, mparam);
                 }
             }

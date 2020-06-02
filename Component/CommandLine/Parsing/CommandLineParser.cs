@@ -85,13 +85,31 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                         syntaxParsingResults.Add(new CommandSyntaxParsingResult(syntax, matchingParameters, parseErrors));
                 }
 
-                if (nbValid == 0) return new ParseResult(ParseResultType.NotValid,syntaxParsingResults);
-
                 if (nbValid > 1)
                 {
-                    return new ParseResult(ParseResultType.Ambiguous, validSyntaxParsingResults);
+                    // try disambiguization : priority to com with the maximum of options
+                    validSyntaxParsingResults.Sort(
+                        new Comparison<CommandSyntaxParsingResult>((x, y)
+                            => x.CommandSyntax.CommandSpecification.OptionsCount.CompareTo(
+                                y.CommandSyntax.CommandSpecification.OptionsCount
+                                )
+                        ));
+                    validSyntaxParsingResults.Reverse();
+                    if (validSyntaxParsingResults[0].CommandSyntax.CommandSpecification.OptionsCount >
+                        validSyntaxParsingResults[1].CommandSyntax.CommandSpecification.OptionsCount)
+                    {
+                        validSyntaxParsingResults = new List<CommandSyntaxParsingResult>
+                        {
+                            validSyntaxParsingResults.First()
+                        };
+                        nbValid = 1;
+                    }
+                    else
+                        return new ParseResult(ParseResultType.Ambiguous, validSyntaxParsingResults);
                 }
 
+                if (nbValid == 0) return new ParseResult(ParseResultType.NotValid,syntaxParsingResults);
+                
                 if (nbValid == 1) return new ParseResult( ParseResultType.Valid, validSyntaxParsingResults );
             }
             throw new InvalidOperationException();

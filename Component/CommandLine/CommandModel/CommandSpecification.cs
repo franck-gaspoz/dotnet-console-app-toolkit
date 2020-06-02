@@ -36,6 +36,17 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
 
         public int MinimumParametersCount => _fixedParametersCount + _requiredNamedParametersCount;
 
+        public int OptionsCount
+        {
+            get
+            {
+                var n = 0;
+                foreach (var p in _parametersSpecifications)
+                    if (p.Value.IsOption) n++;
+                return n;
+            }
+        }
+
         int _fixedParametersCount = -1;
         public int FixedParametersCount
         {
