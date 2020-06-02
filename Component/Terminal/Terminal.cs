@@ -60,26 +60,29 @@ namespace DotNetConsoleSdk.Component.Shell
                         var p = CursorPos;
                         var (id,left, top, right, bottom) = ActualWorkArea;
                         var txt = _inputReaderStringBuilder.ToString();
-                        var index = GetIndexInWorkAreaConstraintedString(txt, _beginOfLineCurPos, p);
-                        var slines = GetWorkAreaStringSplits(txt, _beginOfLineCurPos);
-                        
-                        if (CursorTop == slines.Min(o=>o.y))
+                        if (!string.IsNullOrWhiteSpace(txt))
                         {
-                            SetCursorLeft(left);
-                            Print(_prompt);
-                        }
-                        var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
-                        EnableConstraintConsolePrintInsideWorkArea = false;
-                        foreach ( var (s, x, y, l) in slines )
-                            if (y>= top && y<=bottom)
+                            var index = GetIndexInWorkAreaConstraintedString(txt, _beginOfLineCurPos, p);
+                            var slines = GetWorkAreaStringSplits(txt, _beginOfLineCurPos);
+
+                            if (CursorTop == slines.Min(o => o.y))
                             {
-                                SetCursorPos(x, y);
-                                ConsolePrint("".PadLeft(right-x,' '));
-                                SetCursorPos(x, y);
-                                ConsolePrint(s);
+                                SetCursorLeft(left);
+                                Print(_prompt);
                             }
-                        EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
-                        SetCursorPos(p);                        
+                            var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
+                            EnableConstraintConsolePrintInsideWorkArea = false;
+                            foreach (var (s, x, y, l) in slines)
+                                if (y >= top && y <= bottom)
+                                {
+                                    SetCursorPos(x, y);
+                                    ConsolePrint("".PadLeft(right - x, ' '));
+                                    SetCursorPos(x, y);
+                                    ConsolePrint(s);
+                                }
+                            EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
+                            SetCursorPos(p);
+                        }
                     }
                 }
             };
