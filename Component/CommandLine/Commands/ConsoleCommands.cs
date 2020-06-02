@@ -2,7 +2,7 @@
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands
 {
-    public class StdoutCommands
+    public class ConsoleCommands
     {
         [Command("write any given expression to the output stream")]
         public void Print(
