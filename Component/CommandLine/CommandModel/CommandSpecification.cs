@@ -94,7 +94,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
                 if (p.Index > -1)
                 {
                     maxIndex = Math.Max(p.Index, maxIndex);
-                    parameters.Add(p.Index, p.ToString());
+                    parameters.Add(p.Index, p.ToColorizedString());
                 }
             foreach (var p in _parametersSpecifications.Values)
                 if (p.Index == -1)

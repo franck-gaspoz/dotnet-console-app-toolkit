@@ -94,7 +94,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
                             pspec = new CommandParameterSpecification(
                                 parameter.Name,
                                 paramAttr.Description,
-                                parameter.IsOptional,
+                                paramAttr.IsOptional,
                                 paramAttr.Index,
                                 paramAttr.Name ?? parameter.Name,
                                 null,

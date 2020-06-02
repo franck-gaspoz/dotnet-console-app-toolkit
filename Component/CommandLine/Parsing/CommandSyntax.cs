@@ -59,9 +59,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                     parseErrors.Add(parseError);
                 } else
                 {
+                    var mparam = parameterSyntax.GetMatchingParameter(parameterSyntax.CommandParameterSpecification.DefaultValue);
+                    mparam.SetValue(true);
                     matchingParameters.Add(
                         parameterSyntax.CommandParameterSpecification.ParameterName,
-                        null
+                        mparam
                         );
                 }
 
@@ -114,6 +116,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             {
                 var (prsError,parameterSyntax) = _parameterSyntaxes[i].MatchSegment(syntaxMatchingRule, matchingParameters,segment, position, index, rightSegments, firstIndex);
                 if (prsError == null) return (null, parameterSyntax);
+                parseError = prsError;
             }
             return (parseError,null);
         }

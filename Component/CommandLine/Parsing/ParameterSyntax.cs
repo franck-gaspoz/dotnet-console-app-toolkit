@@ -1,6 +1,7 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using System;
 using System.Data;
+using System.Linq;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 {
@@ -30,21 +31,25 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             int firstIndex)
         {
             var csp = CommandParameterSpecification;
-            var syntax = $"{ParameterSyntax.OptionPrefix}{csp.OptionName}";
             if (matchingParameters.Contains(csp.ParameterName))
-                return (new ParseError($"parameter already defined: {syntax}", position, index, CommandSpecification),this);
+                return (new ParseError($"parameter already defined: {csp}", position, index, CommandSpecification),this);
 
             if (csp.OptionName != null)
+            {
+                var optsyntax = $"{ParameterSyntax.OptionPrefix}{csp.OptionName}";
                 // option
-                return syntax.Equals(segment, syntaxMatchingRule) ?
-                    (null,this)
-                    : (new ParseError($"parameter mismatch. attempted: {syntax}, found: {segment}", position, index, CommandSpecification),this);
+                return optsyntax.Equals(segment, syntaxMatchingRule) ?
+                        (null, this)
+                        : (new ParseError($"parameter mismatch. attempted: {optsyntax}, found: {segment}", position, index, CommandSpecification), this);
+            }
             else
             {
                 if (csp.Name != null)
                 {
                     // named parameter
-                    //return (csp.Index==position )
+                    return (csp.Index == position && csp.Name.Equals(segment, syntaxMatchingRule) && rightSegments.Length>0 )?
+                        (null,this)
+                        : (new ParseError($"", position, index, CommandSpecification), this);
                 } else
                 {
                     // fixed parameter (no name)

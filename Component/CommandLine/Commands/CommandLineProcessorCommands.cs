@@ -29,20 +29,24 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             if (maxcnamelength == -1) maxcnamelength = com.Name.Length;
             var col = "".PadRight(maxcnamelength, ' ');
             Println($"{com.Name.PadRight(maxcnamelength, ' ')}{com.Description}");
-            if (!shortView)
+            
+            if (com.ParametersCount > 0)
             {
-                if (com.ParametersCount > 0)
+                Println($"{col}{Cyan}syntax: {White}{com.ToColorizedString()}");
+                if (!shortView)
                 {
-                    Println($"{col}{Cyan}syntax: {White}{com.ToColorizedString()}");
                     var mpl = com.ParametersSpecifications.Values.Select(x => x.ToString().Length).Max() + TabLength;
                     Println();
                     foreach (var kvp in com.ParametersSpecifications)
                         Println($"{col}{Tab}{kvp.Value.ToString().PadRight(mpl, ' ')}{kvp.Value.Description}");
                 }
+            }
+            if (!shortView)
+            {
                 Println();
                 Println($"{col}{Cyan}defined in: {Gray}{com.MethodInfo.DeclaringType.FullName}");
-                Println();
             }
+            Println();
 
 #pragma warning restore IDE0071WithoutSuggestion // Simplifier l’interpolation
 #pragma warning restore IDE0071 // Simplifier l’interpolation

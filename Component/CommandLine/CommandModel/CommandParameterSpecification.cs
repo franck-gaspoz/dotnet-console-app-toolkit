@@ -45,7 +45,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
         {
             var r = $"{Name}";
             if (OptionName != null) r = $"{ParameterSyntax.OptionPrefix}{OptionName}";
-            if (IsOptional) r = $"({r})?";
+            if (IsOptional) r = $"[{r}]";
             if (HasDefaultValue) r += $"{{={($"{DefaultValue}" ?? $"null")}}}";
             return r;
         }
@@ -54,9 +54,9 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
         {
             var f = White;
             var r = $"{Yellow}{Name}{f}";
-            if (OptionName != null) r = $"{Cyan}{ParameterSyntax.OptionPrefix}{Green}{OptionName}{f}";
-            if (IsOptional) r = $"{Cyan}({r}{Cyan})?{f}";
-            if (HasDefaultValue) r += $"{Cyan}{{={($"{Darkyellow}{DefaultValue}{f}" ?? $"{Darkyellow}null{f}}}")}";
+            if (OptionName != null) r = $"{Darkyellow}{ParameterSyntax.OptionPrefix}{Yellow}{OptionName}{f}";
+            if (IsOptional) r = $"{Cyan}[{r}{Cyan}]{f}";
+            if (HasDefaultValue) r += $"{Cyan}{{={($"{Darkyellow}{DefaultValue}{Cyan}}}{f}" ?? $"{Darkyellow}null{Cyan}}}{f}")}";
             return r;
         }
     }
