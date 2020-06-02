@@ -29,14 +29,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
             MethodOwner = methodOwner;
             MethodInfo = methodInfo;
             if (commandParameterSpecifications != null)
-                commandParameterSpecifications.ToList().ForEach(x => _parametersSpecifications.Add(x.Name,x));
-        }
-
-        public object Invoke()
-        {
-            var parameters = new object[] { };
-            var r = MethodInfo.Invoke(MethodOwner, parameters);
-            return r;
+                commandParameterSpecifications.ToList().ForEach(x => _parametersSpecifications.Add(x.ActualName,x));
         }
 
         public int ParametersCount => _parametersSpecifications.Count;

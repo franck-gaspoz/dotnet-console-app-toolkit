@@ -15,6 +15,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
         public readonly object DefaultValue = null;
         public readonly bool HasDefaultValue = false;
 
+        public string ActualName => Name ?? OptionName;
+
         public CommandParameterSpecification(
             string parameterName,
             string description, 
@@ -42,7 +44,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
             var r = $"{Name}";
             if (OptionName != null) r = $"-{OptionName}";
             if (IsOptional) r = $"({r})?";
-            if (HasDefaultValue) r += $"={($"{DefaultValue}" ?? $"null")}";
+            if (HasDefaultValue) r += $"{{={($"{DefaultValue}" ?? $"null")}}}";
             return r;
         }
 
@@ -52,7 +54,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
             var r = $"{Yellow}{Name}{f}";
             if (OptionName != null) r = $"{Cyan}-{Green}{OptionName}{f}";
             if (IsOptional) r = $"{Cyan}({r}{Cyan})?{f}";
-            if (HasDefaultValue) r += $"{Cyan}={($"{Darkyellow}{DefaultValue}{f}" ?? $"{Darkyellow}null{f}")}";
+            if (HasDefaultValue) r += $"{Cyan}{{={($"{Darkyellow}{DefaultValue}{f}" ?? $"{Darkyellow}null{f}}}")}";
             return r;
         }
     }

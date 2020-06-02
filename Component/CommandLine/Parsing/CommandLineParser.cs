@@ -1,6 +1,7 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using static DotNetConsoleSdk.DotNetConsole;
 
@@ -54,35 +55,41 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 
         public static ParseResult Parse(SyntaxAnalyser syntaxAnalyzer, string expr)
         {
-            if (expr == null) return new ParseResult(ParseResultType.Empty,null,null);
+            if (expr == null) return new ParseResult(ParseResultType.Empty,null);
+            
             expr = expr.Trim();
-            if (string.IsNullOrEmpty(expr)) return new ParseResult(ParseResultType.Empty,null,null);
+            if (string.IsNullOrEmpty(expr)) return new ParseResult(ParseResultType.Empty,null);
             
             var splits = SplitExpr(expr);
             var segments = splits.Skip(1).ToArray();
             var token = splits.First();
             var ctokens = syntaxAnalyzer.FindSyntaxesFromToken(token, false, SyntaxMatchingRule);
 
-            if (ctokens.Count == 0) return new ParseResult(ParseResultType.NotIdentified, null,null);
+            if (ctokens.Count == 0) return new ParseResult(ParseResultType.NotIdentified,null);
 
             if (ctokens.Count > 0)
             {
                 int nbValid = 0;
-                var totalParseErrors = new List<ParseError>();
+                var syntaxParsingResults = new List<CommandSyntaxParsingResult>();
+                var validSyntaxParsingResults = new List<CommandSyntaxParsingResult>();
+
                 foreach ( var syntax in ctokens )
                 {
                     var (matchingParameters,parseErrors) = syntax.Match(segments,token.Length+1);
-                    if (parseErrors.Count == 0) 
+                    if (parseErrors.Count == 0)
+                    {
                         nbValid++;
+                        validSyntaxParsingResults.Add(new CommandSyntaxParsingResult(syntax, matchingParameters, parseErrors));
+                    }
                     else
-                        totalParseErrors.AddRange(parseErrors);
+                        syntaxParsingResults.Add(new CommandSyntaxParsingResult(syntax, matchingParameters, parseErrors));
                 }
-                if (nbValid == 0)
-                    return new ParseResult(ParseResultType.NotValid, ctokens.Select(x => x.CommandSpecification).ToList(), totalParseErrors);
-                if (nbValid > 1)
-                    return new ParseResult(ParseResultType.Ambiguous, ctokens.Select(x => x.CommandSpecification).ToList(), new List<ParseError>());
-                if (nbValid == 1)
-                    return new ParseResult(ParseResultType.Valid, new List<CommandSpecification> { ctokens.First().CommandSpecification }, totalParseErrors);
+
+                if (nbValid == 0) return new ParseResult(ParseResultType.NotValid,syntaxParsingResults);
+
+                if (nbValid > 1) return new ParseResult( ParseResultType.Ambiguous, syntaxParsingResults);
+
+                if (nbValid == 1) return new ParseResult( ParseResultType.Valid, validSyntaxParsingResults );
             }
             throw new InvalidOperationException();
         }

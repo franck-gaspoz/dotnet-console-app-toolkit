@@ -1,6 +1,7 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 {
@@ -88,6 +89,14 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                 if (parseError != null) return parseError;
             }
             return null;
+        }
+
+        public object Invoke(MatchingParameters matchingParameters)
+        {
+            var parameters = new object[] { };
+            var r = CommandSpecification.MethodInfo
+                .Invoke(CommandSpecification.MethodOwner, parameters);
+            return r;
         }
 
         public override string ToString()

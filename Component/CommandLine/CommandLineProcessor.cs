@@ -86,18 +86,38 @@ namespace DotNetConsoleSdk.Component.CommandLine
                     var paramspecs = new List<CommandParameterSpecification>();
                     foreach ( var parameter in method.GetParameters())
                     {
-                        var p = parameter.GetCustomAttribute<ParameterAttribute>() ?? throw new ArgumentException($"invalid parameter: class={type.FullName} method={method.Name} name={parameter.Name}");
-                        // TODO: validate command specification (eg. indexs validity)
-                        var pspec = new CommandParameterSpecification(
-                            parameter.Name,
-                            p.Description,
-                            parameter.IsOptional,
-                            p.Index,
-                            null,
-                            p.Name??parameter.Name,
-                            parameter.HasDefaultValue,
-                            (parameter.HasDefaultValue) ? parameter.DefaultValue : null,
-                            parameter);
+                        CommandParameterSpecification pspec = null;
+                        var paramAttr = parameter.GetCustomAttribute<ParameterAttribute>();
+                        if (paramAttr != null)
+                        {
+                            // TODO: validate command specification (eg. indexs validity)
+                            pspec = new CommandParameterSpecification(
+                                parameter.Name,
+                                paramAttr.Description,
+                                parameter.IsOptional,
+                                paramAttr.Index,
+                                paramAttr.Name ?? parameter.Name,
+                                null,
+                                parameter.HasDefaultValue,
+                                (parameter.HasDefaultValue) ? parameter.DefaultValue : null,
+                                parameter);
+                        }
+                        var optAttr = parameter.GetCustomAttribute<OptionAttribute>();
+                        if (optAttr!=null)
+                        {
+                            pspec = new CommandParameterSpecification(
+                                parameter.Name,
+                                optAttr.Description,
+                                optAttr.IsOptional,
+                                -1,
+                                null,
+                                optAttr.OptionName ?? parameter.Name,
+                                parameter.HasDefaultValue,
+                                (parameter.HasDefaultValue) ? parameter.DefaultValue : null,
+                                parameter);
+                        }
+                        if (pspec==null)
+                            throw new ArgumentException($"invalid parameter: class={type.FullName} method={method.Name} name={parameter.Name}");
                         paramspecs.Add(pspec);
                     }
                     var cmdspec = new CommandSpecification(
@@ -136,8 +156,8 @@ namespace DotNetConsoleSdk.Component.CommandLine
             switch (parseResult.ParseResultType)
             {
                 case ParseResultType.Valid:
-                    // TODO: need parameters values (pname->value) (from parser)
-                    parseResult.CommandSpecifications.First().Invoke();
+                    var syntaxParsingResult = parseResult.SyntaxParsingResults.First();
+                    syntaxParsingResult.CommandSyntax.Invoke(syntaxParsingResult.MatchingParameters);
                     break;
                 case ParseResultType.Empty:
                     r = new ExpressionEvaluationResult(null, parseResult.ParseResultType, null, ReturnCodeOK, null);

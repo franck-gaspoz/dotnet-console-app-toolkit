@@ -96,7 +96,7 @@ namespace DotNetConsoleSdk.Component.Shell
                 {
                     LineBreak();
                     
-                    var returnCode = _evalCommandDelegate(s);
+                    var expressionEvaluationResult = _evalCommandDelegate(s);
 
                     if (!WorkArea.rect.IsEmpty && (WorkArea.rect.Y != CursorTop || WorkArea.rect.X != CursorLeft))
                         LineBreak();

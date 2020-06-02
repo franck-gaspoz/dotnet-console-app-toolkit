@@ -1,19 +1,19 @@
-﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 {
     public class ParseResult
     {
         public readonly ParseResultType ParseResultType;
-        public readonly List<CommandSpecification> CommandSpecifications;
-        public readonly List<ParseError> ParseErrors;
+        public readonly List<CommandSyntaxParsingResult> SyntaxParsingResults;
 
-        public ParseResult(ParseResultType parseResultType, List<CommandSpecification> commandSpecifications, List<ParseError> parseErrors)
+        public ParseResult(
+            ParseResultType parseResultType, 
+            List<CommandSyntaxParsingResult> syntaxParsingResults
+            )
         {
             ParseResultType = parseResultType;
-            CommandSpecifications = commandSpecifications;
-            ParseErrors = parseErrors;
+            SyntaxParsingResults = syntaxParsingResults;
         }
     }
 }
