@@ -59,8 +59,14 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                     parseErrors.Add(parseError);
                 } else
                 {
-                    var mparam = parameterSyntax.GetMatchingParameter(parameterSyntax.CommandParameterSpecification.DefaultValue);
-                    mparam.SetValue(true);
+                    var cps = parameterSyntax.CommandParameterSpecification;
+                    var mparam = parameterSyntax.GetMatchingParameter(cps.DefaultValue);
+                    if (cps.IsOption && !cps.HasValue )
+                        mparam.SetValue(true);
+                    else
+                    {
+                        mparam.SetValue(segments[i]);  // string !
+                    }
                     matchingParameters.Add(
                         parameterSyntax.CommandParameterSpecification.ParameterName,
                         mparam

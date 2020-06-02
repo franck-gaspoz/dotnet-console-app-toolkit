@@ -98,6 +98,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
                                 paramAttr.IsOptional,
                                 paramAttr.Index,
                                 null,
+                                true,
                                 parameter.HasDefaultValue,
                                 (parameter.HasDefaultValue) ? parameter.DefaultValue : null,
                                 parameter);
@@ -111,6 +112,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
                                 optAttr.IsOptional,
                                 -1,
                                 optAttr.OptionName ?? parameter.Name,
+                                false,
                                 parameter.HasDefaultValue,
                                 (parameter.HasDefaultValue) ? parameter.DefaultValue : null,
                                 parameter);

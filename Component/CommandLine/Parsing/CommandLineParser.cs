@@ -87,7 +87,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 
                 if (nbValid == 0) return new ParseResult(ParseResultType.NotValid,syntaxParsingResults);
 
-                if (nbValid > 1) return new ParseResult( ParseResultType.Ambiguous, syntaxParsingResults);
+                if (nbValid > 1)
+                {
+                    return new ParseResult(ParseResultType.Ambiguous, syntaxParsingResults);
+                }
 
                 if (nbValid == 1) return new ParseResult( ParseResultType.Valid, validSyntaxParsingResults );
             }

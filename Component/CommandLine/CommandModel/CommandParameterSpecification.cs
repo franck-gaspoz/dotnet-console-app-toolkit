@@ -16,8 +16,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
         //public readonly string Name = null;
         public readonly object DefaultValue = null;
         public readonly bool HasDefaultValue = false;
+        public readonly bool HasValue = true;
 
         public string ActualName => OptionName ?? ParameterName;
+        public bool IsOption => OptionName != null;
 
         public CommandParameterSpecification(
             string parameterName,
@@ -25,6 +27,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
             bool isOptional, 
             int index, 
             string optionName,
+            bool hasValue,
             bool hasDefaultValue,
             object defaultValue,
             ParameterInfo parameterInfo)
@@ -35,6 +38,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
             IsOptional = isOptional;
             Index = index;
             OptionName = optionName;
+            HasValue = hasValue;
             HasDefaultValue = hasDefaultValue;
             DefaultValue = defaultValue;
         }

@@ -1,5 +1,7 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using static DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands
@@ -50,6 +52,16 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
 
 #pragma warning restore IDE0071WithoutSuggestion // Simplifier l’interpolation
 #pragma warning restore IDE0071 // Simplifier l’interpolation
+        }
+    
+        [Command("test find command")]
+        public List<string> Find(
+            [Parameter("search path")]string path,
+            [Option("-file","searched filename pattern",true)]string filename,
+            [Option("-contains","files that contains the string",true)]string contains
+            )
+        {
+            return null;
         }
     }
 }

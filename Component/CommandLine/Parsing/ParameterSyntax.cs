@@ -46,7 +46,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             {
                 var psyntax = $"{csp.ParameterInfo.ParameterType.Name}";
                 // fixed parameter
-                return (csp.Index == position && rightSegments.Length>0 )?
+                return (csp.Index == position )?
                     (null,this)
                     : (new ParseError($"parameter mismatch. attempted: type {psyntax}, found: '{segment}'", position, index, CommandSpecification), this);
             }
