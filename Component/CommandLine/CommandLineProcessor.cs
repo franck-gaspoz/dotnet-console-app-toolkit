@@ -1,4 +1,6 @@
-﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
+﻿#define enable_test_commands
+
+using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using DotNetConsoleSdk.Component.CommandLine.Commands;
 using static DotNetConsoleSdk.DotNetConsole;
 using static DotNetConsoleSdk.Component.CommandLine.Parsing.CommandLineParser;
@@ -66,6 +68,9 @@ namespace DotNetConsoleSdk.Component.CommandLine
                 _isInitialized = true;
                 RegisterCommandsClass<CommandLineProcessorCommands>();
                 RegisterCommandsClass<ConsoleCommands>();
+#if enable_test_commands
+                RegisterCommandsClass<TestCommands>();
+#endif
             }
         }
 

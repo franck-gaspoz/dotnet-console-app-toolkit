@@ -55,7 +55,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             if (!shortView)
             {
                 Println();
-                Println($"{col}{Gray}declaring class: {Darkgray}{com.MethodInfo.DeclaringType.FullName}");
+                Println($"{col}{Gray}declaring type: {Darkgray}{com.MethodInfo.DeclaringType.FullName}");
             }
             Println();
 
@@ -63,20 +63,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
 #pragma warning restore IDE0071 // Simplifier l’interpolation
         }
 
-        [Command("exit current process")]
+        [Command("exit the command line processor process")]
         public void Exit()
         {
             cons.Exit();
         }
-    
-        [Command("test find command")]
-        public List<string> Find(
-            [Parameter("search path")] string path,
-            [Option("file","searched filename pattern",true,true)] string filename,
-            [Option("contains","files that contains the string",true,true)] string contains
-            )
-        {
-            return null;
-        }
+   
     }
 }

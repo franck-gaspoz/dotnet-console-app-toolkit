@@ -1,4 +1,6 @@
-﻿using DotNetConsoleSdk.Component.CommandLine.Parsing;
+﻿#define debug_syntax
+
+using DotNetConsoleSdk.Component.CommandLine.Parsing;
 using System;
 using System.Reflection;
 using static DotNetConsoleSdk.DotNetConsole;
@@ -44,6 +46,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
 
         public string ParameterValueTypeName => ParameterInfo.ParameterType.Name;
 
+        public int SegmentsCount => IsOption && HasValue ? 2 : 1;
+
         public override string ToString() => Dump();
 
         public string Dump(bool grammarSymbolsVisible = true)
@@ -70,6 +74,9 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
             }
             if (IsOptional && grammarSymbolsVisible) r = $"{Cyan}[{r}{Cyan}]{f}";
             if (HasDefaultValue && grammarSymbolsVisible) r += $"{Cyan}{{={($"{Darkyellow}{DefaultValue}{Cyan}}}{f}" ?? $"{Darkyellow}null{Cyan}}}{f}")}";
+#if debug_syntax
+            r += $" ({SegmentsCount})";
+#endif
             return r;
         }
     }

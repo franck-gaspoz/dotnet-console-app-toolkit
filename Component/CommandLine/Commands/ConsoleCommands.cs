@@ -6,16 +6,15 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
     {
         [Command("write any given expression to the output stream")]
         public void Print(
-            [Parameter(0,"expression that will be write to output",true)]string expr)
-        {
-            DotNetConsole.Print(expr);
-        }
+            [Parameter("expression that will be write to output",true)] string expr = ""
+            ) => DotNetConsole.Print(expr);
 
         [Command("write any given expression to the output stream followed by a line break")]
         public void Println(
-            [Parameter(0, "expression that will be write to output", true)]string expr)
-        {
-            DotNetConsole.Println(expr);
-        }
+            [Parameter("expression that will be write to output", true)] string expr = ""
+            ) => DotNetConsole.Println(expr);
+
+        [Command("clear console screen")]
+        public void Cls() => DotNetConsole.Clear();
     }
 }
