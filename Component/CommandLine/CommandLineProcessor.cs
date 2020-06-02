@@ -112,7 +112,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
                                 optAttr.IsOptional,
                                 -1,
                                 optAttr.OptionName ?? parameter.Name,
-                                false,
+                                optAttr.HasValue,
                                 parameter.HasDefaultValue,
                                 (parameter.HasDefaultValue) ? parameter.DefaultValue : null,
                                 parameter);

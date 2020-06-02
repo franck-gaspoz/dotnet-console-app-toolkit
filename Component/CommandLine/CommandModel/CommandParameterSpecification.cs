@@ -42,10 +42,16 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
             DefaultValue = defaultValue;
         }
 
+        public string ParameterValueTypeName => ParameterInfo.ParameterType.Name;
+
         public override string ToString()
         {
             var r = $"{ParameterName}";
-            if (OptionName != null) r = $"{ParameterSyntax.OptionPrefix}{OptionName}";
+            if (IsOption)
+            {
+                var optVal = (HasValue) ? $" {ParameterValueTypeName}" : "";
+                r = $"{ParameterSyntax.OptionPrefix}{OptionName}{optVal}";
+            }
             if (IsOptional) r = $"[{r}]";
             if (HasDefaultValue) r += $"{{={($"{DefaultValue}" ?? $"null")}}}";
             return r;
@@ -55,7 +61,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
         {
             var f = White;
             var r = $"{Yellow}{ParameterName}{f}";
-            if (OptionName != null) r = $"{Darkyellow}{ParameterSyntax.OptionPrefix}{Yellow}{OptionName}{f}";
+            if (IsOption)
+            {
+                var optVal = (HasValue) ? $" {Darkyellow}{ParameterValueTypeName}" : "";
+                r = $"{Darkyellow}{ParameterSyntax.OptionPrefix}{Yellow}{OptionName}{optVal}{f}";
+            }
             if (IsOptional) r = $"{Cyan}[{r}{Cyan}]{f}";
             if (HasDefaultValue) r += $"{Cyan}{{={($"{Darkyellow}{DefaultValue}{Cyan}}}{f}" ?? $"{Darkyellow}null{Cyan}}}{f}")}";
             return r;
