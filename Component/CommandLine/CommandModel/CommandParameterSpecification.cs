@@ -13,18 +13,17 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
         public readonly int Index = -1;
         public readonly string Description;
         public readonly string OptionName = null;
-        public readonly string Name = null;
+        //public readonly string Name = null;
         public readonly object DefaultValue = null;
         public readonly bool HasDefaultValue = false;
 
-        public string ActualName => Name ?? OptionName;
+        public string ActualName => OptionName ?? ParameterName;
 
         public CommandParameterSpecification(
             string parameterName,
             string description, 
             bool isOptional, 
             int index, 
-            string name,
             string optionName,
             bool hasDefaultValue,
             object defaultValue,
@@ -35,7 +34,6 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
             Description = description;
             IsOptional = isOptional;
             Index = index;
-            Name = name;
             OptionName = optionName;
             HasDefaultValue = hasDefaultValue;
             DefaultValue = defaultValue;
@@ -43,7 +41,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
 
         public override string ToString()
         {
-            var r = $"{Name}";
+            var r = $"{ParameterName}";
             if (OptionName != null) r = $"{ParameterSyntax.OptionPrefix}{OptionName}";
             if (IsOptional) r = $"[{r}]";
             if (HasDefaultValue) r += $"{{={($"{DefaultValue}" ?? $"null")}}}";
@@ -53,7 +51,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
         public string ToColorizedString()
         {
             var f = White;
-            var r = $"{Yellow}{Name}{f}";
+            var r = $"{Yellow}{ParameterName}{f}";
             if (OptionName != null) r = $"{Darkyellow}{ParameterSyntax.OptionPrefix}{Yellow}{OptionName}{f}";
             if (IsOptional) r = $"{Cyan}[{r}{Cyan}]{f}";
             if (HasDefaultValue) r += $"{Cyan}{{={($"{Darkyellow}{DefaultValue}{Cyan}}}{f}" ?? $"{Darkyellow}null{Cyan}}}{f}")}";

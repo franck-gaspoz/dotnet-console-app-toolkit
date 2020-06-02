@@ -40,21 +40,15 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                 // option
                 return optsyntax.Equals(segment, syntaxMatchingRule) ?
                         (null, this)
-                        : (new ParseError($"parameter mismatch. attempted: {optsyntax}, found: {segment}", position, index, CommandSpecification), this);
+                        : (new ParseError($"parameter mismatch. attempted: {optsyntax}, found: '{segment}'", position, index, CommandSpecification), this);
             }
             else
             {
-                if (csp.Name != null)
-                {
-                    // named parameter
-                    return (csp.Index == position && csp.Name.Equals(segment, syntaxMatchingRule) && rightSegments.Length>0 )?
-                        (null,this)
-                        : (new ParseError($"", position, index, CommandSpecification), this);
-                } else
-                {
-                    // fixed parameter (no name)
-
-                }
+                var psyntax = $"{csp.ParameterInfo.ParameterType.Name}";
+                // fixed parameter
+                return (csp.Index == position && rightSegments.Length>0 )?
+                    (null,this)
+                    : (new ParseError($"parameter mismatch. attempted: type {psyntax}, found: '{segment}'", position, index, CommandSpecification), this);
             }
             throw new ConstraintException();
         }

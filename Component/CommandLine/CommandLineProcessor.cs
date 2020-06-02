@@ -1,5 +1,6 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using DotNetConsoleSdk.Component.CommandLine.Commands;
+using static DotNetConsoleSdk.DotNetConsole;
 using static DotNetConsoleSdk.Component.CommandLine.Parsing.CommandLineParser;
 using System;
 using System.Collections.Generic;
@@ -96,7 +97,6 @@ namespace DotNetConsoleSdk.Component.CommandLine
                                 paramAttr.Description,
                                 paramAttr.IsOptional,
                                 paramAttr.Index,
-                                paramAttr.Name ?? parameter.Name,
                                 null,
                                 parameter.HasDefaultValue,
                                 (parameter.HasDefaultValue) ? parameter.DefaultValue : null,
@@ -110,7 +110,6 @@ namespace DotNetConsoleSdk.Component.CommandLine
                                 optAttr.Description,
                                 optAttr.IsOptional,
                                 -1,
-                                null,
                                 optAttr.OptionName ?? parameter.Name,
                                 parameter.HasDefaultValue,
                                 (parameter.HasDefaultValue) ? parameter.DefaultValue : null,
@@ -159,17 +158,26 @@ namespace DotNetConsoleSdk.Component.CommandLine
                     var syntaxParsingResult = parseResult.SyntaxParsingResults.First();
                     syntaxParsingResult.CommandSyntax.Invoke(syntaxParsingResult.MatchingParameters);
                     break;
+
                 case ParseResultType.Empty:
                     r = new ExpressionEvaluationResult(null, parseResult.ParseResultType, null, ReturnCodeOK, null);
                     break;
+
                 case ParseResultType.NotValid:
                     var syntaxError = "";
+
+                    foreach (var prs in parseResult.SyntaxParsingResults)
+                        foreach (var pr in prs.ParseErrors)
+                            Println($"{Red}{pr}. for syntax: {prs.CommandSyntax}");
+
                     r = new ExpressionEvaluationResult(syntaxError, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);
                     break;
+
                 case ParseResultType.Ambiguous:
                     var ambiguousSyntaxError = "";
                     r = new ExpressionEvaluationResult(ambiguousSyntaxError, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);
                     break;
+
                 case ParseResultType.NotIdentified:
                     r = new ExpressionEvaluationResult(null, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);
                     break;
