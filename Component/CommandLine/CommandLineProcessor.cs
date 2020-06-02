@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace DotNetConsoleSdk.Component.CommandLine
 {
-    public static class CommandEngine
+    public static class CommandLineProcessor
     {
         public static int ReturnCodeOK = 0;
         public static int ReturnCodeError = 1;
@@ -63,7 +63,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
             if (!_isInitialized)
             {
                 _isInitialized = true;
-                RegisterCommandsClass<CommandEngineCommands>();
+                RegisterCommandsClass<CommandLineProcessorCommands>();
                 RegisterCommandsClass<StdoutCommands>();
             }
         }
@@ -89,14 +89,15 @@ namespace DotNetConsoleSdk.Component.CommandLine
                         var p = parameter.GetCustomAttribute<ParameterAttribute>() ?? throw new ArgumentException($"invalid parameter: class={type.FullName} method={method.Name} name={parameter.Name}");
                         // TODO: validate command specification (eg. indexs validity)
                         var pspec = new CommandParameterSpecification(
-                            parameter.Name, 
-                            p.Description, 
-                            parameter.IsOptional, 
-                            p.Index, 
-                            p.OptionName,
+                            parameter.Name,
+                            p.Description,
+                            parameter.IsOptional,
+                            p.Index,
+                            null,
+                            p.Name??parameter.Name,
                             parameter.HasDefaultValue,
-                            (parameter.HasDefaultValue)? parameter.DefaultValue:null,
-                            parameter); ;
+                            (parameter.HasDefaultValue) ? parameter.DefaultValue : null,
+                            parameter);
                         paramspecs.Add(pspec);
                     }
                     var cmdspec = new CommandSpecification(
