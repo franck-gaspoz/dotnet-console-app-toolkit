@@ -13,7 +13,6 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
         public readonly int Index = -1;
         public readonly string Description;
         public readonly string OptionName = null;
-        //public readonly string Name = null;
         public readonly object DefaultValue = null;
         public readonly bool HasDefaultValue = false;
         public readonly bool HasValue = true;

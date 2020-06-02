@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 {
@@ -19,7 +20,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                 _parameterSyntaxes.Add(new ParameterSyntax(commandSpecification,kvp.Value));
         }
 
-        public (MatchingParameters matchingParameters,List<ParseError> parseErrors) Match(StringComparison syntaxMatchingRule,string[] segments,int firstIndex=0)
+        public (MatchingParameters matchingParameters,List<ParseError> parseErrors) Match(
+            StringComparison syntaxMatchingRule,
+            string[] segments,
+            int firstIndex=0)
         {
             var matchingParameters = new MatchingParameters();
             
@@ -65,7 +69,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                         mparam.SetValue(true);
                     else
                     {
-                        mparam.SetValue(segments[i]);  // string !
+                        if (parameterSyntax.TryGetValue(segments[i], out var cvalue))
+                            mparam.SetValue(cvalue);
+                        else
+                            parseErrors.Add(new ParseError($"value '{segments[i]}' doesn't match parameter type: '{cps.ParameterInfo.ParameterType.Name}' ",i,index,CommandSpecification,cps));
                     }
                     matchingParameters.Add(
                         parameterSyntax.CommandParameterSpecification.ParameterName,

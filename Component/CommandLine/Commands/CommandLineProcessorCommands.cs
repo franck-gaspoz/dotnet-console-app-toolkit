@@ -20,7 +20,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
         [Command("print help about a command")]
         public void Help([Parameter("name of the command")]string commandName)
         {
-
+            var cmd = CommandLineProcessor.AllCommands.Where(x => x.Name.Equals(commandName, DotNetConsoleSdk.Component.CommandLine.Parsing.CommandLineParser.SyntaxMatchingRule)).FirstOrDefault();
+            if (cmd != null)
+                PrintCommandHelp(cmd, false, -1);
+            else
+                Println($"{Red}Unknown command '{commandName}'");
         }
 
         static void PrintCommandHelp(CommandSpecification com,bool shortView=false,int maxcnamelength=-1)
@@ -28,7 +32,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
 #pragma warning disable IDE0071 // Simplifier l’interpolation
 #pragma warning disable IDE0071WithoutSuggestion // Simplifier l’interpolation
 
-            if (maxcnamelength == -1) maxcnamelength = com.Name.Length;
+            if (maxcnamelength == -1) maxcnamelength = com.Name.Length + TabLength;
             var col = "".PadRight(maxcnamelength, ' ');
             Println($"{com.Name.PadRight(maxcnamelength, ' ')}{com.Description}");
             
