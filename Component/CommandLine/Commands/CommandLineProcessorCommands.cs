@@ -1,4 +1,5 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
+using DotNetConsoleSdk.Component.CommandLine.Parsing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -17,22 +18,25 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             var coms = CommandLineProcessor.AllCommands;
             var maxcnamelength = coms.Select(x => x.Name.Length).Max()+TabLength;
             foreach (var com in coms)
-                PrintCommandHelp(com, shortView, maxcnamelength);
+                PrintCommandHelp(com, shortView, true, maxcnamelength);
         }
 
-        [Command("print help about a command")]
+        [Command("print help about commands or a specific command")]
         public void Help(
-            [Parameter("name of the command")] string commandName
+            [Parameter("prints help about command having this name",true)] string commandName,
+            [Option("short", "set short view", true)] bool shortView = false,
+            [Option("v","set verbose view",true)] bool verbose = false
             )
         {
-            var cmd = CommandLineProcessor.AllCommands.Where(x => x.Name.Equals(commandName, DotNetConsoleSdk.Component.CommandLine.Parsing.CommandLineParser.SyntaxMatchingRule)).FirstOrDefault();
-            if (cmd != null)
-                PrintCommandHelp(cmd, false, -1);
+            var cmds = CommandLineProcessor.AllCommands.Where(x => x.Name.Equals(commandName, CommandLineParser.SyntaxMatchingRule));
+            if (cmds.Count()>0)
+                foreach (var cmd in cmds )
+                    PrintCommandHelp(cmd, shortView, verbose, -1);
             else
-                Println($"{Red}Unknown command '{commandName}'");
+                Println($"{Red}Command not found: '{commandName}'");
         }
 
-        static void PrintCommandHelp(CommandSpecification com,bool shortView=false,int maxcnamelength=-1)
+        static void PrintCommandHelp(CommandSpecification com,bool shortView=false,bool verbose=false,int maxcnamelength=-1)
         {
 #pragma warning disable IDE0071 // Simplifier l’interpolation
 #pragma warning disable IDE0071WithoutSuggestion // Simplifier l’interpolation
@@ -44,7 +48,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             if (com.ParametersCount > 0)
             {
                 Println($"{col}{Cyan}syntax: {White}{com.ToColorizedString()}");
-                if (!shortView)
+                if (!shortView || verbose)
                 {
                     var mpl = com.ParametersSpecifications.Values.Select(x => x.Dump(false).Length).Max() + TabLength;
                     Println();
@@ -52,7 +56,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
                         Println($"{col}{Tab}{p.ToColorizedString(false)}{"".PadRight(mpl-p.Dump(false).Length, ' ')}{p.Description}");
                 }
             }
-            if (!shortView)
+            if (verbose)
             {
                 Println();
                 Println($"{col}{Gray}declaring type: {Darkgray}{com.MethodInfo.DeclaringType.FullName}");

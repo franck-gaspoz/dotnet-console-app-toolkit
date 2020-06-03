@@ -1,9 +1,10 @@
-﻿#define debug_syntax
+﻿//#define debug_syntax
 
 using DotNetConsoleSdk.Component.CommandLine.Parsing;
 using System;
 using System.Reflection;
 using static DotNetConsoleSdk.DotNetConsole;
+using static DotNetConsoleSdk.Lib.Str;
 
 namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
 {
@@ -59,7 +60,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
                 r = $"{ParameterSyntax.OptionPrefix}{OptionName}{optVal}";
             }
             if (IsOptional && grammarSymbolsVisible) r = $"[{r}]";
-            if (HasDefaultValue && grammarSymbolsVisible) r += $"{{={($"{DefaultValue}" ?? $"null")}}}";
+            if (HasDefaultValue && grammarSymbolsVisible) r += $"{{={($"{DumpAsText(DefaultValue)}")}}}";
             return r;
         }
 
@@ -73,7 +74,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
                 r = $"{Darkyellow}{ParameterSyntax.OptionPrefix}{Yellow}{OptionName}{optVal}{f}";
             }
             if (IsOptional && grammarSymbolsVisible) r = $"{Cyan}[{r}{Cyan}]{f}";
-            if (HasDefaultValue && grammarSymbolsVisible) r += $"{Cyan}{{={($"{Darkyellow}{DefaultValue}{Cyan}}}{f}" ?? $"{Darkyellow}null{Cyan}}}{f}")}";
+            if (HasDefaultValue && grammarSymbolsVisible) r += $"{Cyan}{{={($"{Darkyellow}{DumpAsText(DefaultValue)}{Cyan}}}{f}")}";
 #if debug_syntax
             r += $" ({SegmentsCount})";
 #endif

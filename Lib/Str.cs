@@ -12,8 +12,8 @@ namespace DotNetConsoleSdk.Lib
 
         public static string DumpAsText(object o)
         {
-            if (o == null)
-                return DumpNullStringAsText ?? "";
+            if (o == null) return DumpNullStringAsText ?? null;
+            if (o is string s) return $"\"{s}\"";
             return o.ToString();
         }
 
