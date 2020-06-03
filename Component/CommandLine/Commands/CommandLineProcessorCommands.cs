@@ -10,25 +10,16 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
 {
     public class CommandLineProcessorCommands
     {
-        [Command("print help about commands")]
-        public void Help(
-            [Option("short","set short view",true)] bool shortView=false
-            )
-        {
-            var coms = CommandLineProcessor.AllCommands;
-            var maxcnamelength = coms.Select(x => x.Name.Length).Max()+TabLength;
-            foreach (var com in coms)
-                PrintCommandHelp(com, shortView, true, maxcnamelength);
-        }
-
         [Command("print help about commands or a specific command")]
         public void Help(
-            [Parameter("prints help about command having this name",true)] string commandName,
+            [Parameter("prints help about command having this name",true)] string commandName = "",
             [Option("short", "set short view", true)] bool shortView = false,
             [Option("v","set verbose view",true)] bool verbose = false
             )
         {
-            var cmds = CommandLineProcessor.AllCommands.Where(x => x.Name.Equals(commandName, CommandLineParser.SyntaxMatchingRule));
+            var cmds = CommandLineProcessor.AllCommands.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(commandName))
+                cmds = cmds.Where(x => x.Name.Equals(commandName, CommandLineParser.SyntaxMatchingRule));
             if (cmds.Count()>0)
                 foreach (var cmd in cmds )
                     PrintCommandHelp(cmd, shortView, verbose, -1);

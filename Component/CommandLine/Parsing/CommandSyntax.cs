@@ -101,7 +101,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
         }
 
         int MinAttemptedSegments => CommandSpecification.FixedParametersCount
-            + CommandSpecification.RequiredNamedParametersCount;
+            + CommandSpecification.RequiredOptionsCount;
 
         List<CommandParameterSpecification> AttemptedParameters(int position)
         {

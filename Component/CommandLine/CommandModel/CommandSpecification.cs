@@ -34,7 +34,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
 
         public int ParametersCount => _parametersSpecifications.Count;
 
-        public int MinimumParametersCount => _fixedParametersCount + _requiredNamedParametersCount;
+        public int MinimumParametersCount => _fixedRequiredParametersCount + _requiredOptionsCount;
 
         public int OptionsCount
         {
@@ -47,35 +47,51 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
             }
         }
 
-        int _fixedParametersCount = -1;
+        int _fixedRequiredParametersCount = -1;
         public int FixedParametersCount
         {
             get
             {
-                if (_fixedParametersCount == -1)
+                if (_fixedRequiredParametersCount == -1)
                 {
                     int n = 0;
                     foreach (var pspec in _parametersSpecifications.Values)
-                        if (pspec.Index > -1) n++;
-                    _fixedParametersCount = n;
+                        if (pspec.Index > -1 && !pspec.IsOptional) n++;
+                    _fixedRequiredParametersCount = n;
                 }
-                return _fixedParametersCount;
+                return _fixedRequiredParametersCount;
             }
         }
 
-        int _requiredNamedParametersCount = -1;
-        public int RequiredNamedParametersCount
+        int _fixedOptionalParametersCount = -1;
+        public int FixedOptionalParametersCount
         {
             get
             {
-                if (_requiredNamedParametersCount==-1)
+                if (_fixedOptionalParametersCount == -1)
                 {
                     int n = 0;
                     foreach (var pspec in _parametersSpecifications.Values)
-                        if (!pspec.IsOptional && pspec.Index == -1) n++;
-                    _requiredNamedParametersCount = n;
+                        if (pspec.Index > -1 && pspec.IsOptional) n++;
+                    _fixedOptionalParametersCount = n;
                 }
-                return _requiredNamedParametersCount;
+                return _fixedOptionalParametersCount;
+            }
+        }
+
+        int _requiredOptionsCount = -1;
+        public int RequiredOptionsCount
+        {
+            get
+            {
+                if (_requiredOptionsCount==-1)
+                {
+                    int n = 0;
+                    foreach (var pspec in _parametersSpecifications.Values)
+                        if (!pspec.IsOptional && pspec.IsOption) n++;
+                    _requiredOptionsCount = n;
+                }
+                return _requiredOptionsCount;
             }
         }
 
