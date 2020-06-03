@@ -2,7 +2,6 @@
 using System;
 using System.Data;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 {
@@ -49,16 +48,27 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             {
                 var optsyntax = $"{ParameterSyntax.OptionPrefix}{csp.OptionName}";
                 // option
-                return optsyntax.Equals(segment, syntaxMatchingRule) ?
-                        (null, this)
-                        : (new ParseError($"parameter mismatch. attempted: {optsyntax} at position {position}, found: '{segment}'", position, index, CommandSpecification), this);
+                if (optsyntax.Equals(segment, syntaxMatchingRule))
+                {
+                    if (csp.SegmentsCount == 2 && rightSegments.Length == 0)
+                        return (new ParseError($"missing value at position {position+1} for parameter {optsyntax}", position+1, index, CommandSpecification), this);
+                    else
+                        return (null, this);
+                }
+                else
+                    return (new ParseError($"parameter mismatch. attempted: {optsyntax} at position {position}, found: '{segment}'", position, index, CommandSpecification), this);
             }
             else
             {
                 var psyntax = $"{csp.ParameterInfo.ParameterType.Name}";
                 // fixed parameter
                 if (csp.Index == position)
-                    return (null, this);
+                {
+                    if (csp.SegmentsCount==2 && rightSegments.Length==0)
+                        return (new ParseError($"missing value at position {position + 1} for parameter {psyntax}", position + 1, index, CommandSpecification), this);
+                    else
+                        return (null, this);
+                }
                 else
                 {
                     var found = csp.Index < segments.Length ? $", found: '{segments[csp.Index]}'" : "";

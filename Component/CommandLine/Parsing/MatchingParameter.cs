@@ -27,7 +27,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 
         public override string ToString()
         {
-            return CommandParameterSpecification.ToString();
+            return $"{CommandParameterSpecification.ToString()} = {Value}";
         }
     }
 }

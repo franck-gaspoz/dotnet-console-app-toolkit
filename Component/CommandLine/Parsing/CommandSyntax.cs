@@ -42,19 +42,21 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             // segments must match one time some of the parameters
             var parseErrors = new List<ParseError>();
             var index = 0;
-            for (int i=0;i<segments.Length;i++)
+            int position = 0;
+            int posjump = 0;
+            while (position<segments.Length)
             {
                 string[] rightSegments;
-                if (i + 1 < segments.Length)
-                    rightSegments = segments[(i + 1)..^1];
+                if (position + 1 < segments.Length)
+                    rightSegments = segments[(position + 1)..^0];
                 else
                     rightSegments = new string[] { };
 
                 var (rparseErrors,parameterSyntax) = MatchSegment(
                     syntaxMatchingRule,
                     matchingParameters, 
-                    segments[i], 
-                    i,
+                    segments[position], 
+                    position,
                     index,
                     rightSegments, 
                     segments,
@@ -63,6 +65,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                 if (rparseErrors != null && rparseErrors.Count>0)
                 {
                     parseErrors.AddRange(rparseErrors);
+                    posjump = 1;
                 } else
                 {
                     var cps = parameterSyntax.CommandParameterSpecification;
@@ -71,31 +74,45 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                         mparam.SetValue(true);
                     else
                     {
-                        if (parameterSyntax.TryGetValue(segments[i], out var cvalue))
+                        var decp = (cps.SegmentsCount == 2) ? 1 : 0;
+                        if (parameterSyntax.TryGetValue(segments[position+decp], out var cvalue))
                             mparam.SetValue(cvalue);
                         else
-                            parseErrors.Add(new ParseError($"value '{segments[i]}' doesn't match parameter type: '{cps.ParameterInfo.ParameterType.Name}' ",i,index,CommandSpecification,cps));
+                            parseErrors.Add(new ParseError($"value '{segments[position+decp]}' doesn't match parameter type: '{cps.ParameterInfo.ParameterType.Name}' ",position+decp,index,CommandSpecification,cps));
                     }
                     matchingParameters.Add(
                         parameterSyntax.CommandParameterSpecification.ParameterName,
                         mparam
                         );
+                    posjump = (cps.SegmentsCount == 2) ? 2 : 1;
                 }
 
-                if (i > 0) index++;
-                index += segments[i].Length;
+                if (position > 0) index++;
+                index += segments[position].Length;
+                position+=posjump;
             }
 
             // non given parameters must be optional
-            // TODO: handle syntax 'ParamName ParamValue'
             foreach ( var psyx in _parameterSyntaxes)
             {
-                var optionName = psyx.CommandParameterSpecification.OptionName;
                 if (psyx.CommandParameterSpecification.IsOptional &&
                     !matchingParameters.Contains(psyx.CommandParameterSpecification.ParameterName))
                 {
                     var mparam = psyx.BuildMatchingParameter(psyx.CommandParameterSpecification.DefaultValue);
                     matchingParameters.Add(psyx.CommandParameterSpecification.ParameterName, mparam);
+                }
+            }
+
+            // required parameters must be valued
+            foreach ( var psyx in _parameterSyntaxes)
+            {
+                if (!psyx.CommandParameterSpecification.IsOptional &&
+                    !matchingParameters.Contains(psyx.CommandParameterSpecification.ParameterName))
+                {
+                    var pname = psyx.CommandParameterSpecification.ActualName;
+                    var apos = psyx.CommandParameterSpecification.Index > -1 ?
+                        psyx.CommandParameterSpecification.Index : 0;
+                    parseErrors.Add(new ParseError($"missing parameter: {pname}",apos,0,CommandSpecification));
                 }
             }
 
@@ -139,6 +156,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                     if (!matchingParameters.Contains(_parameterSyntaxes[i].CommandParameterSpecification.ParameterName))
                         parseErrors.Add(prsError);
                 }
+
             }
             if (cparamSytxs.Count==0 && parseErrors.Count==0)
             {
