@@ -205,10 +205,12 @@ namespace DotNetConsoleSdk.Component.CommandLine
                     errPositions.Sort();
                     errPositions = errPositions.Distinct().ToList();
 
-                    var t = new string[expr.Length];
+                    var t = new string[expr.Length + 2];
                     for (int i = 0; i < t.Length; i++) t[i] = " ";
                     foreach (var idx in errPositions)
+                    {
                         t[GetIndex(idx, expr)] = $"{Red}^";
+                    }
                     var serr = string.Join("", t);
                     Print(" ".PadLeft(outputX + 1) + serr);
 
