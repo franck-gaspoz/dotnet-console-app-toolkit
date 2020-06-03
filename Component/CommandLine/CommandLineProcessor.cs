@@ -69,6 +69,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
                 _isInitialized = true;
                 RegisterCommandsClass<CommandLineProcessorCommands>();
                 RegisterCommandsClass<ConsoleCommands>();
+                RegisterCommandsClass<FileSystemCommands>();
 #if enable_test_commands
                 RegisterCommandsClass<TestCommands>();
 #endif

@@ -48,7 +48,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
                     var mpl = com.ParametersSpecifications.Values.Select(x => x.Dump(false).Length).Max() + TabLength;
                     Println();
                     foreach (var p in com.ParametersSpecifications.Values)
-                        Println($"{col}{Tab}{p.ToColorizedString(false)}{"".PadRight(mpl-p.Dump(false).Length, ' ')}{p.Description}");
+                    {
+                        var ptype = (!p.IsOption && p.HasValue) ? $". of type: {Darkyellow}{p.ParameterInfo.ParameterType.Name}{White}" : "";
+                        Println($"{col}{Tab}{p.ToColorizedString(false)}{"".PadRight(mpl - p.Dump(false).Length, ' ')}{p.Description}{ptype}");
+                    }
                 }
             }
             if (verbose)

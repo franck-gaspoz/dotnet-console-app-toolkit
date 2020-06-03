@@ -45,7 +45,6 @@ namespace DotNetConsoleSdk.Component.Shell
                         Print(_prompt);
                         _beginOfLineCurPos = CursorPos;
                         ConsolePrint(_inputReaderStringBuilder.ToString());
-
                     }
                 }
             };
