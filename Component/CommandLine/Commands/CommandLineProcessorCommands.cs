@@ -63,6 +63,5 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
         {
             cons.Exit();
         }
-   
     }
 }

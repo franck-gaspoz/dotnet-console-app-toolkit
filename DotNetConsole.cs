@@ -319,6 +319,7 @@ namespace DotNetConsoleSdk
                 sc.CursorTop = y;
             }
         }
+        public static bool CursorVisible => sc.CursorVisible;
         public static void HideCur() => Lock(()=>sc.CursorVisible = false);
         public static void ShowCur() => Lock(()=>sc.CursorVisible = true);
         public static void Exit(int r=0) => Environment.Exit(r);
@@ -413,6 +414,7 @@ namespace DotNetConsoleSdk
 
         public static void Echo(string s,bool lineBreak=false,[CallerMemberName]string callerMemberName="",[CallerLineNumber]int callerLineNumber=-1)
         {
+            if (!FileEchoEnabled) return;
             if (FileEchoDumpDebugInfo)
                 _echoStreamWriter?.Write($"x={CursorLeft},y={CursorTop},l={s.Length},w={sc.WindowWidth},h={sc.WindowHeight},wtop={sc.WindowTop} bw={sc.BufferWidth},bh={sc.BufferHeight},br={lineBreak} [{callerMemberName}:{callerLineNumber}] :");
             _echoStreamWriter?.Write(s);

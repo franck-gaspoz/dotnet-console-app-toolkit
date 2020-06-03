@@ -1,4 +1,5 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
@@ -6,7 +7,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 {
     public class ParseError
     {
-        public readonly string Description;
+        public string Description { get; protected set; }
         public readonly CommandSpecification CommandSpecification;
         public readonly ReadOnlyCollection<CommandParameterSpecification> CommandParameterSpecifications;
         public readonly int Position;
@@ -59,5 +60,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
         }
 
         public override string ToString() => Description;
+
+        public void Merge(ParseError prsError)
+        {
+            Description += Environment.NewLine + prsError.Description;
+        }
     }
 }

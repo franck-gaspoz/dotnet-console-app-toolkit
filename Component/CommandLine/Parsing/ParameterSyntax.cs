@@ -29,6 +29,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             int position, 
             int index,
             string[] rightSegments, 
+            string[] segments,
             int firstIndex)
         {
             var csp = CommandParameterSpecification;
@@ -47,9 +48,13 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             {
                 var psyntax = $"{csp.ParameterInfo.ParameterType.Name}";
                 // fixed parameter
-                return (csp.Index == position )?
-                    (null,this)
-                    : (new ParseError($"parameter mismatch. attempted: type {psyntax}, found: '{segment}'", position, index, CommandSpecification), this);
+                if (csp.Index == position)
+                    return (null, this);
+                else
+                {
+                    var found = csp.Index < segments.Length ? $", found: '{segments[csp.Index]}'" : "";
+                    return (new ParseError($"missing parameter. attempted: {csp.ParameterName} of type {psyntax} at position {csp.Index}{found}", position, index, CommandSpecification), this);
+                }
             }
             throw new ConstraintException();
         }

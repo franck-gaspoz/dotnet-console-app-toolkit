@@ -174,7 +174,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
                 case ParseResultType.NotValid:
                     foreach (var prs in parseResult.SyntaxParsingResults)
                         foreach (var pr in prs.ParseErrors)
-                            errorText += $"{Red}{pr}. for syntax: {prs.CommandSyntax}{Br}";
+                            errorText += $"{Red}{pr.ToString().Replace(Environment.NewLine,Br)}{Br}for syntax: {prs.CommandSyntax}{Br}";
                     Print(errorText);
                     r = new ExpressionEvaluationResult(errorText, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);
                     break;

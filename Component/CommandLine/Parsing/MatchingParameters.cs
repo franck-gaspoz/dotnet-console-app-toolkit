@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Runtime.InteropServices.ComTypes;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 {
@@ -12,16 +11,16 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
         public ReadOnlyDictionary<string, IMatchingParameter> Parameters =>
             new ReadOnlyDictionary<string, IMatchingParameter>(_parameters);
 
-        public bool Contains(string optionName) => _parameters.ContainsKey(optionName);
+        public bool Contains(string parameterName) => _parameters.ContainsKey(parameterName);
 
-        public bool TryGet(string optionName,out IMatchingParameter matchingParameter)
+        public bool TryGet(string parameterName,out IMatchingParameter matchingParameter)
         {
-            return _parameters.TryGetValue(optionName, out matchingParameter);
+            return _parameters.TryGetValue(parameterName, out matchingParameter);
         }
 
-        public void Add(string optionName, IMatchingParameter matchingParameter)
+        public void Add(string parameterName, IMatchingParameter matchingParameter)
         {
-            _parameters.Add(optionName, matchingParameter);
+            _parameters.Add(parameterName, matchingParameter);
         }
     }
 }

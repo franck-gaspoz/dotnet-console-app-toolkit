@@ -118,7 +118,8 @@ namespace DotNetConsoleSdk.Component.UI
                 var (x, y, w, h) = GetCurrentCoords();
                 BackupCoords(x, y, w, h);
                 var content = GetContent?.Invoke(this);
-                //HideCur();
+                var cursorVisible = CursorVisible;
+                HideCur();
                 if (viewSizeChanged || AlwaysPaintBackground)
                     DrawRectAt(BackgroundColor, x, y, w, h);
 
@@ -134,7 +135,8 @@ namespace DotNetConsoleSdk.Component.UI
                 }
 
                 SetCursorPos(p);
-                //ShowCur();
+                if (cursorVisible)
+                    ShowCur();
                 EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
                 RedrawUIElementsEnabled = redrawUIElementsEnabled;
             }

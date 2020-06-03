@@ -57,6 +57,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                     i,
                     index,
                     rightSegments, 
+                    segments,
                     firstIndex);
                 
                 if (parseError != null)
@@ -123,16 +124,26 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             int position,
             int index,
             string[] rightSegments, 
+            string[] segments,
             int firstIndex)
         {
             ParseError parseError = null;
             var cparamSytxs = new List<ParameterSyntax>();
             for (int i = 0; i < _parameterSyntaxes.Count; i++)
             {
-                var (prsError,parameterSyntax) = _parameterSyntaxes[i].MatchSegment(syntaxMatchingRule, matchingParameters,segment, position, index, rightSegments, firstIndex);
+                var (prsError,parameterSyntax) = _parameterSyntaxes[i].MatchSegment(syntaxMatchingRule, matchingParameters,segment, position, index, rightSegments, segments, firstIndex);
                 if (prsError == null)
                     cparamSytxs.Add(parameterSyntax);
-                parseError = prsError;
+                if (prsError != null)
+                {
+                    if (parseError == null)
+                        parseError = prsError;
+                    else
+                    {
+                        if (!matchingParameters.Contains(_parameterSyntaxes[i].CommandParameterSpecification.ParameterName))
+                            parseError.Merge(prsError);
+                    }
+                }
             }
             if (cparamSytxs.Count == 0) return (parseError, null);
             if (cparamSytxs.Count==1) return (null, cparamSytxs.First());

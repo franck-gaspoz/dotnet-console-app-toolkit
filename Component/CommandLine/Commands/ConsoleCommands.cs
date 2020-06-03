@@ -1,4 +1,6 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
+using static DotNetConsoleSdk.DotNetConsole;
+using cons = DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands
 {
@@ -15,6 +17,12 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             ) => DotNetConsole.Println(expr);
 
         [Command("clear console screen")]
-        public void Cls() => DotNetConsole.Clear();
+        public void Cls() => Clear();
+
+        [Command("hide cursor")]
+        public void HideCursor() => HideCur();
+
+        [Command("show cursor")]
+        public void ShowCursor() => ShowCur();
     }
 }
