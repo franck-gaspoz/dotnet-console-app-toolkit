@@ -140,6 +140,12 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                         parseErrors.Add(prsError);
                 }
             }
+            if (cparamSytxs.Count==0 && parseErrors.Count==0)
+            {
+                parseErrors.Add(new ParseError($"unexpected parameter: {segment} at position {position}", position, index, CommandSpecification));
+                return (parseErrors, null);
+            }
+
             if (cparamSytxs.Count == 0) return (parseErrors, null);
             if (cparamSytxs.Count==1) return (null, cparamSytxs.First());
             var optParamSytxs = cparamSytxs.Where(x => x.CommandParameterSpecification.IsOption).ToList();
