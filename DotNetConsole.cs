@@ -24,6 +24,7 @@ namespace DotNetConsoleSdk
     {
         #region attributes
 
+        public static bool RedirectOutToError = false;
         public static bool FileEchoDumpDebugInfo = true;
         public static bool FileEchoCommands = true;
         public static bool FileEchoAutoFlush = true;
@@ -382,6 +383,18 @@ namespace DotNetConsoleSdk
         public static void Println(string s="") => Print(s, true);
         public static void Print(string s="") => Print(s, false);
 
+        public static void Error(string s="") => Error(s, false);
+        public static void Errorln(string s="") => Error(s, true);
+        public static void Error(string s,bool lineBreak=false)
+        {
+            lock (ConsoleLock)
+            {
+                RedirectOutToError = true;
+                Print(s, lineBreak);
+                RedirectOutToError = false;
+            }
+        }
+
         public static string GetPrint(string s,bool lineBreak=false)
         {
             lock (ConsoleLock)
@@ -520,7 +533,7 @@ namespace DotNetConsoleSdk
                         var curx = x0;
                         foreach (var line in croppedLines)
                         {
-                            sc.Write(line);
+                            Write(line);
                             x0 += line.Length;
                             SetCursorPosConstraintedInWorkArea(ref x0, ref y0);
                             Echo(line);
@@ -534,7 +547,7 @@ namespace DotNetConsoleSdk
                     }
                     else
                     {
-                        sc.Write(s);
+                        Write(s);
                         x0 += s.Length;
                         SetCursorPosConstraintedInWorkArea(ref x0, ref y0);
                         Echo(s);
@@ -548,7 +561,7 @@ namespace DotNetConsoleSdk
                 }
                 else
                 {
-                    sc.Write(s);
+                    Write(s);
                     Echo(s);
                     if (lineBreak)
                     {
@@ -557,6 +570,14 @@ namespace DotNetConsoleSdk
                     }
                 }
             }
+        }
+
+        static void Write(string s)
+        {
+            if (RedirectOutToError)
+                sc.Error.Write(s);
+            else
+                sc.Write(s);
         }
 
         public static int GetIndexInWorkAreaConstraintedString(string s, Point origin, Point cursorPos)

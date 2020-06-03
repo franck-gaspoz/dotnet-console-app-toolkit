@@ -212,9 +212,9 @@ namespace DotNetConsoleSdk.Component.CommandLine
                         t[GetIndex(idx, expr)] = $"{Red}^";
                     }
                     var serr = string.Join("", t);
-                    Print(" ".PadLeft(outputX + 1) + serr);
+                    Error(" ".PadLeft(outputX + 1) + serr);
 
-                    Print(errorText);
+                    Error(errorText);
                     r = new ExpressionEvaluationResult(errorText, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);
                     break;
 
