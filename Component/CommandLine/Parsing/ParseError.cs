@@ -63,7 +63,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 
         public void Merge(ParseError prsError)
         {
-            Description += Environment.NewLine + prsError.Description;
+            if (!Description.Contains(prsError.Description))
+                Description += Environment.NewLine + prsError.Description;
         }
     }
 }

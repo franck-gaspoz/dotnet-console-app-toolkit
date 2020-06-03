@@ -34,7 +34,16 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
         {
             var csp = CommandParameterSpecification;
             if (matchingParameters.Contains(csp.ParameterName))
-                return (new ParseError($"parameter already defined: {csp}", position, index, CommandSpecification),this);
+            {
+                if (position>0)
+                {
+                    var leftSegments = segments[0..(position - 1)];
+                    var idx = leftSegments.ToList().IndexOf(segment);
+                    if (idx>-1)
+                        return (new ParseError($"parameter at position {position} is already defined at position {idx}: {csp}", position, index, CommandSpecification), this);
+                }
+                return (new ParseError(null, position, index, CommandSpecification), this);
+            }
 
             if (csp.OptionName != null)
             {
@@ -42,7 +51,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                 // option
                 return optsyntax.Equals(segment, syntaxMatchingRule) ?
                         (null, this)
-                        : (new ParseError($"parameter mismatch. attempted: {optsyntax}, found: '{segment}'", position, index, CommandSpecification), this);
+                        : (new ParseError($"parameter mismatch. attempted: {optsyntax} at position {position}, found: '{segment}'", position, index, CommandSpecification), this);
             }
             else
             {

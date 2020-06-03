@@ -172,9 +172,35 @@ namespace DotNetConsoleSdk.Component.CommandLine
                     break;
 
                 case ParseResultType.NotValid:
+                    var perComErrs = new Dictionary<string, List<CommandSyntaxParsingResult>>();
                     foreach (var prs in parseResult.SyntaxParsingResults)
-                        foreach (var pr in prs.ParseErrors)
-                            errorText += $"{Red}{pr.ToString().Replace(Environment.NewLine,Br)}{Br}for syntax: {prs.CommandSyntax}{Br}";
+                        if (perComErrs.TryGetValue(prs.CommandSyntax.CommandSpecification.Name, out var lst))
+                            lst.Add(prs);
+                        else
+                            perComErrs.Add(prs.CommandSyntax.CommandSpecification.Name,new List<CommandSyntaxParsingResult> { prs });
+
+                    var errs = new List<string>();
+                    foreach (var kvp in perComErrs)
+                    {
+                        var comSyntax = kvp.Value.First().CommandSyntax;
+                        foreach (var prs in kvp.Value)
+                        {
+                            foreach (var pr in prs.ParseErrors)
+                            {
+                                var errLines = pr.ToString().Split(Environment.NewLine);
+                                foreach ( var errLine in errLines )
+                                    if (!errs.Contains(errLine))
+                                    {
+                                        errs.Add(errLine);
+                                    }                                
+                            }
+                            if (string.IsNullOrWhiteSpace(errorText))
+                                errorText += Red;
+                            errorText += Br + string.Join(Br, errs);
+                        }
+                        errorText += $"{Br}for syntax: {comSyntax}{Br}";
+                    }
+
                     Print(errorText);
                     r = new ExpressionEvaluationResult(errorText, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);
                     break;

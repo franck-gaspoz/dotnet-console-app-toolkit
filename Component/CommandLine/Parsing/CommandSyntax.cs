@@ -134,7 +134,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                 var (prsError,parameterSyntax) = _parameterSyntaxes[i].MatchSegment(syntaxMatchingRule, matchingParameters,segment, position, index, rightSegments, segments, firstIndex);
                 if (prsError == null)
                     cparamSytxs.Add(parameterSyntax);
-                if (prsError != null)
+                if (prsError != null && prsError.Description!=null)
                 {
                     if (parseError == null)
                         parseError = prsError;
