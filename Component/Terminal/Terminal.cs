@@ -17,7 +17,7 @@ namespace DotNetConsoleSdk.Component.Shell
     {
         #region attributes
 
-        public delegate ExpressionEvaluationResult ExpressionEvaluationCommandDelegate(string com);
+        public delegate ExpressionEvaluationResult ExpressionEvaluationCommandDelegate(string com,int outputX);
         
         static Thread _inputReaderThread;
         static readonly List<string> _history = new List<string>();
@@ -99,7 +99,7 @@ namespace DotNetConsoleSdk.Component.Shell
                 {
                     LineBreak();
                     
-                    var expressionEvaluationResult = _evalCommandDelegate(s);
+                    var expressionEvaluationResult = _evalCommandDelegate(s,GetPrint(_prompt).Length);
 
                     if (!WorkArea.rect.IsEmpty && (WorkArea.rect.Y != CursorTop || WorkArea.rect.X != CursorLeft))
                         LineBreak();

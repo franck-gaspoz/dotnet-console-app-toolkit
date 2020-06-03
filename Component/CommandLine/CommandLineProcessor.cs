@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Text;
 using DotNetConsoleSdk.Component.CommandLine.Parsing;
 using System.Linq;
+using System.Numerics;
 
 namespace DotNetConsoleSdk.Component.CommandLine
 {
@@ -154,7 +155,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
         /// </summary>
         /// <param name="expr">expression to be evaluated</param>
         /// <returns>return code</returns>
-        public static ExpressionEvaluationResult Eval(string expr)
+        public static ExpressionEvaluationResult Eval(string expr,int outputX)
         {
             var parseResult = Parse(_syntaxAnalyzer,expr);
             ExpressionEvaluationResult r = null;
@@ -180,19 +181,19 @@ namespace DotNetConsoleSdk.Component.CommandLine
                             perComErrs.Add(prs.CommandSyntax.CommandSpecification.Name,new List<CommandSyntaxParsingResult> { prs });
 
                     var errs = new List<string>();
+                    var minErrPosition = int.MaxValue;
+                    var errPositions = new List<int>();
                     foreach (var kvp in perComErrs)
                     {
                         var comSyntax = kvp.Value.First().CommandSyntax;
                         foreach (var prs in kvp.Value)
                         {
-                            foreach (var pr in prs.ParseErrors)
+                            foreach (var perr in prs.ParseErrors)
                             {
-                                var errLines = pr.ToString().Split(Environment.NewLine);
-                                foreach ( var errLine in errLines )
-                                    if (!errs.Contains(errLine))
-                                    {
-                                        errs.Add(errLine);
-                                    }                                
+                                minErrPosition = Math.Min(minErrPosition, perr.Position);
+                                errPositions.Add(perr.Position);
+                                if (!errs.Contains(perr.Description))
+                                    errs.Add(perr.Description);
                             }
                             if (string.IsNullOrWhiteSpace(errorText))
                                 errorText += Red;
@@ -200,6 +201,16 @@ namespace DotNetConsoleSdk.Component.CommandLine
                         }
                         errorText += $"{Br}for syntax: {comSyntax}{Br}";
                     }
+
+                    errPositions.Sort();
+                    errPositions = errPositions.Distinct().ToList();
+
+                    var t = new string[expr.Length];
+                    for (int i = 0; i < t.Length; i++) t[i] = " ";
+                    foreach (var idx in errPositions)
+                        t[GetIndex(idx, expr)] = $"{Red}^";
+                    var serr = string.Join("", t);
+                    Print(" ".PadLeft(outputX + 1) + serr);
 
                     Print(errorText);
                     r = new ExpressionEvaluationResult(errorText, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);

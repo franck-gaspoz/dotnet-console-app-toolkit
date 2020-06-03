@@ -50,7 +50,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                 else
                     rightSegments = new string[] { };
 
-                var (parseError,parameterSyntax) = MatchSegment(
+                var (rparseErrors,parameterSyntax) = MatchSegment(
                     syntaxMatchingRule,
                     matchingParameters, 
                     segments[i], 
@@ -60,9 +60,9 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                     segments,
                     firstIndex);
                 
-                if (parseError != null)
+                if (rparseErrors != null && rparseErrors.Count>0)
                 {
-                    parseErrors.Add(parseError);
+                    parseErrors.AddRange(rparseErrors);
                 } else
                 {
                     var cps = parameterSyntax.CommandParameterSpecification;
@@ -117,7 +117,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             return r;
         } 
 
-        (ParseError parseError,ParameterSyntax parameterSyntax) MatchSegment(
+        (List<ParseError> parseError,ParameterSyntax parameterSyntax) MatchSegment(
             StringComparison syntaxMatchingRule, 
             MatchingParameters matchingParameters, 
             string segment, 
@@ -127,7 +127,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             string[] segments,
             int firstIndex)
         {
-            ParseError parseError = null;
+            List<ParseError> parseErrors = new List<ParseError>();
             var cparamSytxs = new List<ParameterSyntax>();
             for (int i = 0; i < _parameterSyntaxes.Count; i++)
             {
@@ -136,16 +136,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                     cparamSytxs.Add(parameterSyntax);
                 if (prsError != null && prsError.Description!=null)
                 {
-                    if (parseError == null)
-                        parseError = prsError;
-                    else
-                    {
-                        if (!matchingParameters.Contains(_parameterSyntaxes[i].CommandParameterSpecification.ParameterName))
-                            parseError.Merge(prsError);
-                    }
+                    if (!matchingParameters.Contains(_parameterSyntaxes[i].CommandParameterSpecification.ParameterName))
+                        parseErrors.Add(prsError);
                 }
             }
-            if (cparamSytxs.Count == 0) return (parseError, null);
+            if (cparamSytxs.Count == 0) return (parseErrors, null);
             if (cparamSytxs.Count==1) return (null, cparamSytxs.First());
             var optParamSytxs = cparamSytxs.Where(x => x.CommandParameterSpecification.IsOption).ToList();
             if (optParamSytxs.Count() == 1) return (null, optParamSytxs.First());
@@ -153,7 +148,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             sb.AppendLine($"command syntax is ambiguous. multiple parameters matches the segment '{segment}' at position {position},index {index}: ");
             for (int i = 0; i < cparamSytxs.Count(); i++)
                 sb.AppendLine($"{i+"",2}. {cparamSytxs[i]}");
-            return (new ParseError(sb.ToString(),position,index,CommandSpecification), null);
+            parseErrors.Add(new ParseError(sb.ToString(), position, index, CommandSpecification));
+            return (parseErrors, null);
         }
 
         public object Invoke(MatchingParameters matchingParameters)

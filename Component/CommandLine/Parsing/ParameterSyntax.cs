@@ -62,7 +62,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                 else
                 {
                     var found = csp.Index < segments.Length ? $", found: '{segments[csp.Index]}'" : "";
-                    return (new ParseError($"missing parameter. attempted: {csp.ParameterName} of type {psyntax} at position {csp.Index}{found}", position, index, CommandSpecification), this);
+                    return (new ParseError($"missing parameter. attempted: {csp.ParameterName} of type {psyntax} at position {csp.Index}{found}", csp.Index, index, CommandSpecification), this);
                 }
             }
             throw new ConstraintException();

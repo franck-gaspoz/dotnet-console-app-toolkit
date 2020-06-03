@@ -53,6 +53,15 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             return splits.ToArray();
         }
 
+        public static int GetIndex(int position,string expr)
+        {
+            var splits = SplitExpr(expr);
+            var n = 0;
+            for (int i = 0; i <= position && i<splits.Length; i++)
+                n += splits[i].Length + ((i>0)?1:0);
+            return n;
+        }
+
         public static ParseResult Parse(SyntaxAnalyser syntaxAnalyzer, string expr)
         {
             if (expr == null) return new ParseResult(ParseResultType.Empty,null);
