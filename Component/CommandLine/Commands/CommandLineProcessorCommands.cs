@@ -20,9 +20,13 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             var cmds = CommandLineProcessor.AllCommands.AsQueryable();
             if (!string.IsNullOrWhiteSpace(commandName))
                 cmds = cmds.Where(x => x.Name.Equals(commandName, CommandLineParser.SyntaxMatchingRule));
-            if (cmds.Count()>0)
-                foreach (var cmd in cmds )
-                    PrintCommandHelp(cmd, shortView, verbose, -1);
+
+            if (cmds.Count() > 0)
+            {
+                var mincmdsize = cmds.Select(x => x.Name.Length).Min() + TabLength + 1;
+                foreach (var cmd in cmds)
+                    PrintCommandHelp(cmd, shortView, verbose, mincmdsize);
+            }
             else
                 Println($"{Red}Command not found: '{commandName}'");
         }
