@@ -216,5 +216,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 
             throw new NotSupportedException($"command parameter type not supported: {ptype.FullName} in command specification: {CommandParameterSpecification}");
         }
+
+        public override string ToString()
+        {
+            return CommandParameterSpecification.ToString();
+        }
+
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Text;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 {
@@ -125,13 +126,23 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             int firstIndex)
         {
             ParseError parseError = null;
+            var cparamSytxs = new List<ParameterSyntax>();
             for (int i = 0; i < _parameterSyntaxes.Count; i++)
             {
                 var (prsError,parameterSyntax) = _parameterSyntaxes[i].MatchSegment(syntaxMatchingRule, matchingParameters,segment, position, index, rightSegments, firstIndex);
-                if (prsError == null) return (null, parameterSyntax);
+                if (prsError == null)
+                    cparamSytxs.Add(parameterSyntax);
                 parseError = prsError;
             }
-            return (parseError,null);
+            if (cparamSytxs.Count == 0) return (parseError, null);
+            if (cparamSytxs.Count==1) return (null, cparamSytxs.First());
+            var optParamSytxs = cparamSytxs.Where(x => x.CommandParameterSpecification.IsOption).ToList();
+            if (optParamSytxs.Count() == 1) return (null, optParamSytxs.First());
+            var sb = new StringBuilder();
+            sb.AppendLine($"command syntax is ambiguous. multiple parameters matches the segment '{segment}' at position {position},index {index}: ");
+            for (int i = 0; i < cparamSytxs.Count(); i++)
+                sb.AppendLine($"{i+"",2}. {cparamSytxs[i]}");
+            return (new ParseError(sb.ToString(),position,index,CommandSpecification), null);
         }
 
         public object Invoke(MatchingParameters matchingParameters)
