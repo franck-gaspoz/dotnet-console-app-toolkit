@@ -1,20 +1,18 @@
-﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
-using System.IO;
+﻿using System.IO;
 using static DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 {
-    [CustomParamaterType]
-    public class DirectoryPath
+    public class DirectoryPath : FileSystemPath
     {
         public readonly DirectoryInfo DirectoryInfo;
 
-        public DirectoryPath(string path)
+        public DirectoryPath(string path) : base(new DirectoryInfo(path))
         {
-            DirectoryInfo = new DirectoryInfo(path);
+            DirectoryInfo = (DirectoryInfo)FileSystemInfo;
         }
 
-        public bool CheckExists(bool dumpError=true)
+        public override bool CheckExists(bool dumpError=true)
         {
             if (!DirectoryInfo.Exists)
             {

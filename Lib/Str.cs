@@ -29,6 +29,10 @@ namespace DotNetConsoleSdk.Lib
             {
                 return bytes + sep + "B";
             }
+            if (absB < 1024 * 1024)
+            {
+                return String.Format("{0:F" + digits + "}" + sep + "{1}" + bigPostFix + "B", absB / 1024d, "K");
+            }
             long value = absB;
             Stack<long> values = new Stack<long>();
             char ci = '?';

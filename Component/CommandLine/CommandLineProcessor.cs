@@ -11,11 +11,14 @@ using System.Reflection;
 using DotNetConsoleSdk.Component.CommandLine.Parsing;
 using System.Linq;
 using DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem;
+using System.Threading;
 
 namespace DotNetConsoleSdk.Component.CommandLine
 {
     public static class CommandLineProcessor
     {
+        public static CancellationTokenSource CancellationTokenSource;
+
         public static int ReturnCodeOK = 0;
         public static int ReturnCodeError = 1;
         public static int ReturnCodeNotDefined = 1;
@@ -107,6 +110,10 @@ namespace DotNetConsoleSdk.Component.CommandLine
                     {
                         CommandParameterSpecification pspec = null;
                         var paramAttr = parameter.GetCustomAttribute<ParameterAttribute>();
+                        object defval = null;
+                        if (!parameter.HasDefaultValue && parameter.ParameterType.IsValueType)
+                            defval = Activator.CreateInstance(parameter.ParameterType);
+
                         if (paramAttr != null)
                         {
                             // TODO: validate command specification (eg. indexs validity)
@@ -118,7 +125,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
                                 null,
                                 true,
                                 parameter.HasDefaultValue,
-                                (parameter.HasDefaultValue) ? parameter.DefaultValue : null,
+                                (parameter.HasDefaultValue) ? parameter.DefaultValue : defval,
                                 parameter);
                         }
                         var optAttr = parameter.GetCustomAttribute<OptionAttribute>();
@@ -132,7 +139,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
                                 optAttr.OptionName ?? parameter.Name,
                                 optAttr.HasValue,
                                 parameter.HasDefaultValue,
-                                (parameter.HasDefaultValue) ? parameter.DefaultValue : null,
+                                (parameter.HasDefaultValue) ? parameter.DefaultValue : defval,
                                 parameter);
                         }
                         if (pspec==null)

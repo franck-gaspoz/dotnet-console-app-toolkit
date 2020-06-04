@@ -1,4 +1,5 @@
 ﻿//#define dbg
+#define cancelableEval
 
 using DotNetConsoleSdk.Component.CommandLine;
 using System;
@@ -7,6 +8,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using static DotNetConsoleSdk.Component.CommandLine.CommandLineProcessor;
 using static DotNetConsoleSdk.DotNetConsole;
 using sc = System.Console;
@@ -18,7 +20,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
         #region attributes
 
         public delegate ExpressionEvaluationResult ExpressionEvaluationCommandDelegate(string com,int outputX);
-        
+
         static Thread _inputReaderThread;
         static readonly List<string> _history = new List<string>();
         static int _historyIndex = -1;
@@ -89,24 +91,68 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 
         #region input processing
 
-        public static void ProcessInput(IAsyncResult asyncResult)
+        public static async void ProcessInput(IAsyncResult asyncResult)
         {
             var s = (string)asyncResult.AsyncState;
             if (s != null)
             {
-                lock (ConsoleLock)
-                {
-                    LineBreak();
-                    
-                    var expressionEvaluationResult = _evalCommandDelegate(s,GetPrint(_prompt).Length);
+                LineBreak();
 
-                    if (!WorkArea.rect.IsEmpty && (WorkArea.rect.Y != CursorTop || WorkArea.rect.X != CursorLeft))
-                        LineBreak();
-                    RestoreDefaultColors();
+                ExpressionEvaluationResult expressionEvaluationResult = null;
+
+                try
+                {
+#if cancelableEval
+                    sc.CancelKeyPress += CancelKeyPress;
+                    CommandLineProcessor.CancellationTokenSource = new CancellationTokenSource();
+                    var task = Task.Run<ExpressionEvaluationResult>(
+                        () => _evalCommandDelegate(s, GetPrint(_prompt).Length),
+                        CommandLineProcessor.CancellationTokenSource.Token
+                        );
+                    //var expressionEvaluationResult = _evalCommandDelegate(s, GetPrint(_prompt).Length);
+
+                    try
+                    {
+                        //await task;
+                        task.Wait(CommandLineProcessor.CancellationTokenSource.Token);
+                        expressionEvaluationResult = task.Result;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        
+                    }
+                    finally
+                    {
+                        
+                    }                    
+#else
+                    var expressionEvaluationResult = _evalCommandDelegate(s, GetPrint(_prompt).Length);
+#endif
                 }
-                if (!string.IsNullOrWhiteSpace(s))
-                    HistoryAppend(s);
+                catch (Exception ex)
+                {
+                    LogError(ex);                        
+                }
+                finally
+                {
+                    CommandLineProcessor.CancellationTokenSource.Dispose();
+                    sc.CancelKeyPress -= CancelKeyPress;
+                    lock (ConsoleLock)
+                    {
+                        if (!WorkArea.rect.IsEmpty && (WorkArea.rect.Y != CursorTop || WorkArea.rect.X != CursorLeft))
+                            LineBreak();
+                        RestoreDefaultColors();
+                    }
+                }
             }
+            if (!string.IsNullOrWhiteSpace(s))
+                HistoryAppend(s);
+        }
+
+        private static void CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            e.Cancel = true;
+            CommandLineProcessor.CancellationTokenSource.Cancel();
         }
 
         public static int ReadCommandLine(
@@ -169,7 +215,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 #if dbg
                                 System.Diagnostics.Debug.WriteLine($"{c.KeyChar}={c.Key}");
 #endif
-                                #region handle special keys - edition mode, movement
+#region handle special keys - edition mode, movement
 
                                 (id, left, top, right, bottom) = ActualWorkArea;
 
@@ -347,7 +393,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                                         break;
                                 }
 
-                                #endregion
+#endregion
                             }
                             else
                             {
@@ -461,9 +507,9 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
             _readingStarted = false;
         }
 
-        #endregion
+#endregion
 
-        #region shell control operations
+#region shell control operations
 
         public static string GetBackwardHistory()
         {
@@ -493,6 +539,6 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 
         public static void ClearHistory() => _history.Clear();
 
-        #endregion
+#endregion
     }
 }

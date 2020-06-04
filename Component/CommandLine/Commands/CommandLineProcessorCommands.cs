@@ -24,8 +24,13 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             if (cmds.Count() > 0)
             {
                 var mincmdsize = cmds.Select(x => x.Name.Length).Min() + TabLength + 1;
+                int n = 0;
                 foreach (var cmd in cmds)
+                {
+                    if (n > 0) Println();
                     PrintCommandHelp(cmd, shortView, verbose, mincmdsize);
+                    n++;
+                }
             }
             else
                 Println($"{Red}Command not found: '{commandName}'");
@@ -59,7 +64,6 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
                 Println();
                 Println($"{col}{Gray}declaring type: {Darkgray}{com.MethodInfo.DeclaringType.FullName}");
             }
-            Println();
 
 #pragma warning restore IDE0071WithoutSuggestion // Simplifier l’interpolation
 #pragma warning restore IDE0071 // Simplifier l’interpolation
