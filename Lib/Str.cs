@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace DotNetConsoleSdk.Lib
 {
@@ -17,7 +18,23 @@ namespace DotNetConsoleSdk.Lib
             return o.ToString();
         }
 
-        public static string Plur(string s, int n) => $"{n} {s}"+((n > 1) ? "s" : "");
+        public static string TimeSpanDescription(TimeSpan ts,string prefix="",string postfix="")
+        {
+            var d = ts.Days;
+            var h = ts.Hours;
+            var m = ts.Minutes;
+            var s = ts.Seconds;
+            var ms = ts.Milliseconds;
+            var lst = new List<String>();
+            if (d > 0) lst.Add($"{prefix}{d}{postfix} days");
+            if (h > 0) lst.Add($"{prefix}{h}{postfix} hours");
+            if (m > 0) lst.Add($"{prefix}{m}{postfix} minutes");
+            if (s > 0) lst.Add($"{prefix}{s}{postfix} seconds");
+            if (ms > 0) lst.Add($"{prefix}{ms}{postfix} milliseconds");
+            return string.Join(' ', lst);
+        }
+
+        public static string Plur(string s, int n,string postfix="") => $"{n}{postfix} {s}"+((n > 1) ? "s" : "");
 
         public static string Dump(object[] t)
         {
