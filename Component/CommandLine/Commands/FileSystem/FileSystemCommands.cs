@@ -4,7 +4,6 @@ using static DotNetConsoleSdk.DotNetConsole;
 using System.IO;
 using System;
 using static DotNetConsoleSdk.Lib.Str;
-using System.Xml.Schema;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 {
@@ -15,6 +14,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
         public List<FileSystemPath> Find(
             [Parameter("search path")] DirectoryPath path,
             [Option("pat", "name that matches the pattern", true, true)] string pattern,
+            [Option("flp","check pattern on fullname instead of name")] bool checkPatternOnFullName,
             [Option("in", "files that contains the string", true, true)] string contains,
             [Option("attr", "print file system attributes")] bool attributes,
             [Option("shp","print short pathes")] bool shortPathes,
@@ -27,10 +27,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             {
                 var sp = string.IsNullOrWhiteSpace(pattern) ? "*" : pattern;
                 var counts = new FindCounts();
-                var items = FindItems(path.DirectoryInfo.FullName, sp, top,all,dirs,attributes,shortPathes,contains,counts);
+                var items = FindItems(path.DirectoryInfo.FullName, sp, top,all,dirs,attributes,shortPathes,contains, checkPatternOnFullName,counts);
                 var f = GetCmd(KeyWords.f+"",DefaultForeground.ToString().ToLower());
                 var elapsed = DateTime.Now - counts.BeginDateTime;
-                Println($"found {Cyan}{Plur("file",counts.FilesCount,f)} and {Cyan}{Plur("folder",counts.FoldersCount,f)}. scanned {Cyan}{Plur("file",counts.ScannedFilesCount,f)} in {Cyan}{Plur("folder",counts.ScannedFoldersCount,f)} in {TimeSpanDescription(elapsed,Cyan,f)}");
+                Println($"found {Cyan}{Plur("file",counts.FilesCount,f)} and {Cyan}{Plur("folder",counts.FoldersCount,f)}. scanned {Cyan}{Plur("file",counts.ScannedFilesCount,f)} in {Cyan}{Plur("folder",counts.ScannedFoldersCount,f)} during {TimeSpanDescription(elapsed,Cyan,f)}");
                 return items;
             }
             return new List<FileSystemPath>();
@@ -49,7 +49,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             }
         }
 
-        List<FileSystemPath> FindItems(string path, string pattern,bool top,bool all,bool dirs,bool attributes,bool shortPathes,string contains,FindCounts counts)
+        List<FileSystemPath> FindItems(string path, string pattern,bool top,bool all,bool dirs,bool attributes,bool shortPathes,string contains,bool checkPatternOnFullName,FindCounts counts)
         {
             var dinf = new DirectoryInfo(path);
             List<FileSystemPath> items = new List<FileSystemPath>();
@@ -69,7 +69,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 
                     if (sitem.IsDirectory)
                     {
-                        if ((dirs || all) && (!hasPattern || MatchWildcard(pattern, sitem.FileSystemInfo.Name)))
+                        if ((dirs || all) && (!hasPattern || MatchWildcard(pattern, checkPatternOnFullName ? sitem.FileSystemInfo.FullName : sitem.FileSystemInfo.Name)))
                         {
                             items.Add(sitem);
                             sitem.Print(attributes, shortPathes, "", Br);
@@ -79,12 +79,12 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                             sitem = null;
 
                         if (!top)
-                            items.AddRange(FindItems(fsinf.FullName, pattern, top, all, dirs, attributes, shortPathes,contains, counts));
+                            items.AddRange(FindItems(fsinf.FullName, pattern, top, all, dirs, attributes, shortPathes,contains, checkPatternOnFullName, counts));
                     }
                     else
                     {
                         counts.ScannedFilesCount++;
-                        if (!dirs && (!hasPattern || MatchWildcard(pattern, sitem.FileSystemInfo.Name)))
+                        if (!dirs && (!hasPattern || MatchWildcard(pattern, checkPatternOnFullName?sitem.FileSystemInfo.FullName:sitem.FileSystemInfo.Name)))
                         {
                             if (hasContains)
                             {
