@@ -12,7 +12,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
         public static string ErrorColorization = $"{Red}";
         public static string DirectoryColorization = $"{Bdarkgreen}";
         public static string FileColorization = $"";
-        protected readonly FileSystemInfo FileSystemInfo;
+        public readonly FileSystemInfo FileSystemInfo;
 
         public string Error;
 
@@ -37,7 +37,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 return new FilePath(fsinf.FullName);
         }
 
-        public void Print(bool printAttributes=false,string prefix="",string postfix="")
+        public void Print(bool printAttributes=false,bool shortPath=false,string prefix="",string postfix="")
         {
             var color = (IsDirectory) ? DirectoryColorization : FileColorization;
             var r = "";
@@ -50,7 +50,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 var smoddat = $"{moddat.ToString("MMM", CultureInfo.InvariantCulture),-3} {moddat.Day,-2} {moddat.Hour.ToString().PadLeft(2,'0')}:{moddat.Minute.ToString().PadLeft(2,'0')}";
                 attr = $"{dir} {size,10} {smoddat}  ";
             }
-            r += $"{attr}{color}{prefix}{FileSystemInfo.Name}{postfix}";
+            r += $"{attr}{color}{prefix}{(shortPath?FileSystemInfo.Name:FileSystemInfo.FullName)}{postfix}";
             DotNetConsole.Print(r);
             if (HasError)
                 DotNetConsole.Print($" {ErrorColorization}{GetError()}");

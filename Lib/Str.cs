@@ -17,9 +17,70 @@ namespace DotNetConsoleSdk.Lib
             return o.ToString();
         }
 
+        public static string Plur(string s, int n) => $"{n} {s}"+((n > 1) ? "s" : "");
+
         public static string Dump(object[] t)
         {
             return string.Join(',', t.Select(x => DumpAsText(x)));
+        }
+
+        public static bool MatchWildcard(String pattern, String input)
+        {
+            if (String.Compare(pattern, input) == 0)
+            {
+                return true;
+            }
+            else if (String.IsNullOrEmpty(input))
+            {
+                if (String.IsNullOrEmpty(pattern.Trim(new Char[1] { '*' })))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else if (pattern.Length == 0)
+            {
+                return false;
+            }
+            else if (pattern[0] == '?')
+            {
+                return MatchWildcard(pattern.Substring(1), input.Substring(1));
+            }
+            else if (pattern[pattern.Length - 1] == '?')
+            {
+                return MatchWildcard(pattern.Substring(0, pattern.Length - 1),
+                                           input.Substring(0, input.Length - 1));
+            }
+            else if (pattern[0] == '*')
+            {
+                if (MatchWildcard(pattern.Substring(1), input))
+                {
+                    return true;
+                }
+                else
+                {
+                    return MatchWildcard(pattern, input.Substring(1));
+                }
+            }
+            else if (pattern[pattern.Length - 1] == '*')
+            {
+                if (MatchWildcard(pattern.Substring(0, pattern.Length - 1), input))
+                {
+                    return true;
+                }
+                else
+                {
+                    return MatchWildcard(pattern, input.Substring(0, input.Length - 1));
+                }
+            }
+            else if (pattern[0] == input[0])
+            {
+                return MatchWildcard(pattern.Substring(1), input.Substring(1));
+            }
+            return false;
         }
 
         public static string HumanFormatOfSize(long bytes, int digits = 1, string sep = " ", string bigPostFix = "")

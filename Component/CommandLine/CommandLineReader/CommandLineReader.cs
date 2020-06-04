@@ -517,7 +517,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                 _historyIndex = _history.Count+1;
             if (_historyIndex >= 1)
                 _historyIndex--;
-            System.Diagnostics.Debug.WriteLine($"{_historyIndex}");
+            //System.Diagnostics.Debug.WriteLine($"{_historyIndex}");
             return (_historyIndex < 0 || _history.Count == 0 || _historyIndex >= _history.Count) ? null : _history[_historyIndex];
         }
 
@@ -527,7 +527,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                 _historyIndex = _history.Count;
             if (_historyIndex < _history.Count - 1) _historyIndex++;
 
-            System.Diagnostics.Debug.WriteLine($"{_historyIndex}");
+            //System.Diagnostics.Debug.WriteLine($"{_historyIndex}");
             return (_historyIndex < 0 || _history.Count == 0 || _historyIndex >= _history.Count) ? null : _history[_historyIndex];
         }
 
