@@ -11,9 +11,9 @@ using static DotNetConsoleSdk.Component.CommandLine.CommandLineProcessor;
 using static DotNetConsoleSdk.DotNetConsole;
 using sc = System.Console;
 
-namespace DotNetConsoleSdk.Component.Shell
+namespace DotNetConsoleSdk.Component.CommandLineReader
 {
-    public static class Terminal
+    public static class CommandLineReader
     {
         #region attributes
 
@@ -33,7 +33,7 @@ namespace DotNetConsoleSdk.Component.Shell
 
         #endregion
 
-        public static void InitializeTerminal(ExpressionEvaluationCommandDelegate evalCommandDelegate)
+        public static void InitializeCommandLineReader(ExpressionEvaluationCommandDelegate evalCommandDelegate)
         {
             _evalCommandDelegate = evalCommandDelegate ?? Eval;
             ViewSizeChanged += (o, e) =>
@@ -109,11 +109,11 @@ namespace DotNetConsoleSdk.Component.Shell
             }
         }
 
-        public static int Readln(
+        public static int ReadCommandLine(
             string prompt="", 
             bool waitForReaderExited = true)
         {
-            return BeginReadln(new AsyncCallback(Terminal.ProcessInput), prompt, waitForReaderExited);
+            return BeginReadln(new AsyncCallback(CommandLineReader.ProcessInput), prompt, waitForReaderExited);
         }
 
         public static void SendInput(string text,bool sendEnter=true)

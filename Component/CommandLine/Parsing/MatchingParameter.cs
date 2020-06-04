@@ -6,6 +6,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
     {
         public CommandParameterSpecification CommandParameterSpecification { get; protected set; }
         public T Value { get; protected set; }
+        public bool IsCustom { get; protected set; }
 
         public object GetValue() => Value;
 
@@ -14,20 +15,22 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             Value = (T)value;
         }
 
-        public MatchingParameter(CommandParameterSpecification commandParameterSpecification, T value) 
+        public MatchingParameter(CommandParameterSpecification commandParameterSpecification, T value,bool isCustom = false) 
         {
             Value = value;
             CommandParameterSpecification = commandParameterSpecification;
+            IsCustom = isCustom;
         }
 
-        public MatchingParameter(CommandParameterSpecification commandParameterSpecification)
+        public MatchingParameter(CommandParameterSpecification commandParameterSpecification, bool isCustom = false)
         {
             CommandParameterSpecification = commandParameterSpecification;
+            IsCustom = isCustom;
         }
 
         public override string ToString()
         {
-            return $"{CommandParameterSpecification.ToString()} = {Value}";
+            return $"{CommandParameterSpecification} = {Value}";
         }
     }
 }

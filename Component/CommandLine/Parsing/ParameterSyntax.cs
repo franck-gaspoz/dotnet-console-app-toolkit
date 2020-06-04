@@ -2,6 +2,7 @@
 using System;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 {
@@ -28,8 +29,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             int position, 
             int index,
             string[] rightSegments, 
-            string[] segments,
-            int firstIndex)
+            string[] segments)
         {
             var csp = CommandParameterSpecification;
             if (matchingParameters.Contains(csp.ParameterName))
@@ -92,100 +92,115 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             convertedValue = null;
             bool result = false;
 
-            if (ptype == typeof(int))
+            var customAttrType = ptype.GetCustomAttribute<CustomParamaterType>();
+            if (customAttrType != null)
             {
-                result = int.TryParse(value, out var intv);
-                convertedValue = intv;
+                try
+                {
+                    convertedValue = Activator.CreateInstance(ptype, new object[] { value });
+                    return true;
+                } catch (Exception)
+                {
+                    return false;
+                }
             }
-            if (ptype == typeof(Int16))
+            else
             {
-                result = Int16.TryParse(value, out var intv);
-                convertedValue = intv;
-            }
-            if (ptype == typeof(Int32))
-            {
-                result = Int32.TryParse(value, out var intv);
-                convertedValue = intv;
-            }
-            if (ptype == typeof(Int64))
-            {
-                result = Int64.TryParse(value, out var intv);
-                convertedValue = intv;
-            }
-            if (ptype == typeof(UInt16))
-            {
-                result = UInt16.TryParse(value, out var intv);
-                convertedValue = intv;
-            }
-            if (ptype == typeof(UInt32))
-            {
-                result = UInt32.TryParse(value, out var intv);
-                convertedValue = intv;
-            }
-            if (ptype == typeof(UInt64))
-            {
-                result = UInt64.TryParse(value, out var intv);
-                convertedValue = intv;
-            }
-            if (ptype == typeof(short))
-            {
-                result = short.TryParse(value, out var intv);
-                convertedValue = intv;
-            }
-            if (ptype == typeof(long))
-            {
-                result = long.TryParse(value, out var intv);
-                convertedValue = intv;
-            }
-            if (ptype == typeof(double))
-            {
-                result = double.TryParse(value, out var intv);
-                convertedValue = intv;
-            }
-            if (ptype == typeof(float))
-            {
-                result = float.TryParse(value, out var intv);
-                convertedValue = intv;
-            }
-            if (ptype == typeof(decimal))
-            {
-                result = decimal.TryParse(value, out var intv);
-                convertedValue = intv;
-            }
-            if (ptype == typeof(string))
-            {
-                result = true;
-                convertedValue = value;
-            }
-            if (ptype == typeof(bool))
-            {
-                result = bool.TryParse(value, out var intv);
-                convertedValue = intv;
-            }
-            if (ptype == typeof(sbyte))
-            {
-                result = sbyte.TryParse(value, out var intv);
-                convertedValue = intv;
-            }
-            if (ptype == typeof(byte))
-            {
-                result = byte.TryParse(value, out var intv);
-                convertedValue = intv;
-            }
-            if (ptype == typeof(char))
-            {
-                result = char.TryParse(value, out var intv);
-                convertedValue = intv;
-            }
-            if (ptype == typeof(Single))
-            {
-                result = Single.TryParse(value, out var intv);
-                convertedValue = intv;
-            }
-            if (ptype == typeof(DateTime))
-            {
-                result = DateTime.TryParse(value, out var intv);
-                convertedValue = intv;
+                if (ptype == typeof(int))
+                {
+                    result = int.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
+                if (ptype == typeof(Int16))
+                {
+                    result = Int16.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
+                if (ptype == typeof(Int32))
+                {
+                    result = Int32.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
+                if (ptype == typeof(Int64))
+                {
+                    result = Int64.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
+                if (ptype == typeof(UInt16))
+                {
+                    result = UInt16.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
+                if (ptype == typeof(UInt32))
+                {
+                    result = UInt32.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
+                if (ptype == typeof(UInt64))
+                {
+                    result = UInt64.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
+                if (ptype == typeof(short))
+                {
+                    result = short.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
+                if (ptype == typeof(long))
+                {
+                    result = long.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
+                if (ptype == typeof(double))
+                {
+                    result = double.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
+                if (ptype == typeof(float))
+                {
+                    result = float.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
+                if (ptype == typeof(decimal))
+                {
+                    result = decimal.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
+                if (ptype == typeof(string))
+                {
+                    result = true;
+                    convertedValue = value;
+                }
+                if (ptype == typeof(bool))
+                {
+                    result = bool.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
+                if (ptype == typeof(sbyte))
+                {
+                    result = sbyte.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
+                if (ptype == typeof(byte))
+                {
+                    result = byte.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
+                if (ptype == typeof(char))
+                {
+                    result = char.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
+                if (ptype == typeof(Single))
+                {
+                    result = Single.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
+                if (ptype == typeof(DateTime))
+                {
+                    result = DateTime.TryParse(value, out var intv);
+                    convertedValue = intv;
+                }
             }
 
             return result;
@@ -197,44 +212,52 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             var comspec = CommandParameterSpecification;
             var ptype = comspec.ParameterInfo.ParameterType;
 
-            if (ptype == typeof(int))
-                mparam = new MatchingParameter<int>(comspec);
-            if (ptype == typeof(Int16))
-                mparam = new MatchingParameter<Int16>(comspec);
-            if (ptype == typeof(UInt16))
-                mparam = new MatchingParameter<UInt16>(comspec);
-            if (ptype == typeof(Int32))
-                mparam = new MatchingParameter<Int32>(comspec);
-            if (ptype == typeof(UInt32))
-                mparam = new MatchingParameter<UInt32>(comspec);
-            if (ptype == typeof(Int64))
-                mparam = new MatchingParameter<Int64>(comspec);
-            if (ptype == typeof(UInt64))
-                mparam = new MatchingParameter<UInt64>(comspec);
-            if (ptype == typeof(short))
-                mparam = new MatchingParameter<short>(comspec);
-            if (ptype == typeof(long))
-                mparam = new MatchingParameter<long>(comspec);
-            if (ptype == typeof(double))
-                mparam = new MatchingParameter<double>(comspec);
-            if (ptype == typeof(float))
-                mparam = new MatchingParameter<float>(comspec);
-            if (ptype == typeof(decimal))
-                mparam = new MatchingParameter<decimal>(comspec);
-            if (ptype == typeof(string))
-                mparam = new MatchingParameter<string>(comspec);
-            if (ptype == typeof(bool))
-                mparam = new MatchingParameter<bool>(comspec);
-            if (ptype == typeof(sbyte))
-                mparam = new MatchingParameter<sbyte>(comspec);
-            if (ptype == typeof(byte))
-                mparam = new MatchingParameter<byte>(comspec);
-            if (ptype == typeof(char))
-                mparam = new MatchingParameter<char>(comspec);
-            if (ptype == typeof(Single))
-                mparam = new MatchingParameter<Single>(comspec);
-            if (ptype == typeof(DateTime))
-                mparam = new MatchingParameter<DateTime>(comspec);
+            var customAttrType = ptype.GetCustomAttribute<CustomParamaterType>();
+            if (customAttrType != null)
+            {
+                mparam = new MatchingParameter<object>(comspec,true);
+            }
+            else
+            {
+                if (ptype == typeof(int))
+                    mparam = new MatchingParameter<int>(comspec);
+                if (ptype == typeof(Int16))
+                    mparam = new MatchingParameter<Int16>(comspec);
+                if (ptype == typeof(UInt16))
+                    mparam = new MatchingParameter<UInt16>(comspec);
+                if (ptype == typeof(Int32))
+                    mparam = new MatchingParameter<Int32>(comspec);
+                if (ptype == typeof(UInt32))
+                    mparam = new MatchingParameter<UInt32>(comspec);
+                if (ptype == typeof(Int64))
+                    mparam = new MatchingParameter<Int64>(comspec);
+                if (ptype == typeof(UInt64))
+                    mparam = new MatchingParameter<UInt64>(comspec);
+                if (ptype == typeof(short))
+                    mparam = new MatchingParameter<short>(comspec);
+                if (ptype == typeof(long))
+                    mparam = new MatchingParameter<long>(comspec);
+                if (ptype == typeof(double))
+                    mparam = new MatchingParameter<double>(comspec);
+                if (ptype == typeof(float))
+                    mparam = new MatchingParameter<float>(comspec);
+                if (ptype == typeof(decimal))
+                    mparam = new MatchingParameter<decimal>(comspec);
+                if (ptype == typeof(string))
+                    mparam = new MatchingParameter<string>(comspec);
+                if (ptype == typeof(bool))
+                    mparam = new MatchingParameter<bool>(comspec);
+                if (ptype == typeof(sbyte))
+                    mparam = new MatchingParameter<sbyte>(comspec);
+                if (ptype == typeof(byte))
+                    mparam = new MatchingParameter<byte>(comspec);
+                if (ptype == typeof(char))
+                    mparam = new MatchingParameter<char>(comspec);
+                if (ptype == typeof(Single))
+                    mparam = new MatchingParameter<Single>(comspec);
+                if (ptype == typeof(DateTime))
+                    mparam = new MatchingParameter<DateTime>(comspec);
+            }
 
             return mparam;
 

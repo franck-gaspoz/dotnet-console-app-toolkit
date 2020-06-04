@@ -5,6 +5,7 @@ using System.Text;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands
 {
+    [Commands]
     public class TestCommands
     {
     }

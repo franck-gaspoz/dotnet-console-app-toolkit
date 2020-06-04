@@ -8,10 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reflection;
-using System.Text;
 using DotNetConsoleSdk.Component.CommandLine.Parsing;
 using System.Linq;
-using System.Numerics;
+using DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem;
 
 namespace DotNetConsoleSdk.Component.CommandLine
 {
@@ -61,7 +60,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
 
         #region command engine operations
 
-        public static void InitializeCommandEngine(string[] args)
+        public static void InitializeCommandProcessor(string[] args)
         {
             SetArgs(args);
             if (!_isInitialized)
@@ -76,15 +75,27 @@ namespace DotNetConsoleSdk.Component.CommandLine
             }
         }
 
-        public static void RegisterCommandsModule(string assemblyPath)
+        public static void RegisterCommandsAssembly(string assemblyPath)
         {
-            
+            var assembly = Assembly.LoadFrom(assemblyPath);
+            RegisterCommandsAssembly(assembly);
         }
 
-        static void RegisterCommandsClass<T>() 
+        public static void RegisterCommandsAssembly(Assembly assembly)
         {
-            var type = typeof(T);
-            object instance = Activator.CreateInstance<T>();            
+            foreach ( var type in assembly.GetTypes())
+            {
+                var comsAttr = type.GetCustomAttribute<CommandsAttribute>();
+                if (comsAttr != null)
+                    RegisterCommandsClass(type);
+            }
+        }
+
+        public static void RegisterCommandsClass<T>() => RegisterCommandsClass(typeof(T));
+
+        public static void RegisterCommandsClass(Type type)
+        { 
+            object instance = Activator.CreateInstance(type);            
             var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             foreach ( var method in methods )
             {

@@ -1,6 +1,5 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using DotNetConsoleSdk.Component.CommandLine.Parsing;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
 using static DotNetConsoleSdk.DotNetConsole;
@@ -8,11 +7,12 @@ using cons=DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands
 {
+    [Commands]
     public class CommandLineProcessorCommands
     {
-        [Command("print help about commands or a specific command")]
+        [Command("print help about all commands or a specific command")]
         public void Help(
-            [Parameter("prints help about command having this name",true)] string commandName = "",
+            [Parameter("prints help for this command name",true)] string commandName = "",
             [Option("short", "set short view", true)] bool shortView = false,
             [Option("v","set verbose view",true)] bool verbose = false
             )
@@ -65,7 +65,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
 #pragma warning restore IDE0071 // Simplifier l’interpolation
         }
 
-        [Command("exit the command line processor process")]
+        [Command("exit the shell")]
         public void Exit()
         {
             cons.Exit();

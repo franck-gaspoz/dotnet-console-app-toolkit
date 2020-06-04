@@ -4,6 +4,7 @@ using cons = DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands
 {
+    [Commands]
     public class ConsoleCommands
     {
         [Command("write any given expression to the output stream")]

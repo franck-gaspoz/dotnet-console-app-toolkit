@@ -5,7 +5,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
 {
     public class MatchingParameters
     {
-        Dictionary<string, IMatchingParameter> _parameters
+        readonly Dictionary<string, IMatchingParameter> _parameters
             = new Dictionary<string, IMatchingParameter>();
 
         public ReadOnlyDictionary<string, IMatchingParameter> Parameters =>

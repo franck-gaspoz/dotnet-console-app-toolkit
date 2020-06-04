@@ -43,7 +43,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             var parseErrors = new List<ParseError>();
             var index = 0;
             int position = 0;
-            int posjump = 0;
+            int posjump;
             while (position<segments.Length)
             {
                 string[] rightSegments;
@@ -59,8 +59,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                     position,
                     index,
                     rightSegments, 
-                    segments,
-                    firstIndex);
+                    segments);
                 
                 if (rparseErrors != null && rparseErrors.Count>0)
                 {
@@ -128,8 +127,6 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             var psyxs = _parameterSyntaxes.ToArray();  // TODO: ordered by position
             for (int i = 0; i < psyxs.Length; i++)
             {
-                var psyx = psyxs[i];
-                //if (pspec.Index==-1)
             }
             return r;
         } 
@@ -141,14 +138,13 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
             int position,
             int index,
             string[] rightSegments, 
-            string[] segments,
-            int firstIndex)
+            string[] segments)
         {
             List<ParseError> parseErrors = new List<ParseError>();
             var cparamSytxs = new List<ParameterSyntax>();
             for (int i = 0; i < _parameterSyntaxes.Count; i++)
             {
-                var (prsError,parameterSyntax) = _parameterSyntaxes[i].MatchSegment(syntaxMatchingRule, matchingParameters,segment, position, index, rightSegments, segments, firstIndex);
+                var (prsError,parameterSyntax) = _parameterSyntaxes[i].MatchSegment(syntaxMatchingRule, matchingParameters,segment, position, index, rightSegments, segments);
                 if (prsError == null)
                     cparamSytxs.Add(parameterSyntax);
                 if (prsError != null && prsError.Description!=null)

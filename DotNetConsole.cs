@@ -94,7 +94,7 @@ namespace DotNetConsoleSdk
                 }
                 var ls = msg.Split(_crlf, StringSplitOptions.None)
                     .Select(x => ((EnableColors) ? $"{Red}" : "") + x);
-                Println(ls);
+                Errorln(ls);
             }
         }
 
@@ -110,7 +110,7 @@ namespace DotNetConsoleSdk
                 if (message != null) ls.Insert(0, $"{Red}{message}");
             } else
                 ls.Insert(0, $"{Red}{message}: {ex.Message}");
-            Println(ls);
+            Errorln(ls);
         }
 
         public static void LogError(string s)
@@ -118,7 +118,7 @@ namespace DotNetConsoleSdk
             if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(s);
             var ls = (s + "").Split(_crlf, StringSplitOptions.None)
                 .Select(x => ((EnableColors) ? $"{Red}" : "") + x);
-            Println(ls);
+            Errorln(ls);
         }
 
         public static void LogWarning(string s)
@@ -126,13 +126,13 @@ namespace DotNetConsoleSdk
             if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(s);
             var ls = (s + "").Split(_crlf, StringSplitOptions.None)
                 .Select(x => ((EnableColors) ? $"{Yellow}" : "") + x);
-            Println(ls);
+            Errorln(ls);
         }
 
         public static void Log(string s)
         {
             if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(s);
-            Println(s.Split(_crlf, StringSplitOptions.None));
+            Errorln(s.Split(_crlf, StringSplitOptions.None));
         }
 
         #endregion
@@ -385,6 +385,8 @@ namespace DotNetConsoleSdk
 
         public static void Error(string s="") => Error(s, false);
         public static void Errorln(string s="") => Error(s, true);
+        public static void Errorln(IEnumerable<string> ls) { foreach (var s in ls) Errorln(s); }
+        public static void Error(IEnumerable<string> ls) { foreach (var s in ls) Error(s); }
         public static void Error(string s,bool lineBreak=false)
         {
             lock (ConsoleLock)
@@ -404,7 +406,7 @@ namespace DotNetConsoleSdk
                 RedirectOutputTo(sw);
                 var e = EnableConstraintConsolePrintInsideWorkArea;
                 EnableConstraintConsolePrintInsideWorkArea = false;
-                Print(s, lineBreak,false);
+                Print(s, lineBreak);
                 EnableConstraintConsolePrintInsideWorkArea = e;
                 sw.Flush();
                 ms.Position = 0;
@@ -991,7 +993,7 @@ namespace DotNetConsoleSdk
             }
         }
 
-        static void Print(object s, bool lineBreak = false,bool updateUI=true, bool preserveColors = false, bool parseCommands = true)
+        static void Print(object s, bool lineBreak = false, bool preserveColors = false, bool parseCommands = true)
         {
             lock (ConsoleLock)
             {
@@ -1030,7 +1032,6 @@ namespace DotNetConsoleSdk
                 if (lineBreak) LineBreak();
 
                 RedrawUIElementsEnabled = redrawUIElementsEnabled;
-                //if (updateUI) UpdateUI();
             }
         }
 
@@ -1146,7 +1147,7 @@ namespace DotNetConsoleSdk
                         Echo(CommandBlockBeginChar + cmd.Value.Key + CommandBlockEndChar);
                 }
                 if (result != null)
-                    Print(result, false, true);
+                    Print(result, false);
 
                 if (firstCommandSeparatorCharIndex > -1)
                     s = CommandBlockBeginChar + s.Substring(firstCommandSeparatorCharIndex + 1 /*+ i*/ );
