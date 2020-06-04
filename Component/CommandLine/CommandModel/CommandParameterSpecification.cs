@@ -1,7 +1,6 @@
-﻿//#define debug_syntax
+﻿//#define printDefaultValueInSyntax
 
 using DotNetConsoleSdk.Component.CommandLine.Parsing;
-using System;
 using System.Reflection;
 using static DotNetConsoleSdk.DotNetConsole;
 using static DotNetConsoleSdk.Lib.Str;
@@ -60,13 +59,15 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
                 r = $"{ParameterSyntax.OptionPrefix}{OptionName}{optVal}";
             }
             if (IsOptional && grammarSymbolsVisible) r = $"[{r}]";
+#if printDefaultValueInSyntax
             if (HasDefaultValue && grammarSymbolsVisible) r += $"{{={($"{DumpAsText(DefaultValue)}")}}}";
+#endif
             return r;
         }
 
         public string ToColorizedString(bool grammarSymbolsVisible=true)
         {
-            var f = White;
+            var f = GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
             var r = $"{Yellow}{ParameterName}{f}";
             if (IsOption)
             {
@@ -74,9 +75,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
                 r = $"{Darkyellow}{ParameterSyntax.OptionPrefix}{Yellow}{OptionName}{optVal}{f}";
             }
             if (IsOptional && grammarSymbolsVisible) r = $"{Cyan}[{r}{Cyan}]{f}";
+#if printDefaultValueInSyntax
             if (HasDefaultValue && grammarSymbolsVisible) r += $"{Cyan}{{={($"{Darkyellow}{DumpAsText(DefaultValue)}{Cyan}}}{f}")}";
-#if debug_syntax
-            r += $" ({SegmentsCount})";
 #endif
             return r;
         }

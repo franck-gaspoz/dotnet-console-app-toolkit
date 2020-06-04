@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using static DotNetConsoleSdk.DotNetConsole;
 using cons=DotNetConsoleSdk.DotNetConsole;
+using static DotNetConsoleSdk.Lib.Str;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands
 {
@@ -44,18 +45,20 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             if (maxcnamelength == -1) maxcnamelength = com.Name.Length + TabLength;
             var col = "".PadRight(maxcnamelength, ' ');
             Println($"{com.Name.PadRight(maxcnamelength, ' ')}{com.Description}");
-            
+            var f = GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
+
             if (com.ParametersCount > 0)
             {
-                Println($"{col}{Cyan}syntax: {White}{com.ToColorizedString()}");
+                Println($"{col}{Cyan}syntax: {f}{com.ToColorizedString()}");
                 if (!shortView || verbose)
                 {
                     var mpl = com.ParametersSpecifications.Values.Select(x => x.Dump(false).Length).Max() + TabLength;
                     Println();
                     foreach (var p in com.ParametersSpecifications.Values)
                     {
-                        var ptype = (!p.IsOption && p.HasValue) ? $". of type: {Darkyellow}{p.ParameterInfo.ParameterType.Name}{White}" : "";
-                        Println($"{col}{Tab}{p.ToColorizedString(false)}{"".PadRight(mpl - p.Dump(false).Length, ' ')}{p.Description}{ptype}");
+                        var ptype = (!p.IsOption && p.HasValue) ? $". of type: {Darkyellow}{p.ParameterInfo.ParameterType.Name}{f}" : "";
+                        var pdef = (!p.IsOption && p.HasValue) ? ($". default value: {Darkyellow}{DumpAsText(p.DefaultValue)}{f}") : "";
+                        Println($"{col}{Tab}{p.ToColorizedString(false)}{"".PadRight(mpl - p.Dump(false).Length, ' ')}{p.Description}{ptype}{pdef}");
                     }
                 }
             }
