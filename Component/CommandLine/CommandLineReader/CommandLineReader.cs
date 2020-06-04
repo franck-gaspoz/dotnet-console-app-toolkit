@@ -11,7 +11,7 @@ using static DotNetConsoleSdk.Component.CommandLine.CommandLineProcessor;
 using static DotNetConsoleSdk.DotNetConsole;
 using sc = System.Console;
 
-namespace DotNetConsoleSdk.Component.CommandLineReader
+namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 {
     public static class CommandLineReader
     {

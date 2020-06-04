@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Component\CommandLineReader\ShellSample.cs" />
+    <Compile Remove="Component\CommandLine\CommandLineReader\ShellSample.cs" />
     <Compile Remove="Program.cs" />
   </ItemGroup>
 
