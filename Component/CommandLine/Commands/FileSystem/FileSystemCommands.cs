@@ -14,7 +14,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             [Option("contains", "files that contains the string", true, true)] string contains
             )
         {
+            if (path.CheckExists())
+            {
 
+            }
             return null;
         }
     }

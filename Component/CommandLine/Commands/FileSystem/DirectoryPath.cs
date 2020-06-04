@@ -1,5 +1,6 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using System.IO;
+using static DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 {
@@ -11,6 +12,17 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
         public DirectoryPath(string path)
         {
             DirectoryInfo = new DirectoryInfo(path);
+        }
+
+        public bool CheckExists(bool dumpError=true)
+        {
+            if (!DirectoryInfo.Exists)
+            {
+                if (dumpError)
+                    Errorln($"directory doesn't exists: {this}");
+                return false;
+            }
+            return true;
         }
 
         public override string ToString()

@@ -207,8 +207,6 @@ namespace DotNetConsoleSdk.Component.CommandLine
                                 if (!errs.Contains(perr.Description))
                                     errs.Add(perr.Description);
                             }
-                            if (string.IsNullOrWhiteSpace(errorText))
-                                errorText += Red;
                             errorText += Br + string.Join(Br, errs);
                         }
                         errorText += $"{Br}for syntax: {comSyntax}{Br}";
@@ -221,7 +219,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
                     for (int i = 0; i < t.Length; i++) t[i] = " ";
                     foreach (var idx in errPositions)
                     {
-                        t[GetIndex(idx, expr)] = $"{Red}^";
+                        t[GetIndex(idx, expr)] = $"^";
                     }
                     var serr = string.Join("", t);
                     Error(" ".PadLeft(outputX + 1) + serr);

@@ -392,7 +392,7 @@ namespace DotNetConsoleSdk
             lock (ConsoleLock)
             {
                 RedirectOutToError = true;
-                Print(s, lineBreak);
+                Print($"{Red}{s}", lineBreak);
                 RedirectOutToError = false;
             }
         }
