@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using static DotNetConsoleSdk.DotNetConsole;
 using System.IO;
 using System;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 {
@@ -62,6 +61,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             {
                 var unautdir = new DirectoryPath(path) { Error = "unauthorized access" };
                 items.Add(unautdir);
+                unautdir.Print(attributes);
+                Println();
                 return items;
             }
         }

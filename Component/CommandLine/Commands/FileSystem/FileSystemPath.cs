@@ -51,9 +51,9 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 attr = $"{dir} {size,10} {smoddat}  ";
             }
             r += $"{attr}{color}{prefix}{FileSystemInfo.Name}{postfix}";
-            if (HasError)
-                r += $" {GetError()}";
             DotNetConsole.Print(r);
+            if (HasError)
+                DotNetConsole.Print($" {ErrorColorization}{GetError()}");
         }
     }
 }
