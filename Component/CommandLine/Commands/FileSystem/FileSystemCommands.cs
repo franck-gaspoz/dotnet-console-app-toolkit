@@ -56,7 +56,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             bool hasPattern = !string.IsNullOrWhiteSpace(pattern);
             bool hasContains = !string.IsNullOrWhiteSpace(contains);
             
-            if (CommandLineProcessor.CancellationTokenSource.Token.IsCancellationRequested) return items;
+            if (CommandLineProcessor.CancellationTokenSource.Token.IsCancellationRequested) 
+                return items;
 
             try
             {
@@ -103,7 +104,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                             sitem = null;
                     }
 
-                    if (CommandLineProcessor.CancellationTokenSource.Token.IsCancellationRequested) return items;
+                    if (CommandLineProcessor.CancellationTokenSource.Token.IsCancellationRequested) 
+                        return items;
                 }
                 return items;
             } catch (UnauthorizedAccessException)

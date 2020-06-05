@@ -109,14 +109,14 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                         );
 
                     try
-                    {
-                        //await task;
+                    {                        
                         task.Wait(CommandLineProcessor.CancellationTokenSource.Token);
                         expressionEvaluationResult = task.Result;
                     }
-                    catch (OperationCanceledException)
+                    catch (OperationCanceledException ex)
                     {
-                        
+                        var res = task.Result;
+                        Errorln($"command canceled: {asyncResult.AsyncState}");
                     }
                     finally
                     {
