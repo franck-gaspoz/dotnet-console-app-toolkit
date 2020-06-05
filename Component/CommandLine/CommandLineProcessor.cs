@@ -41,6 +41,8 @@ namespace DotNetConsoleSdk.Component.CommandLine
             }
         }
 
+        public static IEnumerable<string> ModuleNames => AllCommands.Select(x => x.DeclaringTypeShortName);
+
         static readonly SyntaxAnalyser _syntaxAnalyzer = new SyntaxAnalyser();
 
         #region cli methods

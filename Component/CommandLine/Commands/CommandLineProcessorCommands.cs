@@ -17,6 +17,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             [Option("short", "set short view", true)] bool shortView,
             [Option("v","set verbose view",true)] bool verbose,
             [Option("list","list all commands names and their description")] bool list,
+            [Option("module","filter commands list by module name",true,true)] string module = "",
             [Parameter("prints help for this command name", true)] string commandName = ""
             )
         {
@@ -26,6 +27,15 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
 
             if (cmds.Count() > 0)
             {
+                if (list && !string.IsNullOrWhiteSpace(module))
+                {
+                    if (!CommandLineProcessor.ModuleNames.Contains(module))
+                    {
+                        Error($"unknown module: '{module}'");
+                        return;
+                    }
+                    cmds = cmds.Where(x => x.DeclaringTypeShortName == module);
+                }
                 var ncmds = cmds.ToList();
                 ncmds.Sort(new Comparison<CommandSpecification>((x, y) => x.Name.CompareTo(y.Name)));
                 cmds = ncmds.AsQueryable();
@@ -40,7 +50,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
                 }
             }
             else
-                Errorln($"Command not found: '{commandName}'");
+                Error($"Command not found: '{commandName}'");
         }
 
         static void PrintCommandHelp(CommandSpecification com, bool shortView = false, bool verbose = false, bool list = false, int maxcnamelength=-1, int maxcmdtypelength=-1, bool singleout=false)
