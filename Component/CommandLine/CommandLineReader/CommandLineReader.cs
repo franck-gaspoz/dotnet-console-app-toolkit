@@ -31,8 +31,14 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
         static AsyncCallback _readlnAsyncCallback;
         static bool _waitForReaderExited;
         static bool _readingStarted;
+        static string _nextPrompt = null;
 
         #endregion
+
+        public static void SetPrompt(string prompt)
+        {
+            _nextPrompt = prompt;
+        }
 
         public static void InitializeCommandLineReader(ExpressionEvaluationCommandDelegate evalCommandDelegate)
         {
@@ -448,6 +454,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                             new BeginReadlnAsyncResult(s)
                             );
                         _readingStarted = false;
+                        if (_nextPrompt!=null)
+                        {
+                            prompt = _prompt = _nextPrompt;
+                            _nextPrompt = null;
+                        }
                     }
                 }
                 catch (ThreadInterruptedException) { }

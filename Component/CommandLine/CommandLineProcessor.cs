@@ -97,7 +97,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
             }
             else
             {
-                Error($"commands module '{assemblyName}' not registered");
+                Errorln($"commands module '{assemblyName}' not registered");
                 return (0, 0);
             }
         }
@@ -126,7 +126,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
         {
             if (_modules.ContainsKey(assembly.FullName))
             {
-                Error($"commands module already registered: '{assembly.FullName}'");
+                Errorln($"commands module already registered: '{assembly.FullName}'");
                 return (0,0);
             }
             var typesCount = 0;
@@ -162,7 +162,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
             var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             if (registerAsModule && _modules.ContainsKey(type.FullName))
             {
-                Error($"commands type '{type.FullName}' already registered");
+                Errorln($"commands type '{type.FullName}' already registered");
                 return 0;
             }
             foreach ( var method in methods )
@@ -242,7 +242,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
             if (registerAsModule)
             {
                 if (comsCount == 0)
-                    Error($"no commands found in type '{type.FullName}'");
+                    Errorln($"no commands found in type '{type.FullName}'");
                 else
                 {
                     var descAttr = type.GetCustomAttribute<CommandsAttribute>();

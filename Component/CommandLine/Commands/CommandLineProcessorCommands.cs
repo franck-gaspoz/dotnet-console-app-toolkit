@@ -7,6 +7,7 @@ using static DotNetConsoleSdk.DotNetConsole;
 using static DotNetConsoleSdk.Lib.Str;
 using cons = DotNetConsoleSdk.DotNetConsole;
 using static DotNetConsoleSdk.Component.CommandLine.CommandLineProcessor;
+using static DotNetConsoleSdk.Component.CommandLine.CommandLineReader.CommandLineReader;
 using System.Diagnostics.CodeAnalysis;
 using DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem;
 using System.Reflection;
@@ -150,6 +151,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
 #pragma warning restore IDE0071WithoutSuggestion // Simplifier l’interpolation
 #pragma warning restore IDE0071 // Simplifier l’interpolation
         }
+
+        [Command("set the command line prompt")]
+        public void Prompt(
+            [Parameter("text of the prompt",false)] string prompt
+            ) => SetPrompt(prompt);
 
         [Command("exit the shell")]
         public void Exit()
