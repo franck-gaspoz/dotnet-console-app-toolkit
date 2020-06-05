@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Linq;
 using System;
+using System.Globalization;
 
 namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
 {
@@ -31,6 +32,20 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
             if (commandParameterSpecifications != null)
                 commandParameterSpecifications.ToList().ForEach(x => _parametersSpecifications.Add(x.ActualName,x));
         }
+
+        public string DeclaringTypeShortName
+        {
+            get
+            {
+                var r = MethodInfo.DeclaringType.Name;
+                var i = r.LastIndexOf("Commands");
+                if (i > 0)
+                    r = r.Substring(0, i);
+                return r;
+            }
+        }
+
+        public string DeclaringTypeFullName() => MethodInfo.DeclaringType.FullName;
 
         public int ParametersCount => _parametersSpecifications.Count;
 
