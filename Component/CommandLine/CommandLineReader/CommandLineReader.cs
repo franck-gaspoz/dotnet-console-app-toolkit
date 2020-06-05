@@ -96,12 +96,22 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 
         #region input processing
 
-        public static void ProcessInput(IAsyncResult asyncResult)
+        static void ProcessInput(IAsyncResult asyncResult)
         {
             var s = (string)asyncResult.AsyncState;
-            if (s != null)
+            ProcessCommandLine(s, _evalCommandDelegate, true, true);
+        }
+
+        public static void ProcessCommandLine(
+            string commandLine, 
+            ExpressionEvaluationCommandDelegate evalCommandDelegate,
+            bool outputStartNextLine = false,
+            bool enableHistory = false)
+        {
+            
+            if (commandLine != null)
             {
-                LineBreak();
+                if (outputStartNextLine) LineBreak();
 
                 ExpressionEvaluationResult expressionEvaluationResult = null;
 
@@ -110,7 +120,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                     sc.CancelKeyPress += CancelKeyPress;
                     CommandLineProcessor.CancellationTokenSource = new CancellationTokenSource();
                     var task = Task.Run<ExpressionEvaluationResult>(
-                        () => _evalCommandDelegate(s, GetPrint(_prompt).Length),
+                        () => evalCommandDelegate(commandLine, _prompt==null?0:GetPrint(_prompt).Length),
                         CommandLineProcessor.CancellationTokenSource.Token
                         );
 
@@ -122,7 +132,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                     catch (OperationCanceledException ex)
                     {
                         var res = task.Result;
-                        Errorln($"command canceled: {asyncResult.AsyncState}");
+                        Errorln($"command canceled: {commandLine}");
                     }
                     finally
                     {
@@ -145,8 +155,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                     }
                 }
             }
-            if (!string.IsNullOrWhiteSpace(s))
-                HistoryAppend(s);
+            if (enableHistory && !string.IsNullOrWhiteSpace(commandLine))
+                HistoryAppend(commandLine);
         }
 
         private static void CancelKeyPress(object sender, ConsoleCancelEventArgs e)
