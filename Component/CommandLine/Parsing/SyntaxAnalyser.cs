@@ -1,5 +1,6 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using static DotNetConsoleSdk.DotNetConsole;
 
@@ -16,6 +17,20 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                 lst.Add(new CommandSyntax(comSpec));
             else
                 _syntaxes.Add(comSpec.Name, new List<CommandSyntax> { new CommandSyntax(comSpec) });
+        }
+
+        public void Remove(CommandSpecification comSpec)
+        {
+            if (_syntaxes.TryGetValue(comSpec.Name, out var lst))
+            {
+                var sytx = lst.Where(x => x.CommandSpecification == comSpec).FirstOrDefault();
+                if (sytx != null)
+                {
+                    lst.Remove(sytx);
+                    if (lst.Count == 0)
+                        _syntaxes.Remove(comSpec.Name);
+                }
+            }
         }
 
         public List<CommandSyntax> FindSyntaxesFromToken(

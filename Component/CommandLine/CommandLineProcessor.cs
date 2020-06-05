@@ -1,4 +1,4 @@
-﻿#define enable_test_commands
+﻿//#define enable_test_commands
 
 using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using DotNetConsoleSdk.Component.CommandLine.Commands;
@@ -12,6 +12,9 @@ using DotNetConsoleSdk.Component.CommandLine.Parsing;
 using System.Linq;
 using DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem;
 using System.Threading;
+using System.ComponentModel;
+using System.IO;
+using System.Runtime;
 
 namespace DotNetConsoleSdk.Component.CommandLine
 {
@@ -41,9 +44,13 @@ namespace DotNetConsoleSdk.Component.CommandLine
             }
         }
 
-        public static IEnumerable<string> ModuleNames => AllCommands.Select(x => x.DeclaringTypeShortName);
-
         static readonly SyntaxAnalyser _syntaxAnalyzer = new SyntaxAnalyser();
+
+        static readonly Dictionary<string, CommandsModule> _modules = new Dictionary<string, CommandsModule>();
+
+        public static IReadOnlyDictionary<string, CommandsModule> Modules => new ReadOnlyDictionary<string, CommandsModule>(_modules);
+
+        public static IEnumerable<string> CommandDeclaringTypesNames => AllCommands.Select(x => x.DeclaringTypeShortName);
 
         #region cli methods
 
@@ -71,37 +78,93 @@ namespace DotNetConsoleSdk.Component.CommandLine
             if (!_isInitialized)
             {
                 _isInitialized = true;
-                RegisterCommandsClass<CommandLineProcessorCommands>();
-                RegisterCommandsClass<ConsoleCommands>();
-                RegisterCommandsClass<FileSystemCommands>();
+                RegisterCommandsAssembly(Assembly.GetExecutingAssembly());
 #if enable_test_commands
                 RegisterCommandsClass<TestCommands>();
 #endif
             }
         }
 
-        public static void RegisterCommandsAssembly(string assemblyPath)
+        public static (int typesCount,int commandsCount) UnregisterCommandsAssembly(string assemblyName)
         {
-            var assembly = Assembly.LoadFrom(assemblyPath);
-            RegisterCommandsAssembly(assembly);
-        }
-
-        public static void RegisterCommandsAssembly(Assembly assembly)
-        {
-            foreach ( var type in assembly.GetTypes())
+            var module = _modules.Values.Where(x => x.Name == assemblyName).FirstOrDefault();
+            if (module!=null)
             {
-                var comsAttr = type.GetCustomAttribute<CommandsAttribute>();
-                if (comsAttr != null)
-                    RegisterCommandsClass(type);
+                foreach (var com in AllCommands)
+                    if (com.MethodInfo.DeclaringType.Assembly == module.Assembly)
+                        RemoveCommand(com);
+                return (module.TypesCount, module.CommandsCount);
+            }
+            else
+            {
+                Error($"commands module '{assemblyName}' not registered");
+                return (0, 0);
             }
         }
 
-        public static void RegisterCommandsClass<T>() => RegisterCommandsClass(typeof(T));
+        static bool RemoveCommand(CommandSpecification comSpec)
+        {
+            if (_commands.TryGetValue(comSpec.Name, out var cmdLst))
+            {
+                var r = cmdLst.Remove(comSpec);
+                if (r)
+                    _syntaxAnalyzer.Remove(comSpec);
+                if (cmdLst.Count == 0)
+                    _commands.Remove(comSpec.Name);
+                return r;
+            }
+            return false;
+        }
 
-        public static void RegisterCommandsClass(Type type)
-        { 
+        public static (int typesCount, int commandsCount) RegisterCommandsAssembly(string assemblyPath)
+        {
+            var assembly = Assembly.LoadFrom(assemblyPath);
+            return RegisterCommandsAssembly(assembly);
+        }
+
+        public static (int typesCount,int commandsCount) RegisterCommandsAssembly(Assembly assembly)
+        {
+            if (_modules.ContainsKey(assembly.FullName))
+            {
+                Error($"commands module already registered: '{assembly.FullName}'");
+                return (0,0);
+            }
+            var typesCount = 0;
+            var comTotCount = 0;
+            foreach ( var type in assembly.GetTypes())
+            {
+                var comsAttr = type.GetCustomAttribute<CommandsAttribute>();
+
+                var comCount = 0;
+                if (comsAttr != null)
+                    comCount = RegisterCommandsClass(type,false);                
+                if (comCount > 0)
+                    typesCount++;
+                comTotCount += comCount;
+            }
+            if (typesCount > 0)
+            {
+                var descAttr = assembly.GetCustomAttribute<DescriptionAttribute>();
+                var description = (descAttr != null) ? descAttr.Description : "";
+                _modules.Add(assembly.FullName, new CommandsModule(Path.GetFileNameWithoutExtension(assembly.Location), description, assembly, typesCount, comTotCount));
+            }
+            return (typesCount,comTotCount);    
+        }
+
+        public static void RegisterCommandsClass<T>() => RegisterCommandsClass(typeof(T),true);
+
+        public static int RegisterCommandsClass(Type type) => RegisterCommandsClass(type, true);
+
+        static int RegisterCommandsClass(Type type,bool registerAsModule)
+        {
+            var comsCount = 0;
             object instance = Activator.CreateInstance(type);            
             var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+            if (registerAsModule && _modules.ContainsKey(type.FullName))
+            {
+                Error($"commands type '{type.FullName}' already registered");
+                return 0;
+            }
             foreach ( var method in methods )
             {
                 var cmd = method.GetCustomAttribute<CommandAttribute>();
@@ -154,13 +217,40 @@ namespace DotNetConsoleSdk.Component.CommandLine
                         method,
                         instance,
                         paramspecs);
+
+                    bool registered = true;
                     if (_commands.TryGetValue(cmdspec.Name, out var cmdlst))
-                        cmdlst.Add(cmdspec);
+                    {
+                        if (cmdlst.Select(x => x.MethodInfo.DeclaringType == type).Any())
+                        {
+                            Errorln($"command already registered: '{cmdspec.Name}' in type '{cmdspec.DeclaringTypeFullName}'");
+                            registered = false;
+                        }    
+                        else
+                            cmdlst.Add(cmdspec);
+                    }
                     else
                         _commands.Add(cmdspec.Name, new List<CommandSpecification> { cmdspec });
-                    _syntaxAnalyzer.Add(cmdspec);
+
+                    if (registered)
+                    {
+                        _syntaxAnalyzer.Add(cmdspec);
+                        comsCount++;
+                    }
                 }
             }
+            if (registerAsModule)
+            {
+                if (comsCount == 0)
+                    Error($"no commands found in type '{type.FullName}'");
+                else
+                {
+                    var descAttr = type.GetCustomAttribute<CommandsAttribute>();
+                    var description = descAttr != null ? descAttr.Description : "";
+                    _modules.Add(type.FullName, new CommandsModule(CommandsModule.DeclaringTypeShortName(type), description, type.Assembly, 1, comsCount, type));
+                }
+            }
+            return comsCount;
         }
 
         #endregion

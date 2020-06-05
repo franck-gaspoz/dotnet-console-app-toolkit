@@ -7,7 +7,7 @@ using static DotNetConsoleSdk.Lib.Str;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 {
-    [Commands]
+    [Commands("commands related to files,directories,mounts/filesystems and disks")]
     public class FileSystemCommands
     {
         [Command("search for files and/or folders")]

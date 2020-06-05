@@ -6,10 +6,14 @@ using System.Reflection.Metadata;
 using static DotNetConsoleSdk.DotNetConsole;
 using static DotNetConsoleSdk.Lib.Str;
 using cons = DotNetConsoleSdk.DotNetConsole;
+using static DotNetConsoleSdk.Component.CommandLine.CommandLineProcessor;
+using System.Diagnostics.CodeAnalysis;
+using DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem;
+using System.Reflection;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands
 {
-    [Commands]
+    [Commands("commands related to the command line processor (dnc shell)")]
     public class CommandLineProcessorCommands
     {
         [Command("print help about all commands or a specific command")]
@@ -17,7 +21,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             [Option("short", "set short view", true)] bool shortView,
             [Option("v","set verbose view",true)] bool verbose,
             [Option("list","list all commands names and their description")] bool list,
-            [Option("module","filter commands list by module name",true,true)] string module = "",
+            [Option("type","filter commands list by command declaring type",true,true)] string type = "",
             [Parameter("prints help for this command name", true)] string commandName = ""
             )
         {
@@ -27,14 +31,14 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
 
             if (cmds.Count() > 0)
             {
-                if (!string.IsNullOrWhiteSpace(module))
+                if (!string.IsNullOrWhiteSpace(type))
                 {
-                    if (!CommandLineProcessor.ModuleNames.Contains(module))
+                    if (!CommandLineProcessor.CommandDeclaringTypesNames.Contains(type))
                     {
-                        Errorln($"unknown module: '{module}'");
+                        Errorln($"unknown command declaring type: '{type}'");
                         return;
                     }
-                    cmds = cmds.Where(x => x.DeclaringTypeShortName == module);
+                    cmds = cmds.Where(x => x.DeclaringTypeShortName == type);
                 }
                 var ncmds = cmds.ToList();
                 ncmds.Sort(new Comparison<CommandSpecification>((x, y) => x.Name.CompareTo(y.Name)));
@@ -53,13 +57,50 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
                 Errorln($"Command not found: '{commandName}'");
         }
 
-        [Command("list modules of commands if no args,or load or unload a module")]
+        [Command("list modules of commands if no option specified, either load or unload modules of commands")]
+        [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
+        [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
         public void Module(
-            [Option("load","load a module at this path",true,true)] string loadModulePath = "",
-            [Option("unload","unload the module having this name ",true,true)] string unloadModuleName = ""
+            [Option("load", "load a module at this path", true, true)] FilePath loadModulePath = null,
+            [Option("unload","unload the module having this name ",true,true)] string unloadModuleName = null
             )
         {
-
+            var f = GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
+            if (loadModulePath==null && unloadModuleName==null)
+            {
+                var col1length = Modules.Values.Select(x => x.Name.Length).Max() + 1;
+                foreach (var kvp in Modules)
+                {
+                    Println($"{kvp.Value.Name.PadRight(col1length,' ')}{kvp.Value.Description} [types count={Cyan}{kvp.Value.TypesCount}{f} commands count={Cyan}{kvp.Value.CommandsCount}{f}]");
+                    Println($"{"".PadRight(col1length, ' ')}{Cyan}assembly:{Gray}{kvp.Value.Assembly.FullName}");
+                    Println($"{"".PadRight(col1length, ' ')}{Cyan}path:    {Gray}{kvp.Value.Assembly.Location}");
+                }
+            }
+            if (loadModulePath!=null)
+            {
+                if (loadModulePath.CheckExists())
+                {
+                    var a = Assembly.LoadFrom(loadModulePath.FileSystemInfo.FullName);
+                    var (typesCount, commandsCount) = RegisterCommandsAssembly(a);
+                    if (commandsCount == 0)
+                        Errorln("no commands have been loaded");
+                    else
+                        Println($"loaded {Cyan}{Plur("command",commandsCount,f)} in {Cyan}{Plur("type", typesCount, f)}");
+                }
+            }
+            if (unloadModuleName!=null)
+            {
+                if (Modules.Values.Any(x => x.Name==unloadModuleName))
+                {
+                    var (typesCount, commandsCount) = UnregisterCommandsAssembly(unloadModuleName);
+                    if (commandsCount == 0)
+                        Errorln("no commands have been unloaded");
+                    else
+                        Println($"unloaded {Cyan}{Plur("command", commandsCount, f)} in {Cyan}{Plur("type", typesCount, f)}");
+                }
+                else
+                    Errorln($"commands module '{unloadModuleName}' not registered");
+            }
         }
 
         static void PrintCommandHelp(CommandSpecification com, bool shortView = false, bool verbose = false, bool list = false, int maxcnamelength=-1, int maxcmdtypelength=-1, bool singleout=false)

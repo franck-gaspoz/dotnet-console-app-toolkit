@@ -45,7 +45,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
             }
         }
 
-        public string DeclaringTypeFullName() => MethodInfo.DeclaringType.FullName;
+        public string DeclaringTypeFullName => MethodInfo.DeclaringType.FullName;
 
         public int ParametersCount => _parametersSpecifications.Count;
 
