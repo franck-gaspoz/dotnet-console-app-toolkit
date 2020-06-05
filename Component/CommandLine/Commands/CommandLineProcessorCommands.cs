@@ -27,11 +27,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
 
             if (cmds.Count() > 0)
             {
-                if (list && !string.IsNullOrWhiteSpace(module))
+                if (!string.IsNullOrWhiteSpace(module))
                 {
                     if (!CommandLineProcessor.ModuleNames.Contains(module))
                     {
-                        Error($"unknown module: '{module}'");
+                        Errorln($"unknown module: '{module}'");
                         return;
                     }
                     cmds = cmds.Where(x => x.DeclaringTypeShortName == module);
@@ -50,7 +50,16 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
                 }
             }
             else
-                Error($"Command not found: '{commandName}'");
+                Errorln($"Command not found: '{commandName}'");
+        }
+
+        [Command("list modules of commands if no args,or load or unload a module")]
+        public void Module(
+            [Option("load","load a module at this path",true,true)] string loadModulePath = "",
+            [Option("unload","unload the module having this name ",true,true)] string unloadModuleName = ""
+            )
+        {
+
         }
 
         static void PrintCommandHelp(CommandSpecification com, bool shortView = false, bool verbose = false, bool list = false, int maxcnamelength=-1, int maxcmdtypelength=-1, bool singleout=false)
@@ -63,7 +72,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             var col = singleout? "": "".PadRight(maxcnamelength, ' ');
             var f = GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
             if (list)
-                Println($"{com.Name.PadRight(maxcnamelength, ' ')}{Darkgray}{com.DeclaringTypeShortName.PadRight(maxcmdtypelength, ' ')}{f}{com.Description}");
+                Println($"{com.Name.PadRight(maxcnamelength, ' ')}{Darkcyan}{com.DeclaringTypeShortName.PadRight(maxcmdtypelength, ' ')}{f}{com.Description}");
             else
             {
                 if (singleout)
@@ -77,7 +86,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
                 if (com.ParametersCount > 0)
                 {
                     Println($"{col}{Cyan}syntax: {f}{com.ToColorizedString()}");
-                    Println($"{col}{Cyan}module: {Darkgray}{com.DeclaringTypeShortName}");
+                    Println($"{col}{Cyan}module: {Darkcyan}{com.DeclaringTypeShortName}");
                     if (!shortView || verbose)
                     {
                         var mpl = com.ParametersSpecifications.Values.Select(x => x.Dump(false).Length).Max() + TabLength;

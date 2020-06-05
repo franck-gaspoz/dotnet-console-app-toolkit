@@ -1,5 +1,4 @@
 ﻿//#define dbg
-#define cancelableEval
 
 using DotNetConsoleSdk.Component.CommandLine;
 using System;
@@ -91,7 +90,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 
         #region input processing
 
-        public static async void ProcessInput(IAsyncResult asyncResult)
+        public static void ProcessInput(IAsyncResult asyncResult)
         {
             var s = (string)asyncResult.AsyncState;
             if (s != null)
@@ -102,14 +101,12 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 
                 try
                 {
-#if cancelableEval
                     sc.CancelKeyPress += CancelKeyPress;
                     CommandLineProcessor.CancellationTokenSource = new CancellationTokenSource();
                     var task = Task.Run<ExpressionEvaluationResult>(
                         () => _evalCommandDelegate(s, GetPrint(_prompt).Length),
                         CommandLineProcessor.CancellationTokenSource.Token
                         );
-                    //var expressionEvaluationResult = _evalCommandDelegate(s, GetPrint(_prompt).Length);
 
                     try
                     {
@@ -125,9 +122,6 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                     {
                         
                     }                    
-#else
-                    var expressionEvaluationResult = _evalCommandDelegate(s, GetPrint(_prompt).Length);
-#endif
                 }
                 catch (Exception ex)
                 {
@@ -139,8 +133,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                     sc.CancelKeyPress -= CancelKeyPress;
                     lock (ConsoleLock)
                     {
-                        if (!WorkArea.rect.IsEmpty && (WorkArea.rect.Y != CursorTop || WorkArea.rect.X != CursorLeft))
-                            LineBreak();
+                        /*if (!WorkArea.rect.IsEmpty && (WorkArea.rect.Y != CursorTop || WorkArea.rect.X != CursorLeft))
+                            LineBreak();*/
                         RestoreDefaultColors();
                     }
                 }
