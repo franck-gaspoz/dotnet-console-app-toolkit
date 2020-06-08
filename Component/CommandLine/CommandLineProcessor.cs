@@ -144,7 +144,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
             }
             if (typesCount > 0)
             {
-                var descAttr = assembly.GetCustomAttribute<DescriptionAttribute>();
+                var descAttr = assembly.GetCustomAttribute<AssemblyDescriptionAttribute>();
                 var description = (descAttr != null) ? descAttr.Description : "";
                 _modules.Add(assembly.FullName, new CommandsModule(Path.GetFileNameWithoutExtension(assembly.Location), description, assembly, typesCount, comTotCount));
             }

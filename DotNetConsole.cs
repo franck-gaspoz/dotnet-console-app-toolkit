@@ -14,7 +14,9 @@ using System.Threading;
 using static DotNetConsoleSdk.Component.UI.UIElement;
 using sc = System.Console;
 using static DotNetConsoleSdk.Lib.Str;
+using System.Reflection;
 
+[assembly: AssemblyDescriptionAttribute("DotNetConsoleToolkit core module")]
 namespace DotNetConsoleSdk
 {
     /// <summary>

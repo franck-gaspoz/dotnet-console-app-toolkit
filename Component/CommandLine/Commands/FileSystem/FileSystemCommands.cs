@@ -13,14 +13,14 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
         [Command("search for files and/or folders")]
         public List<FileSystemPath> Find(
             [Parameter("search path")] DirectoryPath path,
-            [Option("pat", "name that matches the pattern", true, true)] string pattern,
-            [Option("flp","check pattern on fullname instead of name")] bool checkPatternOnFullName,
-            [Option("in", "files that contains the string", true, true)] string contains,
-            [Option("attr", "print file system attributes")] bool attributes,
-            [Option("shp","print short pathes")] bool shortPathes,
+            [Option("p", "name that matches the pattern", true, true)] string pattern,
+            [Option("f","check pattern on fullname instead of name")] bool checkPatternOnFullName,
+            [Option("i", "files that contains the string", true, true)] string contains,
+            [Option("a", "print file system attributes")] bool attributes,
+            [Option("s","print short pathes")] bool shortPathes,
             [Option("all", "select files and directories")] bool all,
-            [Option("dir", "select only directories")] bool dirs,
-            [Option("top", "top directory only")] bool top
+            [Option("d", "select only directories")] bool dirs,
+            [Option("t", "top directory only")] bool top
             )
         {
             if (path.CheckExists())
@@ -35,20 +35,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             }
             return new List<FileSystemPath>();
         }
-
-        class FindCounts
-        {
-            public int FoldersCount;
-            public int FilesCount;
-            public int ScannedFoldersCount;
-            public int ScannedFilesCount;
-            public DateTime BeginDateTime;
-            public FindCounts()
-            {
-                BeginDateTime = DateTime.Now;
-            }
-        }
-
+        
         List<FileSystemPath> FindItems(string path, string pattern,bool top,bool all,bool dirs,bool attributes,bool shortPathes,string contains,bool checkPatternOnFullName,FindCounts counts)
         {
             var dinf = new DirectoryInfo(path);
@@ -113,6 +100,28 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 Errorln($"unauthorized access to {new DirectoryPath(path).FileSystemInfo.FullName}");
                 return items;
             }
+        }
+
+        [Command("list files and folders in a path. eventually recurse in sub pathes")]
+        public List<FileSystemPath> Dir(
+            [Parameter("path where to list files and folders. if not specified is equal to the current directory",true)] WildcardFilePath path,
+            [Option("na", "do not print file system attributes")] bool noattributes,
+            [Option("r", "recurses in sub pathes")] bool recurse
+            )
+        {
+            var r = new List<FileSystemPath>();
+            path ??= new WildcardFilePath(Environment.CurrentDirectory);
+            if (path.CheckExists())
+            {
+                var dinf = new DirectoryInfo(path.FileSystemInfo.FullName);
+                var scan = dinf.GetFileSystemInfos("*",recurse?SearchOption.AllDirectories:SearchOption.TopDirectoryOnly);
+                foreach ( var fsinf in scan )
+                {
+                    var sitem = FileSystemPath.Get(fsinf);
+                    sitem.Print(!noattributes, !recurse, "", Br);
+                }
+            }
+            return r;
         }
     }
 }

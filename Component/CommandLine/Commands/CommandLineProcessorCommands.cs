@@ -62,8 +62,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
         [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
         [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
         public void Module(
-            [Option("load", "load a module at this path", true, true)] FilePath loadModulePath = null,
-            [Option("unload","unload the module having this name ",true,true)] string unloadModuleName = null
+            [Option("l", "load a module at this path", true, true)] FilePath loadModulePath = null,
+            [Option("u","unload the module having this name ",true,true)] string unloadModuleName = null
             )
         {
             var f = GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
