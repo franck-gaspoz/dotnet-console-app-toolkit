@@ -11,6 +11,7 @@ using static DotNetConsoleSdk.Component.CommandLine.CommandLineReader.CommandLin
 using System.Diagnostics.CodeAnalysis;
 using DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem;
 using System.Reflection;
+using System.IO;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands
 {
@@ -19,10 +20,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
     {
         [Command("print help about all commands or a specific command")]
         public void Help(
-            [Option("short", "set short view", true)] bool shortView,
-            [Option("v","set verbose view",true)] bool verbose,
-            [Option("list","list all commands names and their description")] bool list,
-            [Option("type","filter commands list by command declaring type",true,true)] string type = "",
+            [Option("s", "set short view", true)] bool shortView,
+            [Option("l","list all commands names and their description")] bool list,
+            [Option("t","filter commands list by command declaring type",true,true)] string type = "",
+            [Option("m", "filter commands list by module name", true,true)] string module = "",
             [Parameter("prints help for this command name", true)] string commandName = ""
             )
         {
@@ -41,16 +42,26 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
                     }
                     cmds = cmds.Where(x => x.DeclaringTypeShortName == type);
                 }
+                if (!string.IsNullOrWhiteSpace(module))
+                {
+                    if (!CommandLineProcessor.Modules.Values.Select(x => x.Name).Contains(module))
+                    {
+                        Errorln($"unknown command module: '{module}'");
+                        return;
+                    }
+                    cmds = cmds.Where(x => Path.GetFileNameWithoutExtension(x.MethodInfo.DeclaringType.Assembly.Location) == module);
+                }
                 var ncmds = cmds.ToList();
                 ncmds.Sort(new Comparison<CommandSpecification>((x, y) => x.Name.CompareTo(y.Name)));
                 cmds = ncmds.AsQueryable();
                 var maxcmdlength = cmds.Select(x => x.Name.Length).Max() + 1;
                 var maxcmdtypelength = cmds.Select(x => x.DeclaringTypeShortName.Length).Max() + 1;
+                var maxmodlength = cmds.Select(x => Path.GetFileNameWithoutExtension(x.MethodInfo.DeclaringType.Assembly.Location).Length).Max() + 1;
                 int n = 0;
                 foreach (var cmd in cmds)
                 {
                     if (!list && n > 0) Println();
-                    PrintCommandHelp(cmd, shortView, verbose,list,maxcmdlength, maxcmdtypelength, cmds.Count()==1);
+                    PrintCommandHelp(cmd, shortView ,list,maxcmdlength, maxcmdtypelength, maxmodlength,cmds.Count()==1);
                     n++;
                 }
             }
@@ -104,11 +115,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             }
         }
 
-        static void PrintCommandHelp(CommandSpecification com, bool shortView = false, bool verbose = false, bool list = false, int maxcnamelength=-1, int maxcmdtypelength=-1, bool singleout=false)
+        static void PrintCommandHelp(CommandSpecification com, bool shortView = false, bool list = false, int maxcnamelength=-1, int maxcmdtypelength=-1, int maxmodlength=-1, bool singleout=false)
         {
 #pragma warning disable IDE0071 // Simplifier l’interpolation
 #pragma warning disable IDE0071WithoutSuggestion // Simplifier l’interpolation
-
             if (maxcnamelength == -1) maxcnamelength = com.Name.Length + 1;
             if (maxcmdtypelength == -1) maxcmdtypelength = com.DeclaringTypeShortName.Length + 1;       
             var col = singleout? "": "".PadRight(maxcnamelength, ' ');
@@ -125,29 +135,26 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
 
             if (!list)
             {
+                Println($"{col}{Cyan}type  : {Darkcyan}{com.DeclaringTypeShortName}");
+                Println($"{col}{Cyan}module: {Darkcyan}{Path.GetFileNameWithoutExtension(com.MethodInfo.DeclaringType.Assembly.Location)}");
                 if (com.ParametersCount > 0)
                 {
-                    Println($"{col}{Cyan}syntax: {f}{com.ToColorizedString()}");
-                    Println($"{col}{Cyan}module: {Darkcyan}{com.DeclaringTypeShortName}");
-                    if (!shortView || verbose)
+                    Println($"{col}{Cyan}syntax: {f}{com.ToColorizedString()}");                    
+                    if (!shortView)
                     {
                         var mpl = com.ParametersSpecifications.Values.Select(x => x.Dump(false).Length).Max() + TabLength;
                         Println();
                         foreach (var p in com.ParametersSpecifications.Values)
                         {
-                            var ptype = (!p.IsOption && p.HasValue) ? $". of type: {Darkyellow}{p.ParameterInfo.ParameterType.Name}{f}" : "";
+                            var ptype = (!p.IsOption && p.HasValue) ? $"of type: {Darkyellow}{p.ParameterInfo.ParameterType.Name}{f}" : "";
                             var pdef = (!p.IsOption && p.HasValue) ? ($". default value: {Darkyellow}{DumpAsText(p.DefaultValue)}{f}") : "";
-                            Println($"{col}{Tab}{p.ToColorizedString(false)}{"".PadRight(mpl - p.Dump(false).Length, ' ')}{p.Description}{ptype}{pdef}");
+                            var supdef = $"{ptype}{pdef}";
+                            Println($"{col}{Tab}{p.ToColorizedString(false)}{"".PadRight(mpl - p.Dump(false).Length, ' ')}{p.Description}");
+                            if (!string.IsNullOrWhiteSpace(supdef)) Println($"{col}{Tab}{" ".PadRight(mpl)}{supdef}");
                         }
                     }
                 }
-                if (verbose)
-                {
-                    Println();
-                    Println($"{col}{Gray}declaring type: {Darkgray}{com.MethodInfo.DeclaringType.FullName}");
-                }
             }
-
 #pragma warning restore IDE0071WithoutSuggestion // Simplifier l’interpolation
 #pragma warning restore IDE0071 // Simplifier l’interpolation
         }
