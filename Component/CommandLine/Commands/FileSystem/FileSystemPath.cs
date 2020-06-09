@@ -12,11 +12,14 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
         public static string ErrorColorization = $"{Red}";
         public static string NormalDirectoryColorization = $"{Blue}";
         public static string WritableDirectoryColorization = $"{Bdarkgreen}{White}";
-        public static string SystemWritableDirectoryColorization = $"{Bdarkgreen}{Yellow}";
+        public static string SystemWritableDirectoryColorization = $"{Bdarkgreen}{Darkred}";
         public static string SystemColorization = $"{Red}";
         public static string FileColorization = $"";
         public static string ReadOnlyFileColorization = $"{Green}";
+
         public FileSystemInfo FileSystemInfo { get; protected set; }
+        public string Name => FileSystemInfo.Name;
+        public string FullName => FileSystemInfo.FullName;
 
         public string Error;
 
@@ -46,14 +49,16 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 return new FilePath(fsinf.FullName);
         }
 
-        public void Print(bool printAttributes=false,bool shortPath=false,string prefix="",string postfix="")
+        public void Print(bool printAttributes=false,bool shortPath=false,string prefix="",string postfix="",int paddingRight=-1)
         {
             var bg = GetCmd(KeyWords.b + "", DefaultBackground.ToString().ToLower());
+            var fg = GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
             var color = (IsDirectory) ? NormalDirectoryColorization : FileColorization;
             if (!IsSystem && IsDirectory && !IsReadOnly) color += WritableDirectoryColorization;
             if (IsSystem && !IsDirectory) color += SystemColorization + bg;
             if (IsSystem && IsDirectory && !IsReadOnly) color += SystemWritableDirectoryColorization;
             if (IsFile && IsReadOnly) color += ReadOnlyFileColorization;
+            var endcolor = bg + fg;
             var r = "";
             var attr = "";
             string hidden = "";
@@ -73,7 +78,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             }
             var name = shortPath ? FileSystemInfo.Name : FileSystemInfo.FullName;
             var quote =name.Contains(' ') ? "\"" : "";
-            r += $"{attr}{color}{prefix}{quote}{name}{quote}{hidden}{postfix}";
+            var pdr = paddingRight - name.Length;
+            if (!string.IsNullOrWhiteSpace(quote)) pdr -= 2;
+            var rightspace = (paddingRight > -1) ? endcolor+"".PadRight(pdr>0?pdr:1, ' ') : "";
+            r += $"{attr}{color}{prefix}{quote}{name}{quote}{hidden}{rightspace}{postfix}";
             DotNetConsole.Print(r);
             if (HasError)
                 DotNetConsole.Print($" {ErrorColorization}{GetError()}");

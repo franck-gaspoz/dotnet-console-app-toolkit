@@ -1,6 +1,7 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -106,11 +107,12 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             }
         }
 
-        [Command("list files and folders in a path. eventually recurse in sub pathes")]
+        [Command("list files and folders in a path. eventually recurse in sub paths")]
         public List<FileSystemPath> Dir(
             [Parameter("path where to list files and folders. if not specified is equal to the current directory",true)] WildcardFilePath path,
             [Option("na", "do not print file system attributes")] bool noattributes,
-            [Option("r", "also list files and folders in sub directories")] bool recurse
+            [Option("r", "also list files and folders in sub directories. force display files full path")] bool recurse,
+            [Option("w", "displays file names on several columns so output fills console width (only if not recurse mode). disable print of attributes")] bool wide
             )
         {
             var r = new List<FileSystemPath>();
@@ -121,6 +123,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 var items = FindItems(path.DirectoryInfo.FullName,path.WildCardFileName!=null? path.WildCardFileName:"*" , !recurse, true, false, !noattributes, !recurse, null, false, counts, false,true);
                 var f = GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
                 long totFileSize = 0;
+                var cancellationTokenSource = new CancellationTokenSource();
+                if (wide) noattributes = true;
                 void postCmd(object o, EventArgs e)
                 {
                     sc.CancelKeyPress -= cancelCmd;
@@ -128,7 +132,6 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                     Println($"{Tab}{Cyan}{Plur("file", counts.FilesCount, f),-30}{HumanFormatOfSize(totFileSize, 2)}");
                     Println($"{Tab}{Cyan}{Plur("folder", counts.FoldersCount, f),-30}{Drive.GetDriveInfo(path.FileSystemInfo.FullName)}");
                 }
-                var cancellationTokenSource = new CancellationTokenSource();
                 void cancelCmd(object o, ConsoleCancelEventArgs e)
                 {
                     e.Cancel = true;
@@ -138,16 +141,27 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 {
                     var i = 0;
 
-                    foreach ( var item in items )
+                    int maxitlength = 0;
+                    foreach (var item in items)
+                    {
                         if (item.IsFile) totFileSize += ((FileInfo)item.FileSystemInfo).Length;
+                        maxitlength = Math.Max(item.Name.Length, maxitlength);
+                    }
+                    maxitlength += 4;
+                    var nbcols = Math.Floor((double)(ActualWorkArea.right - ActualWorkArea.left+1)/(double)maxitlength);
 
+                    int nocol = 0;
                     foreach (var item in items)
                     {
                         if (cancellationTokenSource.IsCancellationRequested)
                             return i;
-                        item.Print(!noattributes, !recurse, "", Br);
+                        item.Print(!noattributes, !recurse, "", (!wide || recurse || nocol == nbcols-1)?Br:"",(wide && !recurse)?maxitlength:-1);
                         i++;
+                        nocol++;
+                        if (nocol == nbcols)
+                            nocol = 0;
                     }
+                    if (!recurse && wide && nocol < nbcols && nocol>0) Println();
                     return i;
                 }
                 sc.CancelKeyPress += cancelCmd;
