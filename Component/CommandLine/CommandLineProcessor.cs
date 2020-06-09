@@ -1,6 +1,7 @@
 ﻿//#define enable_test_commands
 
 using DotNetConsoleSdk.Component.CommandLine.CommandModel;
+using DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem;
 using DotNetConsoleSdk.Component.CommandLine.Parsing;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,8 @@ namespace DotNetConsoleSdk.Component.CommandLine
     public static class CommandLineProcessor
     {
         #region attributes
+
+        public const string CommandsHistoryFilename = "history.txt";
 
         public static CancellationTokenSource CancellationTokenSource;
 
@@ -268,6 +271,20 @@ namespace DotNetConsoleSdk.Component.CommandLine
                 }
             }
             return comsCount;
+        }
+
+        #endregion
+
+        #region command processor session operations
+
+        public static FilePath UserCommandsHistoryFile
+        {
+            get
+            {
+
+                var userPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                return new FilePath(Path.Combine(userPath, CommandsHistoryFilename));
+            }
         }
 
         #endregion

@@ -214,6 +214,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
 
             if (appendToFile || readFromFile || appendFromFile)
             {
+                file ??= UserCommandsHistoryFile;
                 if (file.CheckPathExists())
                 {
                     if (appendToFile) File.AppendAllLines(file.FullName, hist);
