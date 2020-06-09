@@ -220,7 +220,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
         }
 
         [Command("print informations about drives")]
-        public void Drive(
+        public void Driveinfo(
             [Parameter("drive name for which informations must be printed. if no drive specified, list all drives",true)] string drive
             )
         {

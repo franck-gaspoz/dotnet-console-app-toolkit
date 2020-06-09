@@ -6,12 +6,15 @@ using System.Reflection.Metadata;
 using static DotNetConsoleSdk.DotNetConsole;
 using static DotNetConsoleSdk.Lib.Str;
 using cons = DotNetConsoleSdk.DotNetConsole;
+using DotNetConsoleSdk.Component.CommandLine.CommandLineReader;
 using static DotNetConsoleSdk.Component.CommandLine.CommandLineProcessor;
 using static DotNetConsoleSdk.Component.CommandLine.CommandLineReader.CommandLineReader;
 using System.Diagnostics.CodeAnalysis;
 using DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem;
 using System.Reflection;
 using System.IO;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands
 {
@@ -20,7 +23,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
     {
         [Command("print help about all commands or a specific command")]
         public void Help(
-            [Option("s", "set short view", true)] bool shortView,
+            [Option("s", "set short view")] bool shortView,
             [Option("l","list all commands names and their description")] bool list,
             [Option("t","filter commands list by command declaring type",true,true)] string type = "",
             [Option("m", "filter commands list by module name", true,true)] string module = "",
@@ -171,6 +174,46 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
         public void Exit()
         {
             cons.Exit();
+        }
+
+        [Command("displays the commands history list or manipulate it")]
+        [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
+        [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
+        public List<string> History(
+            [Option("c","clear the history list")] bool clear,
+            [Parameter("history entry number", true)] int num = -1
+            )
+        {
+            var hist = CommandLineReader.CommandLineReader.History;
+            var max = hist.Count().ToString().Length;
+            int i = 1;
+            var f = DefaultForegroundCmd;
+
+            if (num>-1)
+            {
+                if (num<1 || num>hist.Count)
+                {
+                    Errorln($"history entry number out of range (1..{hist.Count})");
+                    return CommandLineReader.CommandLineReader.History;
+                }
+                var h = hist[num];
+                SendInput(h);
+                return CommandLineReader.CommandLineReader.History;
+            }
+
+            if (clear)
+            {
+                ClearHistory();
+                return CommandLineReader.CommandLineReader.History;
+            }
+
+            foreach ( var h in hist )
+            {
+                var hp = $"  {Cyan}{i.ToString().PadRight(max + 2, ' ')}{f}{h}";
+                Println(hp);
+                i++;
+            }
+            return CommandLineReader.CommandLineReader.History;
         }
     }
 }

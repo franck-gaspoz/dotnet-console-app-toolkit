@@ -33,6 +33,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
         static bool _readingStarted;
         static string _nextPrompt = null;
 
+        public static List<string> History => new List<string>(_history);
+
         #endregion
 
         public static void SetPrompt(string prompt)
@@ -174,6 +176,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 
         public static void SendInput(string text,bool sendEnter=true)
         {
+            _readingStarted = false;
             _sentInput = text + ((sendEnter)?Environment.NewLine:"");
             if (_inputReaderThread == null) return;
             _inputReaderThread.Interrupt();
@@ -524,7 +527,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 
 #endregion
 
-#region shell control operations
+        #region history operations
 
         public static string GetBackwardHistory()
         {
@@ -554,6 +557,6 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 
         public static void ClearHistory() => _history.Clear();
 
-#endregion
+        #endregion
     }
 }
