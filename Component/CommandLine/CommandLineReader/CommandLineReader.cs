@@ -129,7 +129,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                         task.Wait(CommandLineProcessor.CancellationTokenSource.Token);
                         expressionEvaluationResult = task.Result;
                     }
-                    catch (OperationCanceledException ex)
+                    catch (OperationCanceledException)
                     {
                         var res = task.Result;
                         Errorln($"command canceled: {commandLine}");

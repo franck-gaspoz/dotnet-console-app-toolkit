@@ -31,7 +31,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             {
                 var sp = string.IsNullOrWhiteSpace(pattern) ? "*" : pattern;
                 var counts = new FindCounts();
-                var items = FindItems(path.DirectoryInfo.FullName, sp, top,all,dirs,attributes,shortPathes,contains, checkPatternOnFullName,counts,true);
+                var items = FindItems(path.FullName, sp, top,all,dirs,attributes,shortPathes,contains, checkPatternOnFullName,counts,true);
                 var f = GetCmd(KeyWords.f+"",DefaultForeground.ToString().ToLower());
                 var elapsed = DateTime.Now - counts.BeginDateTime;
                 if (items.Count > 0) Println();
@@ -102,7 +102,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 return items;
             } catch (UnauthorizedAccessException)
             {
-                Errorln($"unauthorized access to {new DirectoryPath(path).FileSystemInfo.FullName}");
+                Errorln($"unauthorized access to {new DirectoryPath(path).FullName}");
                 return items;
             }
         }
@@ -120,7 +120,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             if (path.CheckExists())
             {
                 var counts = new FindCounts();
-                var items = FindItems(path.DirectoryInfo.FullName,path.WildCardFileName!=null? path.WildCardFileName:"*" , !recurse, true, false, !noattributes, !recurse, null, false, counts, false,true);
+                var items = FindItems(path.FullName, path.WildCardFileName ?? "*", !recurse, true, false, !noattributes, !recurse, null, false, counts, false,true);
                 var f = GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
                 long totFileSize = 0;
                 var cancellationTokenSource = new CancellationTokenSource();
@@ -171,7 +171,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 {
                     task.Wait(cancellationTokenSource.Token);
                 }
-                catch (OperationCanceledException ex)
+                catch (OperationCanceledException)
                 {
                     var res = task.Result;
                 }
@@ -180,5 +180,25 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             return r;
         }
        
+        [Command("changes current drive/directory")]
+        public void Cd(
+            [Parameter("path where to list files and folders. if not specified is equal to the current directory", true)] DirectoryPath path
+            )
+        {
+            path ??= new DirectoryPath(Path.GetPathRoot(Environment.CurrentDirectory));
+            if (path.CheckExists())
+            {
+                var bkpath = Environment.CurrentDirectory;
+                try
+                {
+                    Environment.CurrentDirectory = path.FullName;
+
+                } catch (UnauthorizedAccessException)
+                {
+                    Errorln($"unauthorized access to {path.FullName}");
+                    Environment.CurrentDirectory = bkpath;
+                }
+            }
+        }
     }
 }
