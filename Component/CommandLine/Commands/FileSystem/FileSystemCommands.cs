@@ -116,7 +116,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 
         [Command("list files and folders in a path. eventually recurse in sub paths")]
         public List<FileSystemPath> Dir(
-            [Parameter("path where to list files and folders. if not specified is equal to the current directory",true)] WildcardFilePath path,
+            [Parameter("path where to list files and folders. if not specified is equal to the current directory. use wildcards * and ? to filter files and folders names",true)] WildcardFilePath path,
             [Option("na", "do not print file system attributes")] bool noattributes,
             [Option("r", "also list files and folders in sub directories. force display files full path")] bool recurse,
             [Option("w", "displays file names on several columns so output fills console width (only if not recurse mode). disable print of attributes")] bool wide
@@ -127,16 +127,16 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             if (path.CheckExists())
             {
                 var counts = new FindCounts();
-                var items = FindItems(path.FullName, path.WildCardFileName ?? "*", !recurse, true, false, !noattributes, !recurse, null, false, counts, false,true);
-                var f = GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
+                var items = FindItems(path.FullName, path.WildCardFileName ?? "*", !recurse, true, false, !noattributes, !recurse, null, false, counts, false,false);
+                var f = DefaultForegroundCmd;
                 long totFileSize = 0;
                 var cancellationTokenSource = new CancellationTokenSource();
                 if (wide) noattributes = true;
                 void postCmd(object o, EventArgs e)
                 {
                     sc.CancelKeyPress -= cancelCmd;
-                    Println($"{Tab}{Cyan}{Plur("file", counts.FilesCount, f),-30}{HumanFormatOfSize(totFileSize, 2)}");
-                    Println($"{Tab}{Cyan}{Plur("folder", counts.FoldersCount, f),-30}{Drives.GetDriveInfo(path.FileSystemInfo.FullName)}");
+                    Println($"{Tab}{Cyan}{Plur("file", counts.FilesCount, f),-30}{HumanFormatOfSize(totFileSize, 2," ",Cyan,f)}");
+                    Println($"{Tab}{Cyan}{Plur("folder", counts.FoldersCount, f),-30}{Drives.GetDriveInfo(path.FileSystemInfo.FullName,false,Cyan,f," ",2)}");
                 }
                 void cancelCmd(object o, ConsoleCancelEventArgs e)
                 {
@@ -148,9 +148,16 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                     var i = 0;
 
                     int maxitlength = 0;
+                    counts.FilesCount = counts.FoldersCount = 0;
                     foreach (var item in items)
                     {
-                        if (item.IsFile) totFileSize += ((FileInfo)item.FileSystemInfo).Length;
+                        if (item.IsFile)
+                        {
+                            totFileSize += ((FileInfo)item.FileSystemInfo).Length;
+                            counts.FilesCount++;
+                        }
+                        else
+                            counts.FoldersCount++;
                         maxitlength = Math.Max(item.Name.Length, maxitlength);
                     }
                     maxitlength += 4;
@@ -161,7 +168,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                     {
                         if (cancellationTokenSource.IsCancellationRequested)
                             return i;
-                        item.Print(!noattributes, !recurse, "", (!wide || recurse || nocol == nbcols-1)?Br:"",(wide && !recurse)?maxitlength:-1);
+
+                        item.Print(!noattributes, !recurse, "", (!wide || recurse || nocol == nbcols - 1) ? Br : "", (wide && !recurse) ? maxitlength : -1);
                         i++;
                         nocol++;
                         if (nocol == nbcols)
@@ -243,6 +251,56 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                     Errorln($"unauthorized access to drive {di.Name}");
                 }
             }
+        }
+
+        [Command("remove file(s) and/or the directory(ies)")]
+        public List<string> Rm(
+            [Parameter("file or folder path", false)] WildcardFilePath path,
+            [Option("r", "also remove files and folders in sub directories")] bool recurse,
+            [Option("v", "explain what is being done")] bool verbose,
+            [Option("na", "do not print file system attributes when verbose")] bool noattributes,
+            [Option("s", "don't remove any file/or folder, just simulate the operation (enable verbose)")] bool simulate
+        )
+        {
+            var r = new List<string>();
+            if (path.CheckExists())
+            {
+                var counts = new FindCounts();
+                var items = FindItems(path.FullName, path.WildCardFileName ?? "*", !recurse, true, false, !noattributes, !recurse, null, false, counts, false, true);
+                var cancellationTokenSource = new CancellationTokenSource();
+                verbose |= simulate;
+                void cancelCmd(object o, ConsoleCancelEventArgs e)
+                {
+                    e.Cancel = true;
+                    cancellationTokenSource.Cancel();
+                };
+                void postCmd(object o, EventArgs e)
+                {
+                    sc.CancelKeyPress -= cancelCmd;
+                }
+                List<string> processRemove()
+                {
+                    var r = new List<string>();
+                    foreach ( var item in items )
+                    {
+                        if (cancellationTokenSource.IsCancellationRequested) return r;
+                        if (verbose) item.Print(!noattributes, !recurse, "removed ", Br);
+                    }
+                    return r;
+                };
+                sc.CancelKeyPress += cancelCmd;
+                var task = Task.Run<List<string>>(() => processRemove(), cancellationTokenSource.Token);
+                try
+                {
+                    task.Wait(cancellationTokenSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    r = task.Result;
+                }
+                postCmd(null, null);
+            }
+            return r;
         }
     }
 }

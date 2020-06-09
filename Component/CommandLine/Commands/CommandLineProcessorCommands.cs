@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using static DotNetConsoleSdk.Component.CommandLine.CommandLineProcessor;
 using static DotNetConsoleSdk.Component.CommandLine.CommandLineReader.CommandLineReader;
 using static DotNetConsoleSdk.DotNetConsole;
@@ -240,5 +241,6 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             }
             return CommandLineReader.CommandLineReader.History;
         }
+
     }
 }
