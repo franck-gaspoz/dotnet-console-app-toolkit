@@ -199,7 +199,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             }
         }
 
-        [Command("print the paht of the current working directory")]
+        [Command("print the path of the current working directory")]
         public void Pwd(
             [Option("na", "do not print file system attributes")] bool noattributes
             )
