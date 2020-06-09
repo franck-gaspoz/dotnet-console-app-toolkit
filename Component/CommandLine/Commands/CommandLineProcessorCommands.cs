@@ -180,9 +180,9 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
         public List<string> History(
             [Option("i","invoke the command at the entry number in the history list", true,true)] int num,
             [Option("c","clear the history list")] bool clear,
-            [Option("a","append history lines to the history file")] bool afile,
-            [Option("r","read the history file and append the content to the history list")] bool rfile,
-            [Option("n","read the history file and append the content not already in the history list to the history list")] bool nfile,
+            [Option("a","append history lines to the history file")] bool appendToFile,
+            [Option("r","read the history file and append the content to the history list")] bool readFromFile,
+            [Option("n","read the history file and append the content not already in the history list to the history list")] bool appendFromFile,
             [Parameter(1,"filename",true)] FilePath file
             )
         {
@@ -199,7 +199,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
                     return CommandLineReader.CommandLineReader.History;
                 }
                 var h = hist[num-1];
-                SendInput(h);
+                SendNextInput(h);
                 return CommandLineReader.CommandLineReader.History;
             }
 

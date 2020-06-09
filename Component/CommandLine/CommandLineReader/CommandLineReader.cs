@@ -1,11 +1,9 @@
 ﻿//#define dbg
 
-using DotNetConsoleSdk.Component.CommandLine;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -154,11 +152,12 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                 finally
                 {
                     CommandLineProcessor.CancellationTokenSource.Dispose();
+                    CommandLineProcessor.CancellationTokenSource = null;
                     sc.CancelKeyPress -= CancelKeyPress;
                     lock (ConsoleLock)
                     {
                         /*if (!WorkArea.rect.IsEmpty && (WorkArea.rect.Y != CursorTop || WorkArea.rect.X != CursorLeft))
-                            LineBreak();*/
+                            LineBreak();*/      // case of auto line break (spacing)
                         RestoreDefaultColors();
                     }
                 }
@@ -170,7 +169,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
         private static void CancelKeyPress(object sender, ConsoleCancelEventArgs e)
         {
             e.Cancel = true;
-            CommandLineProcessor.CancellationTokenSource.Cancel();
+            CommandLineProcessor.CancellationTokenSource?.Cancel();
         }
 
         public static int ReadCommandLine(
@@ -189,6 +188,12 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
             StopBeginReadln();
             InputProcessor ??= CommandLineReader.ProcessInput;
             BeginReadln(new AsyncCallback(InputProcessor), _prompt, _waitForReaderExited);
+        }
+
+        public static void SendNextInput(string text, bool sendEnter = true)
+        {
+            _sentInput = text + ((sendEnter) ? Environment.NewLine : "");
+            _readingStarted = false;
         }
 
         public static int BeginReadln(
@@ -482,7 +487,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                         }
                     }
                 }
-                catch (ThreadInterruptedException) { }
+                catch (ThreadInterruptedException) { 
+                }
                 catch (Exception ex)
                 {
                     LogException(ex,"input stream reader crashed");
