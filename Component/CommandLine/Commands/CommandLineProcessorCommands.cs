@@ -1,24 +1,22 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
+using DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem;
 using DotNetConsoleSdk.Component.CommandLine.Parsing;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
+using static DotNetConsoleSdk.Component.CommandLine.CommandLineProcessor;
+using static DotNetConsoleSdk.Component.CommandLine.CommandLineReader.CommandLineReader;
 using static DotNetConsoleSdk.DotNetConsole;
 using static DotNetConsoleSdk.Lib.Str;
 using cons = DotNetConsoleSdk.DotNetConsole;
-using DotNetConsoleSdk.Component.CommandLine.CommandLineReader;
-using static DotNetConsoleSdk.Component.CommandLine.CommandLineProcessor;
-using static DotNetConsoleSdk.Component.CommandLine.CommandLineReader.CommandLineReader;
-using System.Diagnostics.CodeAnalysis;
-using DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem;
-using System.Reflection;
-using System.IO;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands
 {
-    [Commands("commands related to the command line processor (dnc shell)")]
+    [Commands("commands related to the command line processor (dn shell - dnsh)")]
     public class CommandLineProcessorCommands
     {
         [Command("print help about all commands or a specific command")]
@@ -180,8 +178,12 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
         [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
         [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
         public List<string> History(
+            [Option("i","invoke the command at the entry number in the history list", true,true)] int num,
             [Option("c","clear the history list")] bool clear,
-            [Parameter("history entry number", true)] int num = -1
+            [Option("a","append history lines to the history file")] bool afile,
+            [Option("r","read the history file and append the content to the history list")] bool rfile,
+            [Option("n","read the history file and append the content not already in the history list to the history list")] bool nfile,
+            [Parameter(1,"filename",true)] FilePath file
             )
         {
             var hist = CommandLineReader.CommandLineReader.History;
@@ -189,14 +191,14 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             int i = 1;
             var f = DefaultForegroundCmd;
 
-            if (num>-1)
+            if (num>0)
             {
                 if (num<1 || num>hist.Count)
                 {
                     Errorln($"history entry number out of range (1..{hist.Count})");
                     return CommandLineReader.CommandLineReader.History;
                 }
-                var h = hist[num];
+                var h = hist[num-1];
                 SendInput(h);
                 return CommandLineReader.CommandLineReader.History;
             }

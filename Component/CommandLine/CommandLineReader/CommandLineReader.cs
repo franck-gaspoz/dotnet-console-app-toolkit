@@ -127,8 +127,13 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                         );
 
                     try
-                    {                        
-                        task.Wait(CommandLineProcessor.CancellationTokenSource.Token);
+                    {
+                        try
+                        {
+                            task.Wait(CommandLineProcessor.CancellationTokenSource.Token);
+                        } catch (ThreadInterruptedException) {
+                            // get interrupted after send input
+                        }
                         expressionEvaluationResult = task.Result;
                     }
                     catch (OperationCanceledException)
@@ -176,10 +181,9 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 
         public static void SendInput(string text,bool sendEnter=true)
         {
-            _readingStarted = false;
             _sentInput = text + ((sendEnter)?Environment.NewLine:"");
             if (_inputReaderThread == null) return;
-            _inputReaderThread.Interrupt();
+            StopBeginReadln();
             BeginReadln(_readlnAsyncCallback, _prompt, _waitForReaderExited);
         }
 
@@ -414,6 +418,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                                 _sentInput = null;
                                 printed = true;
                                 eol = printedStr.EndsWith(Environment.NewLine);
+                                if (eol) printedStr = printedStr.Trim();
                             }
 
                             if (printed)
