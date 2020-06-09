@@ -5,7 +5,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 {
     public class DirectoryPath : FileSystemPath
     {
-        public readonly DirectoryInfo DirectoryInfo;
+        public DirectoryInfo DirectoryInfo { get; protected set; }
 
         public DirectoryPath(string path) : base(new DirectoryInfo(path))
         {

@@ -12,7 +12,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
         public static string ErrorColorization = $"{Red}";
         public static string DirectoryColorization = $"{Bdarkgreen}";
         public static string FileColorization = $"";
-        public readonly FileSystemInfo FileSystemInfo;
+        public FileSystemInfo FileSystemInfo { get; protected set; }
 
         public string Error;
 

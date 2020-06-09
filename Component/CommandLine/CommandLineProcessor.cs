@@ -1,20 +1,16 @@
 ﻿//#define enable_test_commands
 
 using DotNetConsoleSdk.Component.CommandLine.CommandModel;
-using DotNetConsoleSdk.Component.CommandLine.Commands;
-using static DotNetConsoleSdk.DotNetConsole;
-using static DotNetConsoleSdk.Component.CommandLine.Parsing.CommandLineParser;
+using DotNetConsoleSdk.Component.CommandLine.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Reflection;
-using DotNetConsoleSdk.Component.CommandLine.Parsing;
-using System.Linq;
-using DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem;
-using System.Threading;
-using System.ComponentModel;
 using System.IO;
-using System.Runtime;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
+using static DotNetConsoleSdk.Component.CommandLine.Parsing.CommandLineParser;
+using static DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Component.CommandLine
 {

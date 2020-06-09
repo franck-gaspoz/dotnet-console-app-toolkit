@@ -102,14 +102,15 @@ namespace DotNetConsoleSdk.Lib
 
         public static string HumanFormatOfSize(long bytes, int digits = 1, string sep = " ", string bigPostFix = "")
         {
+            var byteChar = 'b';
             long absB = bytes == long.MinValue ? long.MaxValue : Math.Abs(bytes);
             if (absB < 1024)
             {
-                return bytes + sep + "B";
+                return bytes + sep + byteChar;
             }
             if (absB < 1024 * 1024)
             {
-                return String.Format("{0:F" + digits + "}" + sep + "{1}" + bigPostFix + "B", absB / 1024d, "K");
+                return String.Format("{0:F" + digits + "}" + sep + "{1}" + bigPostFix + byteChar, absB / 1024d, "K");
             }
             long value = absB;
             Stack<long> values = new Stack<long>();
@@ -131,7 +132,7 @@ namespace DotNetConsoleSdk.Lib
             value = values.Pop();
             if (values.Count > 0) value = values.Pop();
             value *= Math.Sign(bytes);
-            return String.Format("{0:F" + digits + "}" + sep + "{1}" + bigPostFix + "B", value / 1024d, ci);
+            return String.Format("{0:F" + digits + "}" + sep + "{1}" + bigPostFix + byteChar, value / 1024d, ci);
         }
 
         #endregion

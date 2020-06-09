@@ -4,6 +4,10 @@ using static DotNetConsoleSdk.DotNetConsole;
 using System.IO;
 using System;
 using static DotNetConsoleSdk.Lib.Str;
+using sc = System.Console;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Numerics;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 {
@@ -27,16 +31,17 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             {
                 var sp = string.IsNullOrWhiteSpace(pattern) ? "*" : pattern;
                 var counts = new FindCounts();
-                var items = FindItems(path.DirectoryInfo.FullName, sp, top,all,dirs,attributes,shortPathes,contains, checkPatternOnFullName,counts);
+                var items = FindItems(path.DirectoryInfo.FullName, sp, top,all,dirs,attributes,shortPathes,contains, checkPatternOnFullName,counts,true);
                 var f = GetCmd(KeyWords.f+"",DefaultForeground.ToString().ToLower());
                 var elapsed = DateTime.Now - counts.BeginDateTime;
+                if (items.Count > 0) Println();
                 Println($"found {Cyan}{Plur("file",counts.FilesCount,f)} and {Cyan}{Plur("folder",counts.FoldersCount,f)}. scanned {Cyan}{Plur("file",counts.ScannedFilesCount,f)} in {Cyan}{Plur("folder",counts.ScannedFoldersCount,f)} during {TimeSpanDescription(elapsed,Cyan,f)}");
                 return items;
             }
             return new List<FileSystemPath>();
         }
         
-        List<FileSystemPath> FindItems(string path, string pattern,bool top,bool all,bool dirs,bool attributes,bool shortPathes,string contains,bool checkPatternOnFullName,FindCounts counts)
+        List<FileSystemPath> FindItems(string path, string pattern,bool top,bool all,bool dirs,bool attributes,bool shortPathes,string contains,bool checkPatternOnFullName,FindCounts counts,bool print)
         {
             var dinf = new DirectoryInfo(path);
             List<FileSystemPath> items = new List<FileSystemPath>();
@@ -60,14 +65,14 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                         if ((dirs || all) && (!hasPattern || MatchWildcard(pattern, checkPatternOnFullName ? sitem.FileSystemInfo.FullName : sitem.FileSystemInfo.Name)))
                         {
                             items.Add(sitem);
-                            sitem.Print(attributes, shortPathes, "", Br);
+                            if (print) sitem.Print(attributes, shortPathes, "", Br);
                             counts.FoldersCount++;
                         }
                         else
                             sitem = null;
 
                         if (!top)
-                            items.AddRange(FindItems(fsinf.FullName, pattern, top, all, dirs, attributes, shortPathes,contains, checkPatternOnFullName, counts));
+                            items.AddRange(FindItems(fsinf.FullName, pattern, top, all, dirs, attributes, shortPathes,contains, checkPatternOnFullName, counts, print));
                     }
                     else
                     {
@@ -84,7 +89,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                             {
                                 counts.FilesCount++;
                                 items.Add(sitem);
-                                sitem.Print(attributes, shortPathes, "", Br);
+                                if (print) sitem.Print(attributes, shortPathes, "", Br);
                             }
                         }
                         else
@@ -113,15 +118,54 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             path ??= new WildcardFilePath(Environment.CurrentDirectory);
             if (path.CheckExists())
             {
-                var dinf = new DirectoryInfo(path.FileSystemInfo.FullName);
-                var scan = dinf.GetFileSystemInfos("*",recurse?SearchOption.AllDirectories:SearchOption.TopDirectoryOnly);
-                foreach ( var fsinf in scan )
+                var counts = new FindCounts();
+                var items = FindItems(path.DirectoryInfo.FullName,path.WildCardFileName!=null? path.WildCardFileName:"*" , !recurse, true, false, !noattributes, !recurse, null, false, counts, false);
+                var f = GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
+                long totFileSize = 0;
+                void postCmd(object o, EventArgs e)
                 {
-                    var sitem = FileSystemPath.Get(fsinf);
-                    sitem.Print(!noattributes, !recurse, "", Br);
+                    sc.CancelKeyPress -= cancelCmd;
+                    if (items.Count > 0) Println();
+                    Println($"{Tab}{Cyan}{Plur("file", counts.FilesCount, f),-30}{HumanFormatOfSize(totFileSize, 2)}");
+                    Println($"{Tab}{Cyan}{Plur("folder", counts.FoldersCount, f),-30}{Drive.GetDriveInfo(path.FileSystemInfo.FullName)}");
                 }
+                var cancellationTokenSource = new CancellationTokenSource();
+                void cancelCmd(object o, ConsoleCancelEventArgs e)
+                {
+                    e.Cancel = true;
+                    cancellationTokenSource.Cancel(); 
+                }                
+                int printResult()
+                {
+                    var i = 0;
+
+                    foreach ( var item in items )
+                        if (item.IsFile) totFileSize += ((FileInfo)item.FileSystemInfo).Length;
+
+                    foreach (var item in items)
+                    {
+                        if (cancellationTokenSource.IsCancellationRequested)
+                            return i;
+                        item.Print(!noattributes, !recurse, "", Br);
+                        i++;
+                    }
+                    return i;
+                }
+                sc.CancelKeyPress += cancelCmd;
+                var task = Task.Run<int>(() => printResult(),
+                    cancellationTokenSource.Token);
+                try
+                {
+                    task.Wait(cancellationTokenSource.Token);
+                }
+                catch (OperationCanceledException ex)
+                {
+                    var res = task.Result;
+                }
+                postCmd(null,null);
             }
             return r;
         }
+       
     }
 }
