@@ -42,27 +42,30 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
                     }
                     cmds = cmds.Where(x => x.DeclaringTypeShortName == type);
                 }
-                if (!string.IsNullOrWhiteSpace(module))
+                if (cmds.Count()>0 && !string.IsNullOrWhiteSpace(module))
                 {
                     if (!CommandLineProcessor.Modules.Values.Select(x => x.Name).Contains(module))
                     {
                         Errorln($"unknown command module: '{module}'");
                         return;
                     }
-                    cmds = cmds.Where(x => Path.GetFileNameWithoutExtension(x.MethodInfo.DeclaringType.Assembly.Location) == module);
+                    cmds = cmds.Where(x => x.ModuleName == module);
                 }
                 var ncmds = cmds.ToList();
                 ncmds.Sort(new Comparison<CommandSpecification>((x, y) => x.Name.CompareTo(y.Name)));
                 cmds = ncmds.AsQueryable();
-                var maxcmdlength = cmds.Select(x => x.Name.Length).Max() + 1;
-                var maxcmdtypelength = cmds.Select(x => x.DeclaringTypeShortName.Length).Max() + 1;
-                var maxmodlength = cmds.Select(x => Path.GetFileNameWithoutExtension(x.MethodInfo.DeclaringType.Assembly.Location).Length).Max() + 1;
-                int n = 0;
-                foreach (var cmd in cmds)
+                if (cmds.Count() > 0)
                 {
-                    if (!list && n > 0) Println();
-                    PrintCommandHelp(cmd, shortView ,list,maxcmdlength, maxcmdtypelength, maxmodlength,cmds.Count()==1);
-                    n++;
+                    var maxcmdlength = cmds.Select(x => x.Name.Length).Max() + 1;
+                    var maxcmdtypelength = cmds.Select(x => x.DeclaringTypeShortName.Length).Max() + 1;
+                    var maxmodlength = cmds.Select(x => Path.GetFileNameWithoutExtension(x.MethodInfo.DeclaringType.Assembly.Location).Length).Max() + 1;
+                    int n = 0;
+                    foreach (var cmd in cmds)
+                    {
+                        if (!list && n > 0) Println();
+                        PrintCommandHelp(cmd, shortView, list, maxcmdlength, maxcmdtypelength, maxmodlength, cmds.Count() == 1);
+                        n++;
+                    }
                 }
             }
             else
@@ -124,7 +127,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             var col = singleout? "": "".PadRight(maxcnamelength, ' ');
             var f = GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
             if (list)
-                Println($"{com.Name.PadRight(maxcnamelength, ' ')}{Darkcyan}{com.DeclaringTypeShortName.PadRight(maxcmdtypelength, ' ')}{f}{com.Description}");
+                Println($"{Darkcyan}{com.ModuleName.PadRight(maxmodlength, ' ')}{com.DeclaringTypeShortName.PadRight(maxcmdtypelength, ' ')}{f}{com.Name.PadRight(maxcnamelength, ' ')}{com.Description}");
             else
             {
                 if (singleout)
@@ -136,7 +139,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             if (!list)
             {
                 Println($"{col}{Cyan}type  : {Darkcyan}{com.DeclaringTypeShortName}");
-                Println($"{col}{Cyan}module: {Darkcyan}{Path.GetFileNameWithoutExtension(com.MethodInfo.DeclaringType.Assembly.Location)}");
+                Println($"{col}{Cyan}module: {Darkcyan}{com.ModuleName}");
                 if (com.ParametersCount > 0)
                 {
                     Println($"{col}{Cyan}syntax: {f}{com.ToColorizedString()}");                    

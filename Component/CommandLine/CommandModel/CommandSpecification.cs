@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Linq;
 using System;
 using System.Globalization;
+using System.IO;
 
 namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
 {
@@ -32,6 +33,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
             if (commandParameterSpecifications != null)
                 commandParameterSpecifications.ToList().ForEach(x => _parametersSpecifications.Add(x.ActualName,x));
         }
+
+        public string ModuleName => Path.GetFileNameWithoutExtension(MethodInfo.DeclaringType.Assembly.Location);
 
         public string DeclaringTypeShortName
         {
