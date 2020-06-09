@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,12 +29,12 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
         static Point _beginOfLineCurPos;
         static ExpressionEvaluationCommandDelegate _evalCommandDelegate;
         static string _sentInput = null;
-        static AsyncCallback _readlnAsyncCallback;
         static bool _waitForReaderExited;
         static bool _readingStarted;
         static string _nextPrompt = null;
 
         public static List<string> History => new List<string>(_history);
+        public static Action<IAsyncResult> InputProcessor;
 
         #endregion
 
@@ -174,9 +175,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 
         public static int ReadCommandLine(
             string prompt="", 
-            bool waitForReaderExited = true)
+            bool waitForReaderExited = true
+            )
         {
-            return BeginReadln(new AsyncCallback(CommandLineReader.ProcessInput), prompt, waitForReaderExited);
+            InputProcessor ??= CommandLineReader.ProcessInput;
+            return BeginReadln(new AsyncCallback(InputProcessor), prompt, waitForReaderExited);
         }
 
         public static void SendInput(string text,bool sendEnter=true)
@@ -184,7 +187,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
             _sentInput = text + ((sendEnter)?Environment.NewLine:"");
             if (_inputReaderThread == null) return;
             StopBeginReadln();
-            BeginReadln(_readlnAsyncCallback, _prompt, _waitForReaderExited);
+            InputProcessor ??= CommandLineReader.ProcessInput;
+            BeginReadln(new AsyncCallback(InputProcessor), _prompt, _waitForReaderExited);
         }
 
         public static int BeginReadln(
@@ -193,7 +197,6 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
             bool waitForReaderExited = true)
         {
             _waitForReaderExited = waitForReaderExited;
-            _readlnAsyncCallback = asyncCallback;
             _prompt = prompt;            
             _inputReaderThread = new Thread(() =>
             {
