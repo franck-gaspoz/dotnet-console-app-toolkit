@@ -563,6 +563,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
             return (_historyIndex < 0 || _history.Count == 0 || _historyIndex >= _history.Count) ? null : _history[_historyIndex];
         }
 
+        public static bool HistoryContains(string s) => _history.Contains(s);
+
         public static void HistoryAppend(string s)
         {
             _history.Add(s);

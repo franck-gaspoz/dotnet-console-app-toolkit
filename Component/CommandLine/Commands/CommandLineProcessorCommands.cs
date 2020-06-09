@@ -216,18 +216,16 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             {
                 if (file.CheckPathExists())
                 {
-                    if (appendToFile)
-                    {
-                        File.AppendAllLines(file.FullName, hist);
-                        throw new Exception("test cmd error");
-                    }
+                    if (appendToFile) File.AppendAllLines(file.FullName, hist);
                     if (readFromFile)
                     {
-
+                        var lines = File.ReadAllLines(file.FullName);
+                        foreach (var line in lines) HistoryAppend(line);
                     }
                     if (appendFromFile)
                     {
-
+                        var lines = File.ReadAllLines(file.FullName);
+                        foreach (var line in lines) if (!HistoryContains(line)) HistoryAppend(line);
                     }
                 }
                 return CommandLineReader.CommandLineReader.History;
