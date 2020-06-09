@@ -12,12 +12,12 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 var basepath = Path.GetDirectoryName(path);
                 FileSystemInfo = new DirectoryInfo(basepath);
                 DirectoryInfo = (DirectoryInfo)FileSystemInfo;
-                WildCardFileName = Path.GetExtension(path);
+                WildCardFileName = Path.GetFileName(path);
             }
         }
 
         public static bool ContainsWildcardFileName(string path) {
-            var ext = Path.GetExtension(path);
+            var ext = Path.GetFileName(path);
             return ext.Contains('*') || ext.Contains('?');
         }
     }

@@ -1,13 +1,12 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
-using System.Collections.Generic;
-using static DotNetConsoleSdk.DotNetConsole;
-using System.IO;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using static DotNetConsoleSdk.DotNetConsole;
 using static DotNetConsoleSdk.Lib.Str;
 using sc = System.Console;
-using System.Threading.Tasks;
-using System.Threading;
-using System.Numerics;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 {
@@ -41,7 +40,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             return new List<FileSystemPath>();
         }
         
-        List<FileSystemPath> FindItems(string path, string pattern,bool top,bool all,bool dirs,bool attributes,bool shortPathes,string contains,bool checkPatternOnFullName,FindCounts counts,bool print)
+        List<FileSystemPath> FindItems(string path, string pattern,bool top,bool all,bool dirs,bool attributes,bool shortPathes,string contains,bool checkPatternOnFullName,FindCounts counts,bool print,bool alwaysSelectDirs=false)
         {
             var dinf = new DirectoryInfo(path);
             List<FileSystemPath> items = new List<FileSystemPath>();
@@ -62,7 +61,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 
                     if (sitem.IsDirectory)
                     {
-                        if ((dirs || all) && (!hasPattern || MatchWildcard(pattern, checkPatternOnFullName ? sitem.FileSystemInfo.FullName : sitem.FileSystemInfo.Name)))
+                        if ((dirs || all) && (alwaysSelectDirs || (!hasPattern || MatchWildcard(pattern, checkPatternOnFullName ? sitem.FileSystemInfo.FullName : sitem.FileSystemInfo.Name))))
                         {
                             items.Add(sitem);
                             if (print) sitem.Print(attributes, shortPathes, "", Br);
@@ -111,7 +110,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
         public List<FileSystemPath> Dir(
             [Parameter("path where to list files and folders. if not specified is equal to the current directory",true)] WildcardFilePath path,
             [Option("na", "do not print file system attributes")] bool noattributes,
-            [Option("r", "recurses in sub pathes")] bool recurse
+            [Option("r", "also list files and folders in sub directories")] bool recurse
             )
         {
             var r = new List<FileSystemPath>();
@@ -119,7 +118,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             if (path.CheckExists())
             {
                 var counts = new FindCounts();
-                var items = FindItems(path.DirectoryInfo.FullName,path.WildCardFileName!=null? path.WildCardFileName:"*" , !recurse, true, false, !noattributes, !recurse, null, false, counts, false);
+                var items = FindItems(path.DirectoryInfo.FullName,path.WildCardFileName!=null? path.WildCardFileName:"*" , !recurse, true, false, !noattributes, !recurse, null, false, counts, false,true);
                 var f = GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
                 long totFileSize = 0;
                 void postCmd(object o, EventArgs e)
