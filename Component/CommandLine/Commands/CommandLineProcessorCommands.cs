@@ -178,12 +178,15 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
         [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
         [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
         public List<string> History(
-            [Option("i","invoke the command at the entry number in the history list", true,true)] int num,
-            [Option("c","clear the history list")] bool clear,
-            [Option("a","append history lines to the history file")] bool appendToFile,
-            [Option("r","read the history file and append the content to the history list")] bool readFromFile,
-            [Option("n","read the history file and append the content not already in the history list to the history list")] bool appendFromFile,
-            [Parameter(1,"filename",true)] FilePath file
+            [Option("i", "invoke the command at the entry number in the history list", true, true)] int num,
+            [Option("c", "clear the history list")] bool clear,
+            [Option("a", "append history lines to the history file")]
+            [OptionRequireParameter("file")]  bool appendToFile,
+            [Option("r","read the history file and append the content to the history list")] 
+            [OptionRequireParameter("file")]  bool readFromFile,
+            [Option("n","read the history file and append the content not already in the history list to the history list")] 
+            [OptionRequireParameter("file")] bool appendFromFile,
+            [Parameter(1,"file",true)] FilePath file
             )
         {
             var hist = CommandLineReader.CommandLineReader.History;
@@ -206,6 +209,27 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             if (clear)
             {
                 ClearHistory();
+                return CommandLineReader.CommandLineReader.History;
+            }
+
+            if (appendToFile || readFromFile || appendFromFile)
+            {
+                if (file.CheckPathExists())
+                {
+                    if (appendToFile)
+                    {
+                        File.AppendAllLines(file.FullName, hist);
+                        throw new Exception("test cmd error");
+                    }
+                    if (readFromFile)
+                    {
+
+                    }
+                    if (appendFromFile)
+                    {
+
+                    }
+                }
                 return CommandLineReader.CommandLineReader.History;
             }
 

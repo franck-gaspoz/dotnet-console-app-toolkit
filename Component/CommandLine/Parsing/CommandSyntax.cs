@@ -180,7 +180,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                 if (matchingParameters.TryGet(parameter.Name, out var matchingParameter))
                     parameters.Add(matchingParameter.GetValue());
                 else 
-                    throw new System.InvalidOperationException($"parameter not found: '{parameter.Name}' when invoking command: {CommandSpecification}");
+                    throw new InvalidOperationException($"parameter not found: '{parameter.Name}' when invoking command: {CommandSpecification}");
             }
             var r = CommandSpecification.MethodInfo
                 .Invoke(CommandSpecification.MethodOwner, parameters.ToArray());

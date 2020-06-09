@@ -23,6 +23,17 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             return true;
         }
 
+        public bool CheckPathExists(bool dumpError = true)
+        {
+            if (!Directory.Exists(Path.GetDirectoryName(FullName)))
+            {
+                if (dumpError)
+                    Errorln($"the directory of the file doesn't exists: {this}");
+                return false;
+            }
+            return true;
+        }
+
         public override string ToString()
         {
             return FileInfo.FullName;

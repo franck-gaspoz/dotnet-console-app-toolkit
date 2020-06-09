@@ -50,7 +50,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Parsing
                 // option
                 if (optsyntax.Equals(segment, syntaxMatchingRule))
                 {
-                    if (csp.SegmentsCount == 2 && rightSegments.Length == 0)
+                    if ((csp.SegmentsCount == 2 || (csp.SegmentsCount==1 && csp.RequiredParameterName!=null) ) && rightSegments.Length == 0)
                         return (new ParseError($"missing value at position {position+1} for parameter {optsyntax}", position+1, index, CommandSpecification), this);
                     else
                         return (null, this);

@@ -10,7 +10,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
         public readonly string OptionName = null;
         public readonly bool HasValue = false;
 
-        public OptionAttribute(string optionName,string description,bool isOptional)
+        public OptionAttribute(string optionName, string description, bool isOptional)
         {
             OptionName = optionName;
             Description = description ?? throw new ArgumentNullException(nameof(description));

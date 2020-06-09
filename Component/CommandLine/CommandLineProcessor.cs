@@ -16,6 +16,8 @@ namespace DotNetConsoleSdk.Component.CommandLine
 {
     public static class CommandLineProcessor
     {
+        #region attributes
+
         public static CancellationTokenSource CancellationTokenSource;
 
         public static int ReturnCodeOK = 0;
@@ -47,6 +49,8 @@ namespace DotNetConsoleSdk.Component.CommandLine
         public static IReadOnlyDictionary<string, CommandsModule> Modules => new ReadOnlyDictionary<string, CommandsModule>(_modules);
 
         public static IEnumerable<string> CommandDeclaringTypesNames => AllCommands.Select(x => x.DeclaringTypeShortName);
+
+        #endregion
 
         #region cli methods
 
@@ -167,6 +171,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
                 if (cmd!=null)
                 {
                     var paramspecs = new List<CommandParameterSpecification>();
+                    bool syntaxError = false;
                     foreach ( var parameter in method.GetParameters())
                     {
                         CommandParameterSpecification pspec = null;
@@ -192,46 +197,62 @@ namespace DotNetConsoleSdk.Component.CommandLine
                         var optAttr = parameter.GetCustomAttribute<OptionAttribute>();
                         if (optAttr!=null)
                         {
-                            pspec = new CommandParameterSpecification(
-                                parameter.Name,
-                                optAttr.Description,
-                                optAttr.IsOptional,
-                                -1,
-                                optAttr.OptionName ?? parameter.Name,
-                                optAttr.HasValue,
-                                parameter.HasDefaultValue,
-                                (parameter.HasDefaultValue) ? parameter.DefaultValue : defval,
-                                parameter);
+                            var reqParamAttr = parameter.GetCustomAttribute<OptionRequireParameterAttribute>();
+                            try
+                            {
+                                pspec = new CommandParameterSpecification(
+                                    parameter.Name,
+                                    optAttr.Description,
+                                    optAttr.IsOptional,
+                                    -1,
+                                    optAttr.OptionName ?? parameter.Name,
+                                    optAttr.HasValue,
+                                    parameter.HasDefaultValue,
+                                    (parameter.HasDefaultValue) ? parameter.DefaultValue : defval,
+                                    parameter,
+                                    reqParamAttr?.RequiredParameterName);
+                            } catch (Exception ex)
+                            {
+                                Errorln(ex.Message);
+                            }
                         }
-                        if (pspec==null)
-                            throw new ArgumentException($"invalid parameter: class={type.FullName} method={method.Name} name={parameter.Name}");
-                        paramspecs.Add(pspec);
-                    }
-                    var cmdspec = new CommandSpecification(
-                        method.Name.ToLower(), 
-                        cmd.Description, 
-                        method,
-                        instance,
-                        paramspecs);
-
-                    bool registered = true;
-                    if (_commands.TryGetValue(cmdspec.Name, out var cmdlst))
-                    {
-                        if (cmdlst.Select(x => x.MethodInfo.DeclaringType == type).Any())
+                        if (pspec == null)
                         {
-                            Errorln($"command already registered: '{cmdspec.Name}' in type '{cmdspec.DeclaringTypeFullName}'");
-                            registered = false;
-                        }    
+                            syntaxError = true;
+                            Errorln($"invalid parameter: class={type.FullName} method={method.Name} name={parameter.Name}");
+                        }
                         else
-                            cmdlst.Add(cmdspec);
+                            paramspecs.Add(pspec);
                     }
-                    else
-                        _commands.Add(cmdspec.Name, new List<CommandSpecification> { cmdspec });
 
-                    if (registered)
+                    if (!syntaxError)
                     {
-                        _syntaxAnalyzer.Add(cmdspec);
-                        comsCount++;
+                        var cmdspec = new CommandSpecification(
+                            method.Name.ToLower(),
+                            cmd.Description,
+                            method,
+                            instance,
+                            paramspecs);
+
+                        bool registered = true;
+                        if (_commands.TryGetValue(cmdspec.Name, out var cmdlst))
+                        {
+                            if (cmdlst.Select(x => x.MethodInfo.DeclaringType == type).Any())
+                            {
+                                Errorln($"command already registered: '{cmdspec.Name}' in type '{cmdspec.DeclaringTypeFullName}'");
+                                registered = false;
+                            }
+                            else
+                                cmdlst.Add(cmdspec);
+                        }
+                        else
+                            _commands.Add(cmdspec.Name, new List<CommandSpecification> { cmdspec });
+
+                        if (registered)
+                        {
+                            _syntaxAnalyzer.Add(cmdspec);
+                            comsCount++;
+                        }
                     }
                 }
             }
@@ -272,7 +293,15 @@ namespace DotNetConsoleSdk.Component.CommandLine
             {
                 case ParseResultType.Valid:
                     var syntaxParsingResult = parseResult.SyntaxParsingResults.First();
-                    syntaxParsingResult.CommandSyntax.Invoke(syntaxParsingResult.MatchingParameters);
+                    try
+                    {
+                        syntaxParsingResult.CommandSyntax.Invoke(syntaxParsingResult.MatchingParameters);
+                    } catch (Exception commandInvokeError)
+                    {
+                        var commandError = commandInvokeError.InnerException ?? commandInvokeError;
+                        Errorln(commandError.Message);
+                        return new ExpressionEvaluationResult(null, parseResult.ParseResultType, null, ReturnCodeError, commandError);
+                    }
                     break;
 
                 case ParseResultType.Empty:

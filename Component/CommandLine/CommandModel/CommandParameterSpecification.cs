@@ -3,7 +3,9 @@
 using DotNetConsoleSdk.Component.CommandLine.Parsing;
 using System.Reflection;
 using static DotNetConsoleSdk.DotNetConsole;
+#if printDefaultValueInSyntax
 using static DotNetConsoleSdk.Lib.Str;
+#endif
 
 namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
 {
@@ -19,6 +21,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
         public readonly bool HasDefaultValue = false;
         public readonly bool HasValue = true;
 
+        public readonly string RequiredParameterName = null;
+
         public string ActualName => OptionName ?? ParameterName;
         public bool IsOption => OptionName != null;
 
@@ -31,8 +35,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
             bool hasValue,
             bool hasDefaultValue,
             object defaultValue,
-            ParameterInfo parameterInfo)
+            ParameterInfo parameterInfo,
+            string requiredParameterName=null)
         {
+            RequiredParameterName = requiredParameterName;
             ParameterName = parameterName;
             ParameterInfo = parameterInfo;
             Description = description;
@@ -42,6 +48,9 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
             HasValue = hasValue;
             HasDefaultValue = hasDefaultValue;
             DefaultValue = defaultValue;
+
+            if (HasValue && requiredParameterName != null)
+                throw new AmbiguousParameterSpecificationException($"parameter '{ParameterName}' can't both having a value and requiring a parameter (name '{requiredParameterName}')"); 
         }
 
         public string ParameterValueTypeName => ParameterInfo.ParameterType.Name;
