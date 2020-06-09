@@ -18,7 +18,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             [Parameter("search path")] DirectoryPath path,
             [Option("p", "name that matches the pattern", true, true)] string pattern,
             [Option("f","check pattern on fullname instead of name")] bool checkPatternOnFullName,
-            [Option("i", "files that contains the string", true, true)] string contains,
+            [Option("c", "files that contains the string", true, true)] string contains,
             [Option("a", "print file system attributes")] bool attributes,
             [Option("s","print short pathes")] bool shortPathes,
             [Option("all", "select files and directories")] bool all,
@@ -80,9 +80,15 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                         {
                             if (hasContains)
                             {
-                                var str = File.ReadAllText(sitem.FileSystemInfo.FullName);
-                                if (!str.Contains(contains))
-                                    sitem = null;
+                                try
+                                {
+                                    var str = File.ReadAllText(sitem.FileSystemInfo.FullName);
+                                    if (!str.Contains(contains))
+                                        sitem = null;
+                                } catch (Exception ex)
+                                {
+                                    Errorln($"file read error: {ex.Message} when accessing file: {sitem.PrintableFullName}");
+                                }
                             }
                             if (sitem != null)
                             {
