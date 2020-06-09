@@ -180,7 +180,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             return r;
         }
        
-        [Command("changes current drive/directory")]
+        [Command("sets the path of the working directory")]
         public void Cd(
             [Parameter("path where to list files and folders. if not specified is equal to the current directory", true)] DirectoryPath path
             )
@@ -198,6 +198,18 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                     Errorln($"unauthorized access to {path.FullName}");
                     Environment.CurrentDirectory = bkpath;
                 }
+            }
+        }
+
+        [Command("print the paht of the current working directory")]
+        public void Pwd(
+            [Option("na", "do not print file system attributes")] bool noattributes
+            )
+        {
+            var path = new DirectoryPath(Environment.CurrentDirectory);
+            if (path.CheckExists())
+            {
+                path.Print(!noattributes, false, "", Br);
             }
         }
     }
