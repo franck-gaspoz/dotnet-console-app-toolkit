@@ -17,11 +17,7 @@ using static DotNetConsoleSdk.Lib.Str;
 using System.Reflection;
 
 [assembly: AssemblyDescription("DotNetConsoleToolkit core module")]
-[assembly: AssemblyCulture("en-us")]
-[assembly: AssemblyTitle("dot net console toolkit")]
-[assembly: AssemblyCompany("Franck Gaspoz")]
 [assembly: AssemblyCopyright("© Franck Gaspoz 2020")]
-[assembly: AssemblyProduct("dot net console toolkit")]
 [assembly: AssemblyTrademark("Franck Gaspoz")]
 namespace DotNetConsoleSdk
 {
