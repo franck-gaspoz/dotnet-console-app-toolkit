@@ -1,7 +1,6 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -102,7 +101,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 return items;
             } catch (UnauthorizedAccessException)
             {
-                Errorln($"unauthorized access to {new DirectoryPath(path).FullName}");
+                Errorln($"unauthorized access to {new DirectoryPath(path).PrintableFullName}");
                 return items;
             }
         }
@@ -128,7 +127,6 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 void postCmd(object o, EventArgs e)
                 {
                     sc.CancelKeyPress -= cancelCmd;
-                    if (items.Count > 0) Println();
                     Println($"{Tab}{Cyan}{Plur("file", counts.FilesCount, f),-30}{HumanFormatOfSize(totFileSize, 2)}");
                     Println($"{Tab}{Cyan}{Plur("folder", counts.FoldersCount, f),-30}{Drive.GetDriveInfo(path.FileSystemInfo.FullName)}");
                 }
@@ -195,7 +193,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 
                 } catch (UnauthorizedAccessException)
                 {
-                    Errorln($"unauthorized access to {path.FullName}");
+                    Errorln($"unauthorized access to {path.PrintableFullName}");
                     Environment.CurrentDirectory = bkpath;
                 }
             }

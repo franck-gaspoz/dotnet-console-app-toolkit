@@ -20,6 +20,14 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
         public FileSystemInfo FileSystemInfo { get; protected set; }
         public string Name => FileSystemInfo.Name;
         public string FullName => FileSystemInfo.FullName;
+        public string PrintableFullName
+        {
+            get
+            {
+                var quote = FullName.Contains(' ') ? "\"" : "";
+                return $"{quote}{FullName}{quote}";
+            }
+        }
 
         public string Error;
 
