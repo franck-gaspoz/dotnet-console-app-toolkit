@@ -5,7 +5,7 @@ using static DotNetConsoleSdk.Lib.Str;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 {
-    public class Drive
+    public class Drives
     {
         public static string GetCurrentDriveInfo() => GetDriveInfo(Environment.CurrentDirectory,true);
 

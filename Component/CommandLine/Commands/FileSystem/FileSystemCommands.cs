@@ -1,7 +1,9 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
+using DotNetConsoleSdk.Component.CommandLine.Parsing;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using static DotNetConsoleSdk.DotNetConsole;
@@ -134,7 +136,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 {
                     sc.CancelKeyPress -= cancelCmd;
                     Println($"{Tab}{Cyan}{Plur("file", counts.FilesCount, f),-30}{HumanFormatOfSize(totFileSize, 2)}");
-                    Println($"{Tab}{Cyan}{Plur("folder", counts.FoldersCount, f),-30}{Drive.GetDriveInfo(path.FileSystemInfo.FullName)}");
+                    Println($"{Tab}{Cyan}{Plur("folder", counts.FoldersCount, f),-30}{Drives.GetDriveInfo(path.FileSystemInfo.FullName)}");
                 }
                 void cancelCmd(object o, ConsoleCancelEventArgs e)
                 {
@@ -214,6 +216,32 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             if (path.CheckExists())
             {
                 path.Print(!noattributes, false, "", Br);
+            }
+        }
+
+        [Command("print informations about drives")]
+        public void Drive(
+            [Parameter("drive name for which informations must be printed. if no drive specified, list all drives",true)] string drive
+            )
+        {
+            var drives = DriveInfo.GetDrives().AsQueryable();
+            if (drive!=null)
+            {
+                drives = drives.Where(x => x.Name.Equals(drive, CommandLineParser.SyntaxMatchingRule));
+                if (drives.Count()==0) {
+                    Errorln($"drive \"{drive}\" not found");
+                }
+            }
+            foreach ( var di in drives )
+            {
+                var f = DefaultForegroundCmd;
+                try
+                {
+                    var r = $"{Yellow}{di.Name,-10}{f} root dir={Green}{di.RootDirectory,-10}{f} label={Yellow}{di.VolumeLabel,-20}{f} type={Cyan}{di.DriveType,-8}{f} format={Cyan}{di.DriveFormat,-8}{f} bytes={Cyan}{HumanFormatOfSize(di.TotalFreeSpace, 2)}{f}/{Cyan}{HumanFormatOfSize(di.TotalSize, 2)} {f}({Yellow}{Math.Round((double)di.TotalFreeSpace/(double)di.TotalSize*100d,2)}{f} %)";
+                    Println(r);
+                } catch (UnauthorizedAccessException) {
+                    Errorln($"unauthorized access to drive {di.Name}");
+                }
             }
         }
     }

@@ -1172,6 +1172,9 @@ namespace DotNetConsoleSdk
 
         #region commands shortcuts
 
+        public static string DefaultBackgroundCmd => GetCmd(KeyWords.b + "", DefaultBackground.ToString().ToLower());
+        public static string DefaultForegroundCmd => GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
+
         public static string Bblack => GetCmd(KeyWords.b+"", "black");
         public static string Bdarkblue => GetCmd(KeyWords.b , "darkblue");
         public static string Bdarkgreen => GetCmd(KeyWords.b , "darkgreen");
