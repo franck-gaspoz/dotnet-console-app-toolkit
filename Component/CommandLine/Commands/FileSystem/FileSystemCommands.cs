@@ -1,5 +1,6 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using DotNetConsoleSdk.Component.CommandLine.Parsing;
+using DotNetConsoleSdk.Lib;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -289,30 +290,44 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                         bool deleted = false;
                         if (item.IsFile)
                         {
-                            if (item.FileSystemInfo.Exists)
+                            if (item.FileSystemInfo.Exists && !r.Contains(item.FullName))
                             {
                                 if (interactive)
-                                    Confirm("remove file "+item.GetPrintableName(recurse));
+                                {
+                                    if (Confirm("rm: remove file " + item.GetPrintableName(recurse)) && !simulate)
+                                    {
+                                        if (!simulate) item.FileSystemInfo.Delete();
+                                        deleted = true;
+                                    }    
+                                }
                                 else
+                                {
                                     if (!simulate) item.FileSystemInfo.Delete();
+                                    deleted = true;
+                                }
                             }
-                            deleted = true;
                         } else
                         {
                             var dp = (DirectoryPath)item;
                             if ((rmEmptyDirs && dp.IsEmpty) || recurse)
                             {
-                                if (dp.DirectoryInfo.Exists)
+                                if (dp.DirectoryInfo.Exists && !r.Contains(dp.FullName))
                                 {
                                     if (interactive)
-                                        ;
+                                        r.Merge(RecurseInteractiveDeleteDir(dp, simulate, noattributes, verbose, cancellationTokenSource));
                                     else
+                                    {
                                         if (!simulate) dp.DirectoryInfo.Delete(recurse);
+                                        deleted = true;
+                                    }
                                 }
-                                deleted = true;
                             }
                         }
-                        if (deleted && verbose) item.Print(!noattributes, !recurse, "", Br,-1,"removed ");
+                        if (deleted)
+                        {
+                            if (verbose) item.Print(!noattributes, !recurse, "", Br, -1, "removed ");
+                            r.Add(item.FullName);
+                        }
                     }
                     return r;
                 };
@@ -327,6 +342,36 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                     r = task.Result;
                 }
                 postCmd(null, null);
+            }
+            return r;
+        }
+
+        List<string> RecurseInteractiveDeleteDir(DirectoryPath dir,bool simulate,bool noattributes,bool verbose,CancellationTokenSource cancellationTokenSource)
+        {
+            var fullname = true;
+            var r = new List<string>();
+            verbose |= simulate;
+            if (cancellationTokenSource.IsCancellationRequested) return r;
+            if (dir.IsEmpty || Confirm("rm: descend "+dir.GetPrintableName(fullname)))
+            {
+                foreach ( var subdir in dir.DirectoryInfo.EnumerateDirectories())
+                    r.Merge(RecurseInteractiveDeleteDir(new DirectoryPath(subdir.FullName), simulate, noattributes, verbose, cancellationTokenSource));
+                foreach ( var subfile in dir.DirectoryInfo.EnumerateFiles())
+                {
+                    var subfi = new FilePath(subfile.FullName);
+                    if (Confirm("rm: remove file "+subfi.GetPrintableName(fullname)))
+                    {
+                        if (!simulate) subfi.FileSystemInfo.Delete();
+                        if (verbose) subfi.Print(!noattributes, false, "", Br, -1, "removed ");
+                        r.Add(subfi.FullName);
+                    }
+                }
+                if (Confirm("rm: remove directory "+dir.GetPrintableName(fullname)))
+                {
+                    if (!simulate) dir.DirectoryInfo.Delete(true);
+                    if (verbose) dir.Print(!noattributes, false, "", Br, -1, "removed ");
+                    r.Add(dir.FullName);
+                }
             }
             return r;
         }

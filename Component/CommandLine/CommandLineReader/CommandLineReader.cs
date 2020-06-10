@@ -28,7 +28,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
         bool _waitForReaderExited;
         bool _readingStarted;
         string _nextPrompt = null;
-        string _defaultPrompt = null;
+        readonly string _defaultPrompt = null;
 
         public Action<IAsyncResult> InputProcessor { get; set; }
 
