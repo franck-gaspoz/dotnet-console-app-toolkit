@@ -28,6 +28,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
         bool _waitForReaderExited;
         bool _readingStarted;
         string _nextPrompt = null;
+        string _defaultPrompt = null;
 
         public Action<IAsyncResult> InputProcessor { get; set; }
 
@@ -35,14 +36,15 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 
         #region initialization operations
 
-        public CommandLineReader(ExpressionEvaluationCommandDelegate evalCommandDelegate = null)
+        public CommandLineReader(string prompt=null,ExpressionEvaluationCommandDelegate evalCommandDelegate = null)
         {
+            _defaultPrompt = prompt ?? $"{Green}> ";
             Initialize(evalCommandDelegate);
         }
 
-        public void SetPrompt(string prompt)
+        public void SetPrompt(string prompt=null)
         {
-            _nextPrompt = prompt;
+            _nextPrompt = prompt ?? _defaultPrompt;
         }
 
         void Initialize(ExpressionEvaluationCommandDelegate evalCommandDelegate = null)
@@ -179,10 +181,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
         }
 
         public int ReadCommandLine(
-            string prompt="", 
+            string prompt=null, 
             bool waitForReaderExited = true
             )
         {
+            prompt ??= _defaultPrompt;
             InputProcessor ??= ProcessInput;
             return BeginReadln(new AsyncCallback(InputProcessor), prompt, waitForReaderExited);
         }
