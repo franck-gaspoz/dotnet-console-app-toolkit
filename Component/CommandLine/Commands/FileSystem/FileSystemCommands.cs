@@ -245,7 +245,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 var f = DefaultForegroundCmd;
                 try
                 {
-                    var r = $"{Yellow}{di.Name,-10}{f} root dir={Green}{di.RootDirectory,-10}{f} label={Yellow}{di.VolumeLabel,-20}{f} type={Cyan}{di.DriveType,-8}{f} format={Cyan}{di.DriveFormat,-8}{f} bytes={Cyan}{HumanFormatOfSize(di.TotalFreeSpace, 2)}{f}/{Cyan}{HumanFormatOfSize(di.TotalSize, 2)} {f}({Yellow}{Math.Round((double)di.TotalFreeSpace/(double)di.TotalSize*100d,2)}{f} %)";
+                    var r = $"{Yellow}{di.Name,-10}{f} root dir={Green}{di.RootDirectory,-10}{f} label={Yellow}{di.VolumeLabel,-20}{f} type={Cyan}{di.DriveType,-10}{f} format={Cyan}{di.DriveFormat,-8}{f} bytes={Cyan}{HumanFormatOfSize(di.TotalFreeSpace, 2)}{f}/{Cyan}{HumanFormatOfSize(di.TotalSize, 2)} {f}({Yellow}{Math.Round((double)di.TotalFreeSpace/(double)di.TotalSize*100d,2)}{f} %)";
                     Println(r);
                 } catch (UnauthorizedAccessException) {
                     Errorln($"unauthorized access to drive {di.Name}");
@@ -292,7 +292,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                             if (item.FileSystemInfo.Exists)
                             {
                                 if (interactive)
-                                    Confirm("remove file "+item.PrintableFullName);
+                                    Confirm("remove file "+item.GetPrintableName(recurse));
                                 else
                                     if (!simulate) item.FileSystemInfo.Delete();
                             }

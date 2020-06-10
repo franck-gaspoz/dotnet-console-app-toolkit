@@ -33,9 +33,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             get
             {
                 var quote = Name.Contains(' ') ? "\"" : "";
-                return $"{quote}{FullName}{quote}";
+                return $"{quote}{Name}{quote}";
             }
         }
+        public string GetPrintableName(bool fullname = false) => fullname ? PrintableFullName : PrintableName;
 
         public string Error;
 
