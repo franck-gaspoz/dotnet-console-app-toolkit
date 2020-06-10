@@ -17,6 +17,10 @@ namespace DotNetConsoleSdk.Component.CommandLine
 {
     public static class CommandLineProcessor
     {
+        public const string AppName = "dnsh";
+        public const string AppLongName = "dotnet shell";
+        public const string AppEditor = "© 2020 under licence MIT";
+
         #region attributes
 
         public static CancellationTokenSource CancellationTokenSource;
@@ -75,7 +79,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
 
         #region command engine operations
 
-        public static void InitializeCommandProcessor(string[] args)
+        public static void InitializeCommandProcessor(string[] args,bool printInfo=true)
         {
             CommandsHistory = new CommandsHistory(UserProfileFolder);
             SetArgs(args);
@@ -86,6 +90,14 @@ namespace DotNetConsoleSdk.Component.CommandLine
 #if enable_test_commands
                 RegisterCommandsClass<TestCommands>();
 #endif
+                if (printInfo)
+                {
+                    var f = DefaultForegroundCmd;
+                    Println($" {Cyan}{AppLongName} ({AppName}){f} version {Cyan}{Assembly.GetExecutingAssembly().GetName().Version}");
+                    Println($" {AppEditor}");
+                    Println($" {Gray}running on {f}{Environment.OSVersion}{Gray} CLR {f}{Environment.Version}{f}");
+                    Println();
+                }
             }
         }
 

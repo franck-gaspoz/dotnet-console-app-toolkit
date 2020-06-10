@@ -8,9 +8,9 @@ namespace DotNetConsoleSdk.Component.CommandLine
 {
     public class CommandsHistory
     {
-        #region attributes
-
         public const string CommandsHistoryFilename = "history.txt";
+
+        #region attributes
 
         readonly List<string> _history = new List<string>();
         int _historyIndex = -1;
