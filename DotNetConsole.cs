@@ -16,6 +16,7 @@ using sc = System.Console;
 using static DotNetConsoleSdk.Lib.Str;
 using System.Reflection;
 using DotNetConsoleSdk.Component.CommandLine.CommandLineReader;
+using DotNetConsoleSdk.Component.CommandLine;
 
 [assembly: AssemblyDescription("DotNetConsoleToolkit core module")]
 [assembly: AssemblyCopyright("© Franck Gaspoz 2020")]
@@ -435,8 +436,13 @@ namespace DotNetConsoleSdk
         public static bool Confirm(string question)
         {
             var r = false;
-            var cmdlr = new CommandLineReader();
-            
+            void endReadln(IAsyncResult result)
+            {
+                r = result.AsyncState?.ToString()?.ToLower() == "y";
+            }
+            var cmdlr = new CommandLineReader(question+"? ", null);
+            cmdlr.BeginReadln(endReadln,null,true,false);
+            Println();
             return r;
         }
 

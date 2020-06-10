@@ -28,6 +28,14 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 return $"{quote}{FullName}{quote}";
             }
         }
+        public string PrintableName
+        {
+            get
+            {
+                var quote = Name.Contains(' ') ? "\"" : "";
+                return $"{quote}{FullName}{quote}";
+            }
+        }
 
         public string Error;
 

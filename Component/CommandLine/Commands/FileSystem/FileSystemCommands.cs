@@ -292,7 +292,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                             if (item.FileSystemInfo.Exists)
                             {
                                 if (interactive)
-                                    ;
+                                    Confirm("remove file "+item.PrintableFullName);
                                 else
                                     if (!simulate) item.FileSystemInfo.Delete();
                             }

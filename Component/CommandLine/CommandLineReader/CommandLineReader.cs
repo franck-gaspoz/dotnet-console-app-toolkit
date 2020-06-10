@@ -207,10 +207,12 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 
         public int BeginReadln(
             AsyncCallback asyncCallback, 
-            string prompt = "",
-            bool waitForReaderExited = true)
+            string prompt = null,
+            bool waitForReaderExited = true,
+            bool loop=true)
         {
             _waitForReaderExited = waitForReaderExited;
+            prompt ??= _defaultPrompt;
             _prompt = prompt;            
             _inputReaderThread = new Thread(() =>
             {
@@ -219,6 +221,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                     var isRunning = true;
                     while (isRunning)
                     {
+                        if (!loop)
+                            isRunning = false;
                         _inputReaderStringBuilder ??= new StringBuilder();
                         if (!_readingStarted)
                         {
