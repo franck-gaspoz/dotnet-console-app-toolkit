@@ -3,6 +3,7 @@ using DotNetConsoleSdk.Component.CommandLine.Parsing;
 using DotNetConsoleSdk.Lib;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -256,7 +257,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 
         [Command("remove file(s) and/or the directory(ies)")]
         public List<string> Rm(
-            [Parameter("file or folder path", false)] WildcardFilePath path,
+            [Parameter("file or folder path")] WildcardFilePath path,
             [Option("r", "also remove files and folders in sub directories")] bool recurse,
             [Option("i","prompt before any removal")] bool interactive,
             [Option("v", "explain what is being done")] bool verbose,
@@ -374,6 +375,37 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 }
             }
             return r;
+        }
+
+        [Command("file viewer")]
+        [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
+        public void More(
+            [Parameter("file or folder path")] WildcardFilePath path
+            )
+        {
+            if (path.CheckExists())
+            {
+                var counts = new FindCounts();
+                var items = FindItems(path.FullName, path.WildCardFileName ?? "*", true, false, false, true, false, null, false, counts, false, false);
+
+                static void printFileTitle(FileSystemPath file)
+                {
+                    var n = file.Name.Length + TabLength;
+                    var sep = "".PadRight(n,':');
+                    Println($"{Bdarkblue}{White}{sep}");
+                    Println($"{Bdarkblue}{White}{file.Name.PadRight(n,' ')}");
+                    Println($"{Bdarkblue}{White}{sep}");
+                }
+
+                foreach ( var item in items )
+                {
+                    printFileTitle(item);
+                    var lines = File.ReadAllLines(item.FullName);
+                    foreach (var line in lines) Println(line);
+                }
+                if (items.Count == 0)
+                    Errorln($"more: no such file: {path.OriginalPath}");
+            }
         }
     }
 }

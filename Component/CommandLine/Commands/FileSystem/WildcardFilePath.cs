@@ -6,8 +6,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
     public class WildcardFilePath : DirectoryPath
     {
         public readonly string WildCardFileName;
+        public readonly string OriginalPath;
 
-        public WildcardFilePath(string path) : base(path) { 
+        public WildcardFilePath(string path) : base(path) {
+            OriginalPath = path;
             if (ContainsWildcardFileName(path))
             {
                 var basepath = Path.GetDirectoryName(path);
@@ -49,6 +51,26 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             var ext = Path.GetFileName(path);
             return ext.Contains('*') || ext.Contains('?');
         }
+
+        public string NameWithWildcard => WildCardFileName ?? Name;
+        public string FullNameWithWildcard => Path.Combine(FileSystemInfo.FullName,WildCardFileName);
+        public string PrintableFullNameWithWildCard
+        {
+            get
+            {
+                var quote = FullNameWithWildcard.Contains(' ') ? "\"" : "";
+                return $"{quote}{FullNameWithWildcard}{quote}";
+            }
+        }
+        public string PrintableNameWithWildCard
+        {
+            get
+            {
+                var quote = NameWithWildcard.Contains(' ') ? "\"" : "";
+                return $"{quote}{NameWithWildcard}{quote}";
+            }
+        }
+        public string GetPrintableNameWithWlidCard(bool fullname = false) => fullname ? PrintableFullNameWithWildCard : PrintableNameWithWildCard;
     }
 }
 
