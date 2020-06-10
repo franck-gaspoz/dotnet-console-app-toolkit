@@ -57,7 +57,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 return new FilePath(fsinf.FullName);
         }
 
-        public void Print(bool printAttributes=false,bool shortPath=false,string prefix="",string postfix="",int paddingRight=-1)
+        public void Print(bool printAttributes=false,bool shortPath=false,string prefix="",string postfix="",int paddingRight=-1,string linePrefix="")
         {
             var bg = GetCmd(KeyWords.b + "", DefaultBackground.ToString().ToLower());
             var fg = GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
@@ -89,7 +89,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             var pdr = paddingRight - name.Length;
             if (!string.IsNullOrWhiteSpace(quote)) pdr -= 2;
             var rightspace = (paddingRight > -1) ? endcolor+"".PadRight(pdr>0?pdr:1, ' ') : "";
-            r += $"{attr}{color}{prefix}{quote}{name}{quote}{hidden}{rightspace}{postfix}";
+            r += $"{linePrefix}{attr}{color}{prefix}{quote}{name}{quote}{hidden}{rightspace}{postfix}";
             DotNetConsole.Print(r);
             if (HasError)
                 DotNetConsole.Print($" {ErrorColorization}{GetError()}");

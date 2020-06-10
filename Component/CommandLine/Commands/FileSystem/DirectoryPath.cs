@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using static DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
@@ -11,6 +12,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
         {
             DirectoryInfo = (DirectoryInfo)FileSystemInfo;
         }
+
+        public bool IsEmpty => DirectoryInfo.EnumerateFileSystemInfos().Count() == 0;        
 
         public override bool CheckExists(bool dumpError=true)
         {

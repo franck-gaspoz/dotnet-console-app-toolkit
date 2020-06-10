@@ -20,8 +20,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
         public delegate ExpressionEvaluationResult ExpressionEvaluationCommandDelegate(string com,int outputX);
 
         static Thread _inputReaderThread;
-        static readonly List<string> _history = new List<string>();
-        static int _historyIndex = -1;
+        
         static string _prompt;
         static StringBuilder _inputReaderStringBuilder;
         static Point _beginOfLineCurPos;
@@ -31,10 +30,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
         static bool _readingStarted;
         static string _nextPrompt = null;
 
-        public static List<string> History => new List<string>(_history);
         public static Action<IAsyncResult> InputProcessor;
 
         #endregion
+
+        #region initialization operations
 
         public static void SetPrompt(string prompt)
         {
@@ -94,6 +94,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                 }
             };
         }
+
+        #endregion
 
         #region input processing
 
@@ -163,7 +165,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                 }
             }
             if (enableHistory && !string.IsNullOrWhiteSpace(commandLine))
-                HistoryAppend(commandLine);
+                CommandLineProcessor.CommandsHistory.HistoryAppend(commandLine);
         }
 
         private static void CancelKeyPress(object sender, ConsoleCancelEventArgs e)
@@ -370,7 +372,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                                         {
                                             if (CursorTop == _beginOfLineCurPos.Y)
                                             {
-                                                var h = GetBackwardHistory();
+                                                var h = CommandLineProcessor.CommandsHistory.GetBackwardHistory();
                                                 if (h != null)
                                                 {
                                                     HideCur();
@@ -395,7 +397,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                                             var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
                                             if (CursorTop == slines.Max(o => o.y))
                                             {
-                                                var fh = GetForwardHistory();
+                                                var fh = CommandLineProcessor.CommandsHistory.GetForwardHistory();
                                                 if (fh != null)
                                                 {
                                                     HideCur();
@@ -539,40 +541,6 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
             _readingStarted = false;
         }
 
-#endregion
-
-        #region history operations
-
-        public static string GetBackwardHistory()
-        {
-            if (_historyIndex < 0)
-                _historyIndex = _history.Count+1;
-            if (_historyIndex >= 1)
-                _historyIndex--;
-            //System.Diagnostics.Debug.WriteLine($"{_historyIndex}");
-            return (_historyIndex < 0 || _history.Count == 0 || _historyIndex >= _history.Count) ? null : _history[_historyIndex];
-        }
-
-        public static string GetForwardHistory()
-        {
-            if (_historyIndex < 0 || _historyIndex >= _history.Count)
-                _historyIndex = _history.Count;
-            if (_historyIndex < _history.Count - 1) _historyIndex++;
-
-            //System.Diagnostics.Debug.WriteLine($"{_historyIndex}");
-            return (_historyIndex < 0 || _history.Count == 0 || _historyIndex >= _history.Count) ? null : _history[_historyIndex];
-        }
-
-        public static bool HistoryContains(string s) => _history.Contains(s);
-
-        public static void HistoryAppend(string s)
-        {
-            _history.Add(s);
-            _historyIndex = _history.Count - 1;
-        }
-
-        public static void ClearHistory() => _history.Clear();
-
-        #endregion
+        #endregion        
     }
 }

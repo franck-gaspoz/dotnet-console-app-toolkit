@@ -257,7 +257,9 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
         public List<string> Rm(
             [Parameter("file or folder path", false)] WildcardFilePath path,
             [Option("r", "also remove files and folders in sub directories")] bool recurse,
+            [Option("i","prompt before any removal")] bool interactive,
             [Option("v", "explain what is being done")] bool verbose,
+            [Option("d", "remove empty directories")] bool rmEmptyDirs,
             [Option("na", "do not print file system attributes when verbose")] bool noattributes,
             [Option("s", "don't remove any file/or folder, just simulate the operation (enable verbose)")] bool simulate
         )
@@ -266,7 +268,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             if (path.CheckExists())
             {
                 var counts = new FindCounts();
-                var items = FindItems(path.FullName, path.WildCardFileName ?? "*", !recurse, true, false, !noattributes, !recurse, null, false, counts, false, true);
+                var items = FindItems(path.FullName, path.WildCardFileName ?? "*", !recurse, true, false, !noattributes, !recurse, null, false, counts, false, false);
                 var cancellationTokenSource = new CancellationTokenSource();
                 verbose |= simulate;
                 void cancelCmd(object o, ConsoleCancelEventArgs e)
@@ -284,7 +286,33 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                     foreach ( var item in items )
                     {
                         if (cancellationTokenSource.IsCancellationRequested) return r;
-                        if (verbose) item.Print(!noattributes, !recurse, "removed ", Br);
+                        bool deleted = false;
+                        if (item.IsFile)
+                        {
+                            if (item.FileSystemInfo.Exists)
+                            {
+                                if (interactive)
+                                    ;
+                                else
+                                    if (!simulate) item.FileSystemInfo.Delete();
+                            }
+                            deleted = true;
+                        } else
+                        {
+                            var dp = (DirectoryPath)item;
+                            if ((rmEmptyDirs && dp.IsEmpty) || recurse)
+                            {
+                                if (dp.DirectoryInfo.Exists)
+                                {
+                                    if (interactive)
+                                        ;
+                                    else
+                                        if (!simulate) dp.DirectoryInfo.Delete(recurse);
+                                }
+                                deleted = true;
+                            }
+                        }
+                        if (deleted && verbose) item.Print(!noattributes, !recurse, "", Br,-1,"removed ");
                     }
                     return r;
                 };

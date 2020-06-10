@@ -19,8 +19,6 @@ namespace DotNetConsoleSdk.Component.CommandLine
     {
         #region attributes
 
-        public const string CommandsHistoryFilename = "history.txt";
-
         public static CancellationTokenSource CancellationTokenSource;
 
         public static int ReturnCodeOK = 0;
@@ -53,6 +51,8 @@ namespace DotNetConsoleSdk.Component.CommandLine
 
         public static IEnumerable<string> CommandDeclaringTypesNames => AllCommands.Select(x => x.DeclaringTypeShortName);
 
+        public static CommandsHistory CommandsHistory;
+
         #endregion
 
         #region cli methods
@@ -77,6 +77,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
 
         public static void InitializeCommandProcessor(string[] args)
         {
+            CommandsHistory = new CommandsHistory(UserProfileFolder);
             SetArgs(args);
             if (!_isInitialized)
             {
@@ -277,15 +278,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
 
         #region command processor session operations
 
-        public static FilePath UserCommandsHistoryFile
-        {
-            get
-            {
-
-                var userPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                return new FilePath(Path.Combine(userPath, CommandsHistoryFilename));
-            }
-        }
+        public static string UserProfileFolder => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
         #endregion
 
