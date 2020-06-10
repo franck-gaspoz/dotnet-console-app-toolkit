@@ -166,7 +166,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
         [Command("set the command line prompt")]
         public void Prompt(
             [Parameter("text of the prompt",false)] string prompt
-            ) => SetPrompt(prompt);
+            ) => CmdLineReader.SetPrompt(prompt);
 
         [Command("exit the shell")]
         public void Exit()
@@ -189,7 +189,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             [Parameter(1,"file",true)] FilePath file
             )
         {
-            var hist = CommandLineProcessor.CommandsHistory.History;
+            var hist = CmdsHistory.History;
             var max = hist.Count().ToString().Length;
             int i = 1;
             var f = DefaultForegroundCmd;
@@ -199,37 +199,37 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
                 if (num<1 || num>hist.Count)
                 {
                     Errorln($"history entry number out of range (1..{hist.Count})");
-                    return CommandLineProcessor.CommandsHistory.History;
+                    return CmdsHistory.History;
                 }
                 var h = hist[num-1];
-                SendNextInput(h);
-                return CommandLineProcessor.CommandsHistory.History;
+                CmdLineReader.SendNextInput(h);
+                return CmdsHistory.History;
             }
 
             if (clear)
             {
-                CommandLineProcessor.CommandsHistory.ClearHistory();
-                return CommandLineProcessor.CommandsHistory.History;
+                CmdsHistory.ClearHistory();
+                return CmdsHistory.History;
             }
 
             if (appendToFile || readFromFile || appendFromFile)
             {
-                file ??= CommandLineProcessor.CommandsHistory.UserCommandsHistoryFilePath;
+                file ??= CmdsHistory.UserCommandsHistoryFilePath;
                 if (file.CheckPathExists())
                 {
                     if (appendToFile) File.AppendAllLines(file.FullName, hist);
                     if (readFromFile)
                     {
                         var lines = File.ReadAllLines(file.FullName);
-                        foreach (var line in lines) CommandLineProcessor.CommandsHistory.HistoryAppend(line);
+                        foreach (var line in lines) CmdsHistory.HistoryAppend(line);
                     }
                     if (appendFromFile)
                     {
                         var lines = File.ReadAllLines(file.FullName);
-                        foreach (var line in lines) if (!CommandLineProcessor.CommandsHistory.HistoryContains(line)) CommandLineProcessor.CommandsHistory.HistoryAppend(line);
+                        foreach (var line in lines) if (!CmdsHistory.HistoryContains(line)) CmdsHistory.HistoryAppend(line);
                     }
                 }
-                return CommandLineProcessor.CommandsHistory.History;
+                return CmdsHistory.History;
             }
 
             foreach ( var h in hist )
@@ -238,7 +238,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
                 Println(hp);
                 i++;
             }
-            return CommandLineProcessor.CommandsHistory.History;
+            return CmdsHistory.History;
         }
 
     }

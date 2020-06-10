@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using static DotNetConsoleSdk.Component.CommandLine.Parsing.CommandLineParser;
+using cmdlr=DotNetConsoleSdk.Component.CommandLine.CommandLineReader;
 using static DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Component.CommandLine
@@ -19,7 +20,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
     {
         public const string AppName = "dnsh";
         public const string AppLongName = "dotnet shell";
-        public const string AppEditor = "© 2020 under licence MIT";
+        public const string AppEditor = "released on June 2020 under licence MIT";
 
         #region attributes
 
@@ -55,7 +56,9 @@ namespace DotNetConsoleSdk.Component.CommandLine
 
         public static IEnumerable<string> CommandDeclaringTypesNames => AllCommands.Select(x => x.DeclaringTypeShortName);
 
-        public static CommandsHistory CommandsHistory;
+        public static CommandsHistory CmdsHistory;
+
+        public static cmdlr.CommandLineReader CmdLineReader;
 
         #endregion
 
@@ -79,9 +82,11 @@ namespace DotNetConsoleSdk.Component.CommandLine
 
         #region command engine operations
 
-        public static void InitializeCommandProcessor(string[] args,bool printInfo=true)
+        public static void InitializeCommandProcessor(string[] args, cmdlr.CommandLineReader commandLineReader,bool printInfo=true)
         {
-            CommandsHistory = new CommandsHistory(UserProfileFolder);
+            CmdsHistory = new CommandsHistory(UserProfileFolder);
+            CmdLineReader = commandLineReader;
+
             SetArgs(args);
             if (!_isInitialized)
             {
@@ -93,9 +98,9 @@ namespace DotNetConsoleSdk.Component.CommandLine
                 if (printInfo)
                 {
                     var f = DefaultForegroundCmd;
-                    Println($" {Cyan}{AppLongName} ({AppName}){f} version {Cyan}{Assembly.GetExecutingAssembly().GetName().Version}");
+                    Println($" {Cyan}{AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}");
                     Println($" {AppEditor}");
-                    Println($" {Gray}running on {f}{Environment.OSVersion}{Gray} CLR {f}{Environment.Version}{f}");
+                    Println($" OS {Environment.OSVersion} CLR {Environment.Version}");
                     Println();
                 }
             }

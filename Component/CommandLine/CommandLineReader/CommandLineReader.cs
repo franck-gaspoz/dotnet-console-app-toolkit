@@ -12,35 +12,40 @@ using sc = System.Console;
 
 namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 {
-    public static class CommandLineReader
+    public class CommandLineReader
     {
         #region attributes
 
         public delegate ExpressionEvaluationResult ExpressionEvaluationCommandDelegate(string com,int outputX);
 
-        static Thread _inputReaderThread;
+        Thread _inputReaderThread;
         
-        static string _prompt;
-        static StringBuilder _inputReaderStringBuilder;
-        static Point _beginOfLineCurPos;
-        static ExpressionEvaluationCommandDelegate _evalCommandDelegate;
-        static string _sentInput = null;
-        static bool _waitForReaderExited;
-        static bool _readingStarted;
-        static string _nextPrompt = null;
+        string _prompt;
+        StringBuilder _inputReaderStringBuilder;
+        Point _beginOfLineCurPos;
+        ExpressionEvaluationCommandDelegate _evalCommandDelegate;
+        string _sentInput = null;
+        bool _waitForReaderExited;
+        bool _readingStarted;
+        string _nextPrompt = null;
 
-        public static Action<IAsyncResult> InputProcessor;
+        public Action<IAsyncResult> InputProcessor { get; set; }
 
         #endregion
 
         #region initialization operations
 
-        public static void SetPrompt(string prompt)
+        public CommandLineReader()
+        {
+
+        }
+
+        public void SetPrompt(string prompt)
         {
             _nextPrompt = prompt;
         }
 
-        public static void InitializeCommandLineReader(ExpressionEvaluationCommandDelegate evalCommandDelegate)
+        public void Initialize(ExpressionEvaluationCommandDelegate evalCommandDelegate = null)
         {
             _evalCommandDelegate = evalCommandDelegate ?? Eval;
             ViewSizeChanged += (o, e) =>
@@ -98,13 +103,13 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 
         #region input processing
 
-        static void ProcessInput(IAsyncResult asyncResult)
+        void ProcessInput(IAsyncResult asyncResult)
         {
             var s = (string)asyncResult.AsyncState;
             ProcessCommandLine(s, _evalCommandDelegate, true, true);
         }
 
-        public static void ProcessCommandLine(
+        public void ProcessCommandLine(
             string commandLine, 
             ExpressionEvaluationCommandDelegate evalCommandDelegate,
             bool outputStartNextLine = false,
@@ -164,40 +169,40 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                 }
             }
             if (enableHistory && !string.IsNullOrWhiteSpace(commandLine))
-                CommandLineProcessor.CommandsHistory.HistoryAppend(commandLine);
+                CmdsHistory.HistoryAppend(commandLine);
         }
 
-        private static void CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        private void CancelKeyPress(object sender, ConsoleCancelEventArgs e)
         {
             e.Cancel = true;
             CommandLineProcessor.CancellationTokenSource?.Cancel();
         }
 
-        public static int ReadCommandLine(
+        public int ReadCommandLine(
             string prompt="", 
             bool waitForReaderExited = true
             )
         {
-            InputProcessor ??= CommandLineReader.ProcessInput;
+            InputProcessor ??= ProcessInput;
             return BeginReadln(new AsyncCallback(InputProcessor), prompt, waitForReaderExited);
         }
 
-        public static void SendInput(string text,bool sendEnter=true)
+        public void SendInput(string text,bool sendEnter=true)
         {
             _sentInput = text + ((sendEnter)?Environment.NewLine:"");
             if (_inputReaderThread == null) return;
             StopBeginReadln();
-            InputProcessor ??= CommandLineReader.ProcessInput;
+            InputProcessor ??= ProcessInput;
             BeginReadln(new AsyncCallback(InputProcessor), _prompt, _waitForReaderExited);
         }
 
-        public static void SendNextInput(string text, bool sendEnter = true)
+        public void SendNextInput(string text, bool sendEnter = true)
         {
             _sentInput = text + ((sendEnter) ? Environment.NewLine : "");
             _readingStarted = false;
         }
 
-        public static int BeginReadln(
+        public int BeginReadln(
             AsyncCallback asyncCallback, 
             string prompt = "",
             bool waitForReaderExited = true)
@@ -371,7 +376,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                                         {
                                             if (CursorTop == _beginOfLineCurPos.Y)
                                             {
-                                                var h = CommandLineProcessor.CommandsHistory.GetBackwardHistory();
+                                                var h = CmdsHistory.GetBackwardHistory();
                                                 if (h != null)
                                                 {
                                                     HideCur();
@@ -396,7 +401,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                                             var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
                                             if (CursorTop == slines.Max(o => o.y))
                                             {
-                                                var fh = CommandLineProcessor.CommandsHistory.GetForwardHistory();
+                                                var fh = CmdsHistory.GetForwardHistory();
                                                 if (fh != null)
                                                 {
                                                     HideCur();
@@ -503,12 +508,12 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
             return ReturnCodeOK;
         }
 
-        public static void WaitReadln()
+        public void WaitReadln()
         {
             _inputReaderThread?.Join();
         }
 
-        public static void CleanUpReadln()
+        public void CleanUpReadln()
         {
             if (_inputReaderThread != null)
             {
@@ -533,7 +538,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
             }
         }
 
-        public static void StopBeginReadln()
+        public void StopBeginReadln()
         {
             _inputReaderThread?.Interrupt();
             _inputReaderThread = null;
