@@ -1,7 +1,6 @@
 ﻿//#define enable_test_commands
 
 using DotNetConsoleSdk.Component.CommandLine.CommandModel;
-using DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem;
 using DotNetConsoleSdk.Component.CommandLine.Parsing;
 using System;
 using System.Collections.Generic;
@@ -11,8 +10,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using static DotNetConsoleSdk.Component.CommandLine.Parsing.CommandLineParser;
-using cmdlr=DotNetConsoleSdk.Component.CommandLine.CommandLineReader;
 using static DotNetConsoleSdk.DotNetConsole;
+using cmdlr = DotNetConsoleSdk.Component.CommandLine.CommandLineReader;
 
 namespace DotNetConsoleSdk.Component.CommandLine
 {

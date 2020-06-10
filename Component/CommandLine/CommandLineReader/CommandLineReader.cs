@@ -35,9 +35,9 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 
         #region initialization operations
 
-        public CommandLineReader()
+        public CommandLineReader(ExpressionEvaluationCommandDelegate evalCommandDelegate = null)
         {
-
+            Initialize(evalCommandDelegate);
         }
 
         public void SetPrompt(string prompt)
@@ -45,7 +45,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
             _nextPrompt = prompt;
         }
 
-        public void Initialize(ExpressionEvaluationCommandDelegate evalCommandDelegate = null)
+        void Initialize(ExpressionEvaluationCommandDelegate evalCommandDelegate = null)
         {
             _evalCommandDelegate = evalCommandDelegate ?? Eval;
             ViewSizeChanged += (o, e) =>

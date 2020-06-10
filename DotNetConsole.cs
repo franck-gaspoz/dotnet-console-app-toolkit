@@ -15,6 +15,7 @@ using static DotNetConsoleSdk.Component.UI.UIElement;
 using sc = System.Console;
 using static DotNetConsoleSdk.Lib.Str;
 using System.Reflection;
+using DotNetConsoleSdk.Component.CommandLine.CommandLineReader;
 
 [assembly: AssemblyDescription("DotNetConsoleToolkit core module")]
 [assembly: AssemblyCopyright("© Franck Gaspoz 2020")]
@@ -429,6 +430,14 @@ namespace DotNetConsoleSdk
                 if (prompt != null) Print(prompt);
             }
             return sc.ReadLine();
+        }
+
+        public static bool Confirm(string question)
+        {
+            var r = false;
+            var cmdlr = new CommandLineReader();
+            
+            return r;
         }
 
         public static void Echo(string s,bool lineBreak=false,[CallerMemberName]string callerMemberName="",[CallerLineNumber]int callerLineNumber=-1)
