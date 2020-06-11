@@ -1,6 +1,7 @@
 ﻿//#define printDefaultValueInSyntax
 
 using DotNetConsoleSdk.Component.CommandLine.Parsing;
+using DotNetConsoleSdk.Console;
 using System.Reflection;
 using static DotNetConsoleSdk.DotNetConsole;
 #if printDefaultValueInSyntax
@@ -76,14 +77,14 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
 
         public string ToColorizedString(bool grammarSymbolsVisible=true)
         {
-            var f = GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
-            var r = $"{Yellow}{ParameterName}{f}";
+            var f = GetCmd(PrintDirectives.f + "", DefaultForeground.ToString().ToLower());
+            var r = $"{ColorSettings.ParameterName}{ParameterName}{f}";
             if (IsOption)
             {
-                var optVal = (HasValue) ? $" {Darkyellow}{ParameterValueTypeName}" : "";
-                r = $"{Darkyellow}{ParameterSyntax.OptionPrefix}{Yellow}{OptionName}{optVal}{f}";
+                var optVal = (HasValue) ? $" {ColorSettings.ParameterValueType}{ParameterValueTypeName}" : "";
+                r = $"{ColorSettings.OptionPrefix}{ParameterSyntax.OptionPrefix}{ColorSettings.OptionName}{OptionName}{optVal}{f}";
             }
-            if (IsOptional && grammarSymbolsVisible) r = $"{Cyan}[{r}{Cyan}]{f}";
+            if (IsOptional && grammarSymbolsVisible) r = $"{ColorSettings.SyntaxSymbol}[{r}{ColorSettings.SyntaxSymbol}]{f}";
 #if printDefaultValueInSyntax
             if (HasDefaultValue && grammarSymbolsVisible) r += $"{Cyan}{{={($"{Darkyellow}{DumpAsText(DefaultValue)}{Cyan}}}{f}")}";
 #endif

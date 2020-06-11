@@ -2,6 +2,7 @@
 
 using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using DotNetConsoleSdk.Component.CommandLine.Parsing;
+using DotNetConsoleSdk.Console;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,6 +13,7 @@ using System.Threading;
 using static DotNetConsoleSdk.Component.CommandLine.Parsing.CommandLineParser;
 using static DotNetConsoleSdk.DotNetConsole;
 using cmdlr = DotNetConsoleSdk.Component.CommandLine.CommandLineReader;
+using cons = System.Console;
 
 namespace DotNetConsoleSdk.Component.CommandLine
 {
@@ -88,8 +90,8 @@ namespace DotNetConsoleSdk.Component.CommandLine
             {
                 _isInitialized = true;
 
-                Console.ForegroundColor = DefaultForeground;
-                Console.BackgroundColor = DefaultBackground;
+                cons.ForegroundColor = DefaultForeground;
+                cons.BackgroundColor = DefaultBackground;
 
                 CmdsHistory = new CommandsHistory(UserProfileFolder);
                 CmdLineReader = commandLineReader;
@@ -101,7 +103,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
                 if (printInfo)
                 {
                     var f = DefaultForegroundCmd;
-                    Println($" {Cyan}{AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}");
+                    Println($" {ColorSettings.Label}{AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}");
                     Println($" {AppEditor}");
                     Println($" OS {Environment.OSVersion} CLR {Environment.Version}");
                     Println();

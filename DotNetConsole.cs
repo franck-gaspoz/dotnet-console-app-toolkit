@@ -2,6 +2,7 @@
 
 using DotNetConsoleSdk.Component.CommandLine.CommandLineReader;
 using DotNetConsoleSdk.Component.UI;
+using DotNetConsoleSdk.Console;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using System;
@@ -98,7 +99,7 @@ namespace DotNetConsoleSdk
                     msg += Environment.NewLine + ex.Message;
                 }
                 var ls = msg.Split(_crlf, StringSplitOptions.None)
-                    .Select(x => ((EnableColors) ? $"{Red}" : "") + x);
+                    .Select(x => ((EnableColors) ? $"{ColorSettings.Error}" : "") + x);
                 Errorln(ls);
             }
         }
@@ -114,7 +115,7 @@ namespace DotNetConsoleSdk
                 .ToList();
                 if (message != null) ls.Insert(0, $"{Red}{message}");
             } else
-                ls.Insert(0, $"{Red}{message}: {ex.Message}");
+                ls.Insert(0, $"{ColorSettings.Error}{message}: {ex.Message}");
             Errorln(ls);
         }
 
@@ -122,7 +123,7 @@ namespace DotNetConsoleSdk
         {
             if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(s);
             var ls = (s + "").Split(_crlf, StringSplitOptions.None)
-                .Select(x => ((EnableColors) ? $"{Red}" : "") + x);
+                .Select(x => ((EnableColors) ? $"{ColorSettings.Error}" : "") + x);
             Errorln(ls);
         }
 
@@ -130,100 +131,44 @@ namespace DotNetConsoleSdk
         {
             if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(s);
             var ls = (s + "").Split(_crlf, StringSplitOptions.None)
-                .Select(x => ((EnableColors) ? $"{Yellow}" : "") + x);
+                .Select(x => ((EnableColors) ? $"{ColorSettings.Warning}" : "") + x);
             Errorln(ls);
         }
 
         public static void Log(string s)
         {
             if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(s);
-            Errorln(s.Split(_crlf, StringSplitOptions.None));
+            var ls = (s + "").Split(_crlf, StringSplitOptions.None)
+                .Select(x => ((EnableColors) ? $"{ColorSettings.Log}" : "") + x);
+            Println(ls);
         }
 
         #endregion
 
         #region console operations
-
-        /*
-         * global syntax:
-         *      commandBlockBegin command commandValueAssignationChar value (commandSeparatorChar command commandValueAssignationChar value)* commandBlockEnd
-         *      commandBlockBegin := (
-         *      commandBlockEnd := )
-         *      commandValueAssignationChar := =
-         *      commandSeparatorChar := ,
-         *      value := string_without_CommandBlockBegin_and_CommandBlockEnd) | ( codeBlockBegin any codeBlockEnd )
-         *      any := string
-         *      codeBlockBegin ::= [[
-         *      codeBlockEnd ::= ]]
-         *      syntactic elements can be changed for convenience & personal preference
-         * colors: 
-         *      set foreground:     f=consoleColor
-         *      set background:     b=consoleColor
-         *      set default foreground: df=consoleColor
-         *      set default background: db=consoleColor
-         *      backup foreground:  bkf
-         *      backup background:  bkb
-         *      restore foreground: rsf
-         *      restore background: rsb
-         *      consoleColor (ignoreCase) := Black | DarkBlue | DarkGreen | DarkCyan | DarkRed  | DarkMagenta | DarkYellow | Gray | DarkGray  | Blue | Green | Cyan  | Red  | Magenta  | Yellow  | White
-         * print control:
-         *      clear console: cl
-         *      line break: br
-         *      backup cursor pos: bkcr
-         *      restore cursor pos: rscr
-         *      set cursor left: crl=
-         *      set cursor top: crt=
-         * app control:
-         *      exit: exit
-         * scripts engines:
-         *      exec: exec csharp from text
-         */
-
-        public enum KeyWords
-        {
-            bkf,
-            bkb,
-            rsf,
-            rsb,
-            cl,
-            f,
-            b,
-            df,
-            db,
-            br,
-            inf,
-            bkcr,
-            rscr,
-            crh,
-            crs,
-            crx,
-            cry,
-            exit,
-            exec
-        }
-
+        
         delegate object CommandDelegate(object x);
 
         static readonly Dictionary<string, CommandDelegate> _drtvs = new Dictionary<string, CommandDelegate>() {
-            { KeyWords.bkf+""   , (x) => RelayCall(BackupForeground) },
-            { KeyWords.bkb+""   , (x) => RelayCall(BackupBackground) },
-            { KeyWords.rsf+""   , (x) => RelayCall(RestoreForeground) },
-            { KeyWords.rsb+""   , (x) => RelayCall(RestoreBackground) },
-            { KeyWords.cl+""    , (x) => RelayCall(() => Clear()) },
-            { KeyWords.f+"="    , (x) => RelayCall(() => SetForeground( ParseColor(x))) },
-            { KeyWords.b+"="    , (x) => RelayCall(() => SetBackground( ParseColor(x))) },
-            { KeyWords.df+"="   , (x) => RelayCall(() => SetDefaultForeground( ParseColor(x))) },
-            { KeyWords.db+"="   , (x) => RelayCall(() => SetDefaultBackground( ParseColor(x))) },
-            { KeyWords.br+""    , (x) => RelayCall(LineBreak) },
-            { KeyWords.inf+""   , (x) => RelayCall(Infos) },
-            { KeyWords.bkcr+""  , (x) => RelayCall(BackupCursorPos) },
-            { KeyWords.rscr+""  , (x) => RelayCall(RestoreCursorPos) },
-            { KeyWords.crh+""   , (x) => RelayCall(HideCur) },
-            { KeyWords.crs+""   , (x) => RelayCall(ShowCur) },
-            { KeyWords.crx+"="  , (x) => RelayCall(() => SetCursorLeft(GetCursorX(x))) },
-            { KeyWords.cry+"="  , (x) => RelayCall(() => SetCursorTop(GetCursorY(x))) },
-            { KeyWords.exit+""  , (x) => RelayCall(() => Exit()) },
-            { KeyWords.exec+"=" , (x) => ExecCSharp((string)x) }
+            { PrintDirectives.bkf+""   , (x) => RelayCall(BackupForeground) },
+            { PrintDirectives.bkb+""   , (x) => RelayCall(BackupBackground) },
+            { PrintDirectives.rsf+""   , (x) => RelayCall(RestoreForeground) },
+            { PrintDirectives.rsb+""   , (x) => RelayCall(RestoreBackground) },
+            { PrintDirectives.cl+""    , (x) => RelayCall(() => Clear()) },
+            { PrintDirectives.f+"="    , (x) => RelayCall(() => SetForeground( TextColor.ParseColor(x))) },
+            { PrintDirectives.b+"="    , (x) => RelayCall(() => SetBackground( TextColor.ParseColor(x))) },
+            { PrintDirectives.df+"="   , (x) => RelayCall(() => SetDefaultForeground( TextColor.ParseColor(x))) },
+            { PrintDirectives.db+"="   , (x) => RelayCall(() => SetDefaultBackground( TextColor.ParseColor(x))) },
+            { PrintDirectives.br+""    , (x) => RelayCall(LineBreak) },
+            { PrintDirectives.inf+""   , (x) => RelayCall(Infos) },
+            { PrintDirectives.bkcr+""  , (x) => RelayCall(BackupCursorPos) },
+            { PrintDirectives.rscr+""  , (x) => RelayCall(RestoreCursorPos) },
+            { PrintDirectives.crh+""   , (x) => RelayCall(HideCur) },
+            { PrintDirectives.crs+""   , (x) => RelayCall(ShowCur) },
+            { PrintDirectives.crx+"="  , (x) => RelayCall(() => SetCursorLeft(GetCursorX(x))) },
+            { PrintDirectives.cry+"="  , (x) => RelayCall(() => SetCursorTop(GetCursorY(x))) },
+            { PrintDirectives.exit+""  , (x) => RelayCall(() => Exit()) },
+            { PrintDirectives.exec+"=" , (x) => ExecCSharp((string)x) }
         };
 
         static object RelayCall(Action method) { method(); return null; }
@@ -259,7 +204,6 @@ namespace DotNetConsoleSdk
             Lock(() =>
             {
                 ConsolePrint(string.Empty, true);
-                //UpdateUI();
             });
         }
         public static void Infos()
@@ -267,10 +211,10 @@ namespace DotNetConsoleSdk
             Lock(() =>
             {
                 Println($"OS={Environment.OSVersion} {(Environment.Is64BitOperatingSystem ? "64" : "32")}bits");
-                Println($"{White}{Bkf}{Green}window:{Rf} left={Cyan}{sc.WindowLeft}{Rf},top={Cyan}{sc.WindowTop}{Rf},width={Cyan}{sc.WindowWidth}{Rf},height={Cyan}{sc.WindowHeight}{Rf},largest width={Cyan}{sc.LargestWindowWidth}{Rf},largest height={Cyan}{sc.LargestWindowHeight}{Rf}");
-                Println($"{Green}buffer:{Rf} width={Cyan}{sc.BufferWidth}{Rf},height={Cyan}{sc.BufferHeight}{Rf} | input encoding={Cyan}{sc.InputEncoding.EncodingName}{Rf} | output encoding={Cyan}{sc.OutputEncoding.EncodingName}{Rf}");
-                Println($"number lock={Cyan}{sc.NumberLock}{Rf} | capslock={Cyan}{sc.CapsLock}{Rf}");            // TODO: not supported on linux ubuntu 18.04 wsl
-                Println($"cursor visible={Cyan}{sc.CursorVisible}{Rf} | cursor size={Cyan}{sc.CursorSize}");     // TODO: not supported on linux ubuntu 18.04 wsl
+                Println($"{White}{Bkf}{ColorSettings.HighlightIdentifier}window:{Rf} left={ColorSettings.Numeric}{sc.WindowLeft}{Rf},top={ColorSettings.Numeric}{sc.WindowTop}{Rf},width={ColorSettings.Numeric}{sc.WindowWidth}{Rf},height={ColorSettings.Numeric}{sc.WindowHeight}{Rf},largest width={ColorSettings.Numeric}{sc.LargestWindowWidth}{Rf},largest height={ColorSettings.Numeric}{sc.LargestWindowHeight}{Rf}");
+                Println($"{ColorSettings.HighlightIdentifier}buffer:{Rf} width={ColorSettings.Numeric}{sc.BufferWidth}{Rf},height={ColorSettings.Numeric}{sc.BufferHeight}{Rf} | input encoding={ColorSettings.Numeric}{sc.InputEncoding.EncodingName}{Rf} | output encoding={ColorSettings.Numeric}{sc.OutputEncoding.EncodingName}{Rf}");
+                Println($"number lock={ColorSettings.Numeric}{sc.NumberLock}{Rf} | capslock={ColorSettings.Numeric}{sc.CapsLock}{Rf}");            // TODO: not supported on linux ubuntu 18.04 wsl
+                Println($"cursor visible={ColorSettings.Numeric}{sc.CursorVisible}{Rf} | cursor size={ColorSettings.Numeric}{sc.CursorSize}");     // TODO: not supported on linux ubuntu 18.04 wsl
             });
         }
         public static void BackupCursorPos()
@@ -923,7 +867,7 @@ namespace DotNetConsoleSdk
         {
             if (sw != null)
             {
-                _outputWriter = Console.Out;
+                _outputWriter = sc.Out;
                 _outputStreamWriter = sw;
                 sc.SetOut(_outputStreamWriter);
             } else
@@ -938,7 +882,7 @@ namespace DotNetConsoleSdk
         {
             if (filepath!=null)
             {
-                _outputWriter = Console.Out;
+                _outputWriter = sc.Out;
                 _outputFileStream = new FileStream(filepath, FileMode.Append, FileAccess.Write);
                 _outputStreamWriter = new StreamWriter(_outputFileStream);
                 sc.SetOut(_outputStreamWriter);
@@ -967,7 +911,7 @@ namespace DotNetConsoleSdk
             return $"{CommandBlockBeginChar}{cmd}{CommandBlockEndChar}";
         }
 
-        public static string GetCmd(KeyWords cmd, string value = null)
+        public static string GetCmd(PrintDirectives cmd, string value = null)
         {
             if (value != null)
                 return $"{CommandBlockBeginChar}{cmd}{CommandValueAssignationChar}{value}{CommandBlockEndChar}";
@@ -975,19 +919,7 @@ namespace DotNetConsoleSdk
         }
 
         static void TraceError(string s) => LogError(s);
-
-        static ConsoleColor GetColor(string colorName)
-        {
-            return (ConsoleColor)Enum.Parse(typeof(ConsoleColor), colorName);
-        }
-        static ConsoleColor ParseColor(object c) {
-
-            if (Enum.TryParse<ConsoleColor>((string)c, true, out ConsoleColor r))
-                return r;
-            if (TraceCommandErrors) TraceError($"invalid color name: {c}");
-            return DefaultForeground;
-        }
-
+        
         static int GetCursorX(object x)
         {
             if (x != null && x is string s && !string.IsNullOrWhiteSpace(s)
@@ -1186,59 +1118,59 @@ namespace DotNetConsoleSdk
 
         #region commands shortcuts
 
-        public static string DefaultBackgroundCmd => GetCmd(KeyWords.b + "", DefaultBackground.ToString().ToLower());
-        public static string DefaultForegroundCmd => GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
+        public static string DefaultBackgroundCmd => GetCmd(PrintDirectives.b + "", DefaultBackground.ToString().ToLower());
+        public static string DefaultForegroundCmd => GetCmd(PrintDirectives.f + "", DefaultForeground.ToString().ToLower());
 
-        public static string Bblack => GetCmd(KeyWords.b+"", "black");
-        public static string Bdarkblue => GetCmd(KeyWords.b , "darkblue");
-        public static string Bdarkgreen => GetCmd(KeyWords.b , "darkgreen");
-        public static string Bdarkcyan => GetCmd(KeyWords.b , "darkcyan");
-        public static string Bdarkred => GetCmd(KeyWords.b , "darkred");
-        public static string Bdarkmagenta => GetCmd(KeyWords.b , "darkmagenta");
-        public static string Bdarkyellow => GetCmd(KeyWords.b , "darkyellow");
-        public static string Bgray => GetCmd(KeyWords.b , "gray");
-        public static string Bdarkgray => GetCmd(KeyWords.b , "darkgray");
-        public static string Bblue => GetCmd(KeyWords.b , "blue");
-        public static string Bgreen => GetCmd(KeyWords.b , "green");
-        public static string Bcyan => GetCmd(KeyWords.b , "cyan");
-        public static string Bred => GetCmd(KeyWords.b , "red");
-        public static string Bmagenta => GetCmd(KeyWords.b , "magenta");
-        public static string Byellow => GetCmd(KeyWords.b , "yellow");
-        public static string Bwhite => GetCmd(KeyWords.b , "white");
-        public static string Black => GetCmd(KeyWords.f , "black");
-        public static string Darkblue => GetCmd(KeyWords.f , "darkblue");
-        public static string Darkgreen => GetCmd(KeyWords.f , "darkgreen");
-        public static string Darkcyan => GetCmd(KeyWords.f , "darkcyan");
-        public static string Darkred => GetCmd(KeyWords.f , "darkred");
-        public static string Darkmagenta => GetCmd(KeyWords.f , "darkmagenta");
-        public static string Darkyellow => GetCmd(KeyWords.f , "darkyellow");
-        public static string Gray => GetCmd(KeyWords.f , "gray");
-        public static string Darkgray => GetCmd(KeyWords.f , "darkgray");
-        public static string Blue => GetCmd(KeyWords.f , "blue");
-        public static string Green => GetCmd(KeyWords.f , "green");
-        public static string Cyan => GetCmd(KeyWords.f , "cyan");
-        public static string Red => GetCmd(KeyWords.f , "red");
-        public static string Magenta => GetCmd(KeyWords.f , "magenta");
-        public static string Yellow => GetCmd(KeyWords.f , "yellow");
-        public static string White => GetCmd(KeyWords.f , "white");
+        public static string Bblack => GetCmd(PrintDirectives.b+"", "black");
+        public static string Bdarkblue => GetCmd(PrintDirectives.b , "darkblue");
+        public static string Bdarkgreen => GetCmd(PrintDirectives.b , "darkgreen");
+        public static string Bdarkcyan => GetCmd(PrintDirectives.b , "darkcyan");
+        public static string Bdarkred => GetCmd(PrintDirectives.b , "darkred");
+        public static string Bdarkmagenta => GetCmd(PrintDirectives.b , "darkmagenta");
+        public static string Bdarkyellow => GetCmd(PrintDirectives.b , "darkyellow");
+        public static string Bgray => GetCmd(PrintDirectives.b , "gray");
+        public static string Bdarkgray => GetCmd(PrintDirectives.b , "darkgray");
+        public static string Bblue => GetCmd(PrintDirectives.b , "blue");
+        public static string Bgreen => GetCmd(PrintDirectives.b , "green");
+        public static string Bcyan => GetCmd(PrintDirectives.b , "cyan");
+        public static string Bred => GetCmd(PrintDirectives.b , "red");
+        public static string Bmagenta => GetCmd(PrintDirectives.b , "magenta");
+        public static string Byellow => GetCmd(PrintDirectives.b , "yellow");
+        public static string Bwhite => GetCmd(PrintDirectives.b , "white");
+        public static string Black => GetCmd(PrintDirectives.f , "black");
+        public static string Darkblue => GetCmd(PrintDirectives.f , "darkblue");
+        public static string Darkgreen => GetCmd(PrintDirectives.f , "darkgreen");
+        public static string Darkcyan => GetCmd(PrintDirectives.f , "darkcyan");
+        public static string Darkred => GetCmd(PrintDirectives.f , "darkred");
+        public static string Darkmagenta => GetCmd(PrintDirectives.f , "darkmagenta");
+        public static string Darkyellow => GetCmd(PrintDirectives.f , "darkyellow");
+        public static string Gray => GetCmd(PrintDirectives.f , "gray");
+        public static string Darkgray => GetCmd(PrintDirectives.f , "darkgray");
+        public static string Blue => GetCmd(PrintDirectives.f , "blue");
+        public static string Green => GetCmd(PrintDirectives.f , "green");
+        public static string Cyan => GetCmd(PrintDirectives.f , "cyan");
+        public static string Red => GetCmd(PrintDirectives.f , "red");
+        public static string Magenta => GetCmd(PrintDirectives.f , "magenta");
+        public static string Yellow => GetCmd(PrintDirectives.f , "yellow");
+        public static string White => GetCmd(PrintDirectives.f , "white");
 
-        public static string Bkf => GetCmd(KeyWords.bkf );
-        public static string Rf => GetCmd(KeyWords.rsf );
-        public static string Bkb => GetCmd(KeyWords.bkb );
-        public static string Rb => GetCmd(KeyWords.rsb );
-        public static string Cl => GetCmd(KeyWords.cl );
-        public static string Br => GetCmd(KeyWords.br );
+        public static string Bkf => GetCmd(PrintDirectives.bkf );
+        public static string Rf => GetCmd(PrintDirectives.rsf );
+        public static string Bkb => GetCmd(PrintDirectives.bkb );
+        public static string Rb => GetCmd(PrintDirectives.rsb );
+        public static string Cl => GetCmd(PrintDirectives.cl );
+        public static string Br => GetCmd(PrintDirectives.br );
 
-        public static string B(ConsoleColor c) => GetCmd(KeyWords.b , c+"");
-        public static string F(ConsoleColor c) => GetCmd(KeyWords.f , c+"");
+        public static string B(ConsoleColor c) => GetCmd(PrintDirectives.b , c+"");
+        public static string F(ConsoleColor c) => GetCmd(PrintDirectives.f , c+"");
 
-        public static string Bkcr => GetCmd(KeyWords.bkcr );
-        public static string Rscr => GetCmd(KeyWords.rscr );
-        public static string Crx(int x) => GetCmd(KeyWords.crx , x +"");
-        public static string Cry(int y) => GetCmd(KeyWords.cry , y +"");
-        public static string Cr(int x, int y) => $"{GetCmd(KeyWords.crx , x +"" )}{GetCmd(KeyWords.cry , y+"" )}";
+        public static string Bkcr => GetCmd(PrintDirectives.bkcr );
+        public static string Rscr => GetCmd(PrintDirectives.rscr );
+        public static string Crx(int x) => GetCmd(PrintDirectives.crx , x +"");
+        public static string Cry(int y) => GetCmd(PrintDirectives.cry , y +"");
+        public static string Cr(int x, int y) => $"{GetCmd(PrintDirectives.crx , x +"" )}{GetCmd(PrintDirectives.cry , y+"" )}";
 
-        public static string Exec(string csharpText) => GetCmd(KeyWords.exec , csharpText);
+        public static string Exec(string csharpText) => GetCmd(PrintDirectives.exec , csharpText);
 
         public static string Tab => "".PadLeft(TabLength, ' ');
 

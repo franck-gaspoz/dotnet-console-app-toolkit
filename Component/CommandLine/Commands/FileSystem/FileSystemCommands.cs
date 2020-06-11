@@ -1,9 +1,11 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using DotNetConsoleSdk.Component.CommandLine.Parsing;
+using DotNetConsoleSdk.Console;
 using DotNetConsoleSdk.Lib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -35,10 +37,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 var sp = string.IsNullOrWhiteSpace(pattern) ? "*" : pattern;
                 var counts = new FindCounts();
                 var items = FindItems(path.FullName, sp, top,all,dirs,attributes,shortPathes,contains, checkPatternOnFullName,counts,true);
-                var f = GetCmd(KeyWords.f+"",DefaultForeground.ToString().ToLower());
+                var f = DefaultForegroundCmd;
                 var elapsed = DateTime.Now - counts.BeginDateTime;
                 if (items.Count > 0) Println();
-                Println($"found {Cyan}{Plur("file",counts.FilesCount,f)} and {Cyan}{Plur("folder",counts.FoldersCount,f)}. scanned {Cyan}{Plur("file",counts.ScannedFilesCount,f)} in {Cyan}{Plur("folder",counts.ScannedFoldersCount,f)} during {TimeSpanDescription(elapsed,Cyan,f)}");
+                Println($"found {ColorSettings.Numeric}{Plur("file",counts.FilesCount,f)} and {ColorSettings.Numeric}{Plur("folder",counts.FoldersCount,f)}. scanned {ColorSettings.Numeric}{Plur("file",counts.ScannedFilesCount,f)} in {ColorSettings.Numeric}{Plur("folder",counts.ScannedFoldersCount,f)} during {TimeSpanDescription(elapsed, ColorSettings.Numeric.ToString(), f)}");
                 return items;
             }
             return new List<FileSystemPath>();
@@ -137,8 +139,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 void postCmd(object o, EventArgs e)
                 {
                     sc.CancelKeyPress -= cancelCmd;
-                    Println($"{Tab}{Cyan}{Plur("file", counts.FilesCount, f),-30}{HumanFormatOfSize(totFileSize, 2," ",Cyan,f)}");
-                    Println($"{Tab}{Cyan}{Plur("folder", counts.FoldersCount, f),-30}{Drives.GetDriveInfo(path.FileSystemInfo.FullName,false,Cyan,f," ",2)}");
+                    Println($"{Tab}{ColorSettings.Numeric}{Plur("file", counts.FilesCount, f),-30}{HumanFormatOfSize(totFileSize, 2," ", ColorSettings.Numeric.ToString(), f)}");
+                    Println($"{Tab}{ColorSettings.Numeric}{Plur("folder", counts.FoldersCount, f),-30}{Drives.GetDriveInfo(path.FileSystemInfo.FullName,false, ColorSettings.Numeric.ToString(), f," ",2)}");
                 }
                 void cancelCmd(object o, ConsoleCancelEventArgs e)
                 {
@@ -247,7 +249,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 var f = DefaultForegroundCmd;
                 try
                 {
-                    var r = $"{Yellow}{di.Name,-10}{f} root dir={Green}{di.RootDirectory,-10}{f} label={Yellow}{di.VolumeLabel,-20}{f} type={Cyan}{di.DriveType,-10}{f} format={Cyan}{di.DriveFormat,-8}{f} bytes={Cyan}{HumanFormatOfSize(di.TotalFreeSpace, 2)}{f}/{Cyan}{HumanFormatOfSize(di.TotalSize, 2)} {f}({Yellow}{Math.Round((double)di.TotalFreeSpace/(double)di.TotalSize*100d,2)}{f} %)";
+                    var r = $"{ColorSettings.Highlight}{di.Name,-10}{f} root dir={ColorSettings.HighlightIdentifier}{di.RootDirectory,-10}{f} label={ColorSettings.Highlight}{di.VolumeLabel,-20}{f} type={ColorSettings.Name}{di.DriveType,-10}{f} format={ColorSettings.Name}{di.DriveFormat,-8}{f} bytes={HumanFormatOfSize(di.TotalFreeSpace, 2," ", ColorSettings.Numeric.ToString(),f)}{f}/{ColorSettings.Numeric}{HumanFormatOfSize(di.TotalSize, 2, " ", ColorSettings.Numeric.ToString(),f)} {f}({ColorSettings.Highlight}{Math.Round((double)di.TotalFreeSpace/(double)di.TotalSize*100d,2)}{f} %)";
                     Println(r);
                 } catch (UnauthorizedAccessException) {
                     Errorln($"unauthorized access to drive {di.Name}");

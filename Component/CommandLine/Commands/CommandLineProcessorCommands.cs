@@ -1,6 +1,7 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
 using DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem;
 using DotNetConsoleSdk.Component.CommandLine.Parsing;
+using DotNetConsoleSdk.Console;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -81,15 +82,15 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             [Option("u","unload the module having this name ",true,true)] string unloadModuleName = null
             )
         {
-            var f = GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
+            var f = GetCmd(PrintDirectives.f + "", DefaultForeground.ToString().ToLower());
             if (loadModulePath==null && unloadModuleName==null)
             {
                 var col1length = Modules.Values.Select(x => x.Name.Length).Max() + 1;
                 foreach (var kvp in Modules)
                 {
                     Println($"{kvp.Value.Name.PadRight(col1length,' ')}{kvp.Value.Description} [types count={Cyan}{kvp.Value.TypesCount}{f} commands count={Cyan}{kvp.Value.CommandsCount}{f}]");
-                    Println($"{"".PadRight(col1length, ' ')}{Cyan}assembly:{Gray}{kvp.Value.Assembly.FullName}");
-                    Println($"{"".PadRight(col1length, ' ')}{Cyan}path:    {Gray}{kvp.Value.Assembly.Location}");
+                    Println($"{"".PadRight(col1length, ' ')}{ColorSettings.Label}assembly:{ColorSettings.HalfDark}{kvp.Value.Assembly.FullName}");
+                    Println($"{"".PadRight(col1length, ' ')}{ColorSettings.Label}path:    {ColorSettings.HalfDark}{kvp.Value.Assembly.Location}");
                 }
             }
             if (loadModulePath!=null)
@@ -101,7 +102,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
                     if (commandsCount == 0)
                         Errorln("no commands have been loaded");
                     else
-                        Println($"loaded {Cyan}{Plur("command",commandsCount,f)} in {Cyan}{Plur("type", typesCount, f)}");
+                        Println($"loaded {ColorSettings.Numeric}{Plur("command",commandsCount,f)} in {ColorSettings.Numeric}{Plur("type", typesCount, f)}");
                 }
             }
             if (unloadModuleName!=null)
@@ -112,7 +113,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
                     if (commandsCount == 0)
                         Errorln("no commands have been unloaded");
                     else
-                        Println($"unloaded {Cyan}{Plur("command", commandsCount, f)} in {Cyan}{Plur("type", typesCount, f)}");
+                        Println($"unloaded {ColorSettings.Numeric}{Plur("command", commandsCount, f)} in {ColorSettings.Numeric}{Plur("type", typesCount, f)}");
                 }
                 else
                     Errorln($"commands module '{unloadModuleName}' not registered");
@@ -126,7 +127,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             if (maxcnamelength == -1) maxcnamelength = com.Name.Length + 1;
             if (maxcmdtypelength == -1) maxcmdtypelength = com.DeclaringTypeShortName.Length + 1;       
             var col = singleout? "": "".PadRight(maxcnamelength, ' ');
-            var f = GetCmd(KeyWords.f + "", DefaultForeground.ToString().ToLower());
+            var f = GetCmd(PrintDirectives.f + "", DefaultForeground.ToString().ToLower());
             if (list)
                 Println($"{Darkcyan}{com.ModuleName.PadRight(maxmodlength, ' ')}{com.DeclaringTypeShortName.PadRight(maxcmdtypelength, ' ')}{Tab}{f}{com.Name.PadRight(maxcnamelength, ' ')}{Tab}{com.Description}");
             else
@@ -139,11 +140,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
 
             if (!list)
             {
-                Println($"{col}{Cyan}type  : {Darkcyan}{com.DeclaringTypeShortName}");
-                Println($"{col}{Cyan}module: {Darkcyan}{com.ModuleName}");
+                Println($"{col}{ColorSettings.Label}type  : {ColorSettings.DarkLabel}{com.DeclaringTypeShortName}");
+                Println($"{col}{ColorSettings.Label}module: {ColorSettings.DarkLabel}{com.ModuleName}");
                 if (com.ParametersCount > 0)
                 {
-                    Println($"{col}{Cyan}syntax: {f}{com.ToColorizedString()}");                    
+                    Println($"{col}{ColorSettings.Label}syntax: {f}{com.ToColorizedString()}");                    
                     if (!shortView)
                     {
                         var mpl = com.ParametersSpecifications.Values.Select(x => x.Dump(false).Length).Max() + TabLength;
@@ -234,7 +235,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
 
             foreach ( var h in hist )
             {
-                var hp = $"  {Cyan}{i.ToString().PadRight(max + 2, ' ')}{f}{h}";
+                var hp = $"  {ColorSettings.Numeric}{i.ToString().PadRight(max + 2, ' ')}{f}{h}";
                 Println(hp);
                 i++;
             }

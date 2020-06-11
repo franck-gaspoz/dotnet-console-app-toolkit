@@ -160,7 +160,7 @@ namespace DotNetConsoleSdk.Component.UI
                 EnableConstraintConsolePrintInsideWorkArea = false;
                 RedrawUIElementsEnabled = false;
                 HideCur();
-                DrawRect(Console.BackgroundColor, ActualX, ActualY, ActualWidth, ActualHeight);
+                DrawRect(DefaultBackground, ActualX, ActualY, ActualWidth, ActualHeight);
                 SetCursorPos(p);
                 ShowCur();
                 EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
