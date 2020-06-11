@@ -392,6 +392,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 var items = FindItems(path.FullName, path.WildCardFileName ?? "*", true, false, false, true, false, null, false, counts, false, false);
                 foreach (var item in items) PrintFile((FilePath)item,hideLineNumbers);
                 if (items.Count == 0)  Errorln($"more: no such file: {path.OriginalPath}");
+                ShowCur();
             }
         }
 
@@ -401,7 +402,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
         {
             const int cl = 14;
             string quit = $"{"qQ",cl}quit";
-            string scrollnext = $"{"space",cl}display next k lines of text. Default to current screen size";
+            string scrollnext = $"{"space",cl}display next lines of text, according to current screen size";
             string scrolllinedown = $"{"down arrow",cl}scroll one line down";
             string scrolllineup = $"{"up arrow",cl}scroll one line up";
             string pagedown = $"{"right arrow",cl}scroll one page down";
@@ -432,42 +433,60 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             var linecollength = nblines.ToString().Length;
             var pos = 0;
             bool end = false;
-            int y =0;
+            int y =0,x=0;
             int maxk = ActualWorkArea.bottom - ActualWorkArea.top + 1;
             int k = maxk;
+            bool endReached = false;
+            bool topReached = true;
+            bool skipPrint = false;
+
             while (!end)
-            {
+            {                
                 var h = k - 1 - preambleHeight;
                 var curNbLines = Math.Min(nblines, h );
                 var percent = nblines == 0 ? 100 : Math.Ceiling((double)(Math.Min(curNbLines+pos,nblines)) / (double)nblines*100d);
                 int i = 0;
-                while (i<curNbLines && pos+i<nblines)
-                {
-                    if (CommandLineProcessor.CancellationTokenSource.IsCancellationRequested) return;
-                    var prefix = hideLineNumbers ? "" : (ColorSettings.Dark + "  " + (pos + i + 1).ToString().PadRight(linecollength, ' ') + "  ");
-                    Println(prefix+ColorSettings.Default+lines[pos+i]);
-                    i++;
-                }
-                preambleHeight = 0;
-                y = sc.CursorTop;
-                var x = sc.CursorLeft;
+                if (!skipPrint)
+                    lock (ConsoleLock)
+                    {
+                        HideCur();
+                        while (i < curNbLines && pos + i < nblines)
+                        {
+                            if (CommandLineProcessor.CancellationTokenSource.IsCancellationRequested) return;
+                            var prefix = hideLineNumbers ? "" : (ColorSettings.Dark + "  " + (pos + i + 1).ToString().PadRight(linecollength, ' ') + "  ");
+                            Println(prefix + ColorSettings.Default + lines[pos + i]);
+                            i++;
+                        }
+                        ShowCur();
+                        preambleHeight = 0;
+                        y = sc.CursorTop;
+                        x = sc.CursorLeft;
+                        endReached = pos + i >= nblines;
+                        topReached = pos == 0;
+                    }
                 var inputText = $"--more--({percent}%)";
-                end = pos + i >= nblines;
+
                 var action = end? quit: InputBar(inputText,inputMaps);                
                 end = (string)action == quit;
 
+                var oldpos = pos;
+
                 if ((string)action == scrollnext) pos += k;
                 // TODO: use a new console operation 'ClearWorkArea'
-                if ((string)action == scrolllinedown) { Clear(); pos++; }   
-                if ((string)action == scrolllineup) { Clear(); pos = Math.Max(0, pos - 1); }
-                if ((string)action == pagedown) { Clear(); pos+=k; }
-                if ((string)action == pageup) { Clear(); pos = Math.Max(0, pos - k); }
+                if ((string)action == scrolllinedown && !endReached) { Clear(); pos++; }   
+                if ((string)action == scrolllineup && !topReached) { Clear(); pos = Math.Max(0, pos - 1); }
+                if ((string)action == pagedown && !endReached) { Clear(); pos+=k; }
+                if ((string)action == pageup && !topReached) { Clear(); pos = Math.Max(0, pos - k); }
 
+                skipPrint = oldpos == pos;
                 lock (ConsoleLock)
                 {
                     sc.CursorLeft = x;
-                    Print("".PadLeft(inputText.Length, ' '));
-                    sc.CursorLeft = x;
+                    if (!skipPrint || end)
+                    {
+                        Print("".PadLeft(inputText.Length, ' '));
+                        sc.CursorLeft = x;
+                    }
                 }
             }            
         }
