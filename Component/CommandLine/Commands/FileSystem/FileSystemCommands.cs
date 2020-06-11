@@ -439,26 +439,27 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             bool endReached = false;
             bool topReached = true;
             bool skipPrint = false;
+            bool scroll1down = false;
+            int decpos = 0;
 
             while (!end)
             {                
                 var h = k - 1 - preambleHeight;
                 var curNbLines = Math.Min(nblines, h );
-                var percent = nblines == 0 ? 100 : Math.Ceiling((double)(Math.Min(curNbLines+pos,nblines)) / (double)nblines*100d);
+                var percent = nblines == 0 ? 100 : Math.Ceiling((double)(Math.Min(curNbLines+pos+decpos,nblines)) / (double)nblines*100d);
                 int i = 0;
                 if (!skipPrint)
                     lock (ConsoleLock)
                     {
                         HideCur();
-                        while (i < curNbLines && pos + i < nblines)
+                        while (i < curNbLines && pos + decpos + i < nblines)
                         {
                             if (CommandLineProcessor.CancellationTokenSource.IsCancellationRequested) return;
-                            var prefix = hideLineNumbers ? "" : (ColorSettings.Dark + "  " + (pos + i + 1).ToString().PadRight(linecollength, ' ') + "  ");
-                            Println(prefix + ColorSettings.Default + lines[pos + i]);
+                            var prefix = hideLineNumbers ? "" : (ColorSettings.Dark + "  " + (pos + decpos + i + 1).ToString().PadRight(linecollength, ' ') + "  ");
+                            Println(prefix + ColorSettings.Default + lines[pos + decpos + i]);
                             i++;
                         }
                         ShowCur();
-                        preambleHeight = 0;
                         y = sc.CursorTop;
                         x = sc.CursorLeft;
                         endReached = pos + i >= nblines;
@@ -471,13 +472,30 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 
                 var oldpos = pos;
 
-                if ((string)action == scrollnext) pos += k;
+                if ((string)action == scrollnext) { k = maxk; pos += k; }
                 // TODO: use a new console operation 'ClearWorkArea'
-                if ((string)action == scrolllinedown && !endReached) { Clear(); pos++; }   
-                if ((string)action == scrolllineup && !topReached) { Clear(); pos = Math.Max(0, pos - 1); }
-                if ((string)action == pagedown && !endReached) { Clear(); pos+=k; }
-                if ((string)action == pageup && !topReached) { Clear(); pos = Math.Max(0, pos - k); }
+                if ((string)action == scrolllinedown && !endReached)
+                {
+                    if (!scroll1down)
+                    {
+                        scroll1down = true;
+                        decpos = k - 1 - preambleHeight - 1;
+                    }
+                    pos++;
+                    k = 2;
+                }
+                else
+                {
+                    scroll1down = false;
+                    decpos = 0;
+                }
 
+                if ((string)action == scrolllineup && !topReached) { 
+                    Clear(); k = maxk; pos = Math.Max(0, pos- 1); }
+                if ((string)action == pagedown && !endReached) { Clear(); k = maxk; pos+=k-1-preambleHeight; }
+                if ((string)action == pageup && !topReached) { Clear(); k = maxk; pos = Math.Max(0, pos - k+1); }
+
+                preambleHeight = 0;
                 skipPrint = oldpos == pos;
                 lock (ConsoleLock)
                 {
