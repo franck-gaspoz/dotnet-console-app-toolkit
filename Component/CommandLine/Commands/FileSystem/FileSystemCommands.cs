@@ -397,18 +397,27 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 
         [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
         [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
-        void PrintFile(FilePath file,bool hideLineNumbers) // more c:\users\franc\*.txt
+        void PrintFile(FilePath file, bool hideLineNumbers)
         {
-            const string quit = "quit";
-            const string scrollnext = "display next k lines of text. Default to current screen size";
+            const int cl = 14;
+            string quit = $"{"qQ",cl}quit";
+            string scrollnext = $"{"space",cl}display next k lines of text. Default to current screen size";
+            string scrolllinedown = $"{"down arrow",cl}scroll one line down";
+            string scrolllineup = $"{"up arrow",cl}scroll one line up";
+            string pagedown = $"{"right arrow",cl}scroll one page down";
+            string pageup = $"{"left arrow",cl}scroll one page up";
 
             var inputMaps = new List<InputMap>
             {
                 new InputMap("q",quit),
-                new InputMap(" ",scrollnext)
+                new InputMap(" ",scrollnext),
+                new InputMap((str,key)=>key.Key==ConsoleKey.DownArrow?InputMap.ExactMatch:InputMap.NoMatch,scrolllinedown),
+                new InputMap((str,key)=>key.Key==ConsoleKey.UpArrow?InputMap.ExactMatch:InputMap.NoMatch,scrolllineup),
+                new InputMap((str,key)=>key.Key==ConsoleKey.RightArrow?InputMap.ExactMatch:InputMap.NoMatch,pagedown),
+                new InputMap((str,key)=>key.Key==ConsoleKey.LeftArrow?InputMap.ExactMatch:InputMap.NoMatch,pageup)
             };
 
-            var fileEncoding = file.GetEncoding(Encoding.ASCII);
+            var fileEncoding = file.GetEncoding(Encoding.Default);
             var lines = fileEncoding == null ? File.ReadAllLines(file.FullName, fileEncoding).ToArray() : File.ReadAllLines(file.FullName).ToArray();
             var nblines = lines.Length;
 
@@ -424,7 +433,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             var pos = 0;
             bool end = false;
             int y =0;
-            int k = ActualWorkArea.bottom - ActualWorkArea.top + 1;
+            int maxk = ActualWorkArea.bottom - ActualWorkArea.top + 1;
+            int k = maxk;
             while (!end)
             {
                 var h = k - 1 - preambleHeight;
@@ -445,7 +455,13 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 end = pos + i >= nblines;
                 var action = end? quit: InputBar(inputText,inputMaps);                
                 end = (string)action == quit;
+
                 if ((string)action == scrollnext) pos += k;
+                // TODO: use a new console operation 'ClearWorkArea'
+                if ((string)action == scrolllinedown) { Clear(); pos++; }   
+                if ((string)action == scrolllineup) { Clear(); pos = Math.Max(0, pos - 1); }
+                if ((string)action == pagedown) { Clear(); pos+=k; }
+                if ((string)action == pageup) { Clear(); pos = Math.Max(0, pos - k); }
 
                 lock (ConsoleLock)
                 {

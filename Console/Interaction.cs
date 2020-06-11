@@ -41,11 +41,12 @@ namespace DotNetConsoleSdk.Console
             while (!end)
             {
                 var c = sc.ReadKey(true);
-                input += c.KeyChar;
+                if (!Char.IsControl(c.KeyChar))
+                    input += c.KeyChar;
                 bool partialMatch = false;
                 foreach (var inputMap in inputMaps)
                 {
-                    var match = inputMap.Match(input);
+                    var match = inputMap.Match(input,c);
                     if (match == InputMap.ExactMatch)
                     {
                         r = inputMap.Code;
