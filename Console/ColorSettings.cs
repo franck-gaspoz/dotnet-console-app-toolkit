@@ -1,9 +1,13 @@
 ﻿using System;
+using static DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Console
 {
     public class ColorSettings
     {
+        public static TextColor Default => new TextColor(DefaultForeground, DefaultBackground);
+        public static TextColor Inverted => new TextColor(DefaultBackground, DefaultForeground);
+
         public static TextColor Log = new TextColor(ConsoleColor.Green, null);
         public static TextColor Error = new TextColor(ConsoleColor.Red, null);
         public static TextColor Warning = new TextColor(ConsoleColor.DarkYellow, null);

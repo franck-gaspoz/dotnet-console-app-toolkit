@@ -380,8 +380,6 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
         }
 
         [Command("file viewer")]
-        [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
-        [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
         public void More(
             [Parameter("file or folder path")] WildcardFilePath path
             )
@@ -390,28 +388,44 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             {
                 var counts = new FindCounts();
                 var items = FindItems(path.FullName, path.WildCardFileName ?? "*", true, false, false, true, false, null, false, counts, false, false);
+                foreach (var item in items) PrintFile(item);
+                if (items.Count == 0)  Errorln($"more: no such file: {path.OriginalPath}");
+            }
+        }
 
-                static void printFileTitle(FileSystemPath file)
-                {
-                    var n = file.Name.Length + TabLength;
-                    var sep = "".PadRight(n,':');
-                    Println($"{Bdarkblue}{White}{sep}");
-                    Println($"{Bdarkblue}{White}{file.Name.PadRight(n, ' ')}");
-                    Println($"{Bdarkblue}{White}{sep}");
-                }
+        [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
+        [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
+        void PrintFile(FileSystemPath file) // more c:\users\franc\*.txt
+        {
+            var inputMaps = new List<InputMap>
+            {
+                new InputMap("q",1)
+            };
 
-                foreach ( var item in items )
+            var n = file.Name.Length + TabLength;
+            var sep = "".PadRight(n, '-');
+            Println($"{Bdarkblue}{White}{sep}");
+            Println($"{Bdarkblue}{White}{file.Name.PadRight(n, ' ')}");
+            Println($"{Bdarkblue}{White}{sep}");
+
+            var preambleHeight = 3;
+            var lines = File.ReadAllLines(file.FullName).ToArray();
+            var nblines = lines.Length;
+            var pos = 0;
+            bool end = false;
+            while (!end)
+            {
+                var h = sc.WindowHeight - 1;
+                var curNbLines = Math.Min(nblines, h + pos - 1 - preambleHeight);
+                var percent = nblines == 0 ? 100 : Math.Ceiling((double)curNbLines / (double)nblines);
+                for (int i=0; i<=curNbLines; i++)
                 {
-                    printFileTitle(item);
-                    var lines = File.ReadAllLines(item.FullName);
-                    foreach (var line in lines)
-                    {
-                        if (CommandLineProcessor.CancellationTokenSource.IsCancellationRequested) return;
-                        Println(line);
-                    }
+                    if (CommandLineProcessor.CancellationTokenSource.IsCancellationRequested) return;
+                    Println(lines[pos+i]);
                 }
-                if (items.Count == 0)
-                    Errorln($"more: no such file: {path.OriginalPath}");
+                preambleHeight = 0;
+                var y = sc.CursorTop;
+                InputBar($"--more--({percent}%)",inputMaps);
             }
         }
     }

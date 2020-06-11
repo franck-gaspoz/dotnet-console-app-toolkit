@@ -209,7 +209,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
             AsyncCallback asyncCallback, 
             string prompt = null,
             bool waitForReaderExited = true,
-            bool loop=true)
+            bool loop=true
+            )
         {
             _waitForReaderExited = waitForReaderExited;
             prompt ??= _defaultPrompt;
@@ -253,7 +254,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
 #if dbg
                                 System.Diagnostics.Debug.WriteLine($"{c.KeyChar}={c.Key}");
 #endif
-#region handle special keys - edition mode, movement
+                                #region handle special keys - edition mode, movement
 
                                 (id, left, top, right, bottom) = ActualWorkArea;
 
@@ -431,7 +432,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                                         break;
                                 }
 
-#endregion
+                            #endregion
                             }
                             else
                             {
@@ -466,19 +467,19 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                                         EnableConstraintConsolePrintInsideWorkArea = false;
                                         foreach (var (line, lx, ly, l) in slines)
                                             if (ly >= top && ly <= bottom)
-                                            {                                                
+                                            {
                                                 SetCursorPos(lx, ly);
                                                 ConsolePrint(line);
                                             }
                                         EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
-                                        x+=printedStr.Length;
+                                        x += printedStr.Length;
                                         SetCursorPosConstraintedInWorkArea(ref x, ref y);
                                         ShowCur();
                                     }
                                     if (!insert)
                                     {
                                         _inputReaderStringBuilder.Append(printedStr);
-                                        ConsolePrint(printedStr, false);
+                                       ConsolePrint(printedStr, false);
                                     }
                                 }
                             }

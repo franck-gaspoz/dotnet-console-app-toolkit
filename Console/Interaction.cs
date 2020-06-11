@@ -1,6 +1,8 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandLineReader;
 using System;
+using System.Collections.Generic;
 using static DotNetConsoleSdk.DotNetConsole;
+using sc = System.Console;
 
 namespace DotNetConsoleSdk.Console
 {
@@ -24,6 +26,22 @@ namespace DotNetConsoleSdk.Console
             return r;
         }
 
-
+        /// <summary>
+        /// display a bar of text that wait a text input
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="inputMap"></param>
+        /// <returns></returns>
+        public static object InputBar(string text,List<InputMap> inputMaps)
+        {
+            object r = null;
+            Print($"{ColorSettings.Inverted}{text}{ColorSettings.Default}");
+            bool end = false;
+            while (!end)
+            {
+                var c = sc.ReadKey(true);
+            }
+            return r;
+        }
     }
 }
