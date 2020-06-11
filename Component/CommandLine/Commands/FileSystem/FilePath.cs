@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 using static DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
@@ -37,6 +38,24 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
         public override string ToString()
         {
             return FileInfo.FullName;
+        }
+
+        public Encoding GetEncoding(Encoding defaultEncoding=null)
+        {
+            if (defaultEncoding != null)
+            {
+                using var reader = new StreamReader(FullName, defaultEncoding, true);
+                if (reader.Peek() >= 0)
+                    reader.Read();
+                return reader.CurrentEncoding;
+            } 
+            else
+            {
+                using var reader = new StreamReader(FullName, true);
+                if (reader.Peek() >= 0)
+                    reader.Read();
+                return reader.CurrentEncoding;
+            }
         }
     }
 }

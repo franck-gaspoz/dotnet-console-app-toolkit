@@ -37,9 +37,26 @@ namespace DotNetConsoleSdk.Console
             object r = null;
             Print($"{ColorSettings.Inverted}{text}{ColorSettings.Default}");
             bool end = false;
+            string input = "";
             while (!end)
             {
                 var c = sc.ReadKey(true);
+                input += c.KeyChar;
+                bool partialMatch = false;
+                foreach (var inputMap in inputMaps)
+                {
+                    var match = inputMap.Match(input);
+                    if (match == InputMap.ExactMatch)
+                    {
+                        r = inputMap.Code;
+                        end = true;
+                        break;
+                    }
+                    partialMatch |= match == InputMap.PartialMatch;
+                }
+                if (!partialMatch) input = "";
+
+                System.Diagnostics.Debug.WriteLine($"{input}");
             }
             return r;
         }

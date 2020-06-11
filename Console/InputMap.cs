@@ -4,10 +4,23 @@ namespace DotNetConsoleSdk.Console
 {
     public class InputMap
     {
+        public const int ExactMatch = 0;
+        public const int NoMatch = -1;
+        public const int PartialMatch = 1;
+
         public readonly string Text;
         public readonly object Code;
-        public readonly Func<string, bool> MatchInput;
+        /// <summary>
+        /// -1 : no match, 0 : exact match , 1: partial match
+        /// </summary>
+        public readonly Func<string, int> MatchInput;
         public readonly bool CaseSensitiveMatch;
+
+        public InputMap(string text, bool caseSensitiveMatch = false)
+        {
+            Text = text;
+            CaseSensitiveMatch = caseSensitiveMatch;
+        }
 
         public InputMap(string text, object code,bool caseSensitiveMatch=false)
         {
@@ -16,10 +29,20 @@ namespace DotNetConsoleSdk.Console
             CaseSensitiveMatch = caseSensitiveMatch;
         }
 
-        public InputMap(Func<string, bool> matchInput, object code)
+        public InputMap(Func<string, int> matchInput, object code)
         {
             MatchInput = matchInput;
             Code = code;
+        }
+
+        public int Match(string input)
+        {
+            if (Text != null) {
+                if (Text.Equals(input, CaseSensitiveMatch ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase)) return ExactMatch;
+                if (Text.StartsWith(input, CaseSensitiveMatch ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase)) return PartialMatch;
+                return NoMatch;
+            }
+            else return (MatchInput==null)?-1 : MatchInput(input);
         }
     }
 }

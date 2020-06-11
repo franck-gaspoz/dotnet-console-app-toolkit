@@ -21,6 +21,9 @@ namespace DotNetConsoleSdk.Console
         public static TextColor HalfDark = new TextColor(ConsoleColor.Gray, null);
         public static TextColor Dark = new TextColor(ConsoleColor.DarkGray, null);
 
+        public static TextColor TitleBar = new TextColor(ConsoleColor.White, ConsoleColor.DarkBlue);
+        public static TextColor TitleDarkText = new TextColor(ConsoleColor.Gray,ConsoleColor.DarkBlue);
+
         public static TextColor ParameterName = new TextColor(ConsoleColor.Yellow, null);
         public static TextColor ParameterValueType = new TextColor(ConsoleColor.DarkYellow, null);
         public static TextColor OptionPrefix = new TextColor(ConsoleColor.Yellow, null);

@@ -13,6 +13,7 @@ using static DotNetConsoleSdk.DotNetConsole;
 using static DotNetConsoleSdk.Lib.Str;
 using sc = System.Console;
 using static DotNetConsoleSdk.Console.Interaction;
+using System.Text;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 {
@@ -381,52 +382,78 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 
         [Command("file viewer")]
         public void More(
-            [Parameter("file or folder path")] WildcardFilePath path
+            [Parameter("file or folder path")] WildcardFilePath path,
+            [Option("h","hide line numbers")] bool hideLineNumbers
             )
         {
             if (path.CheckExists())
             {
                 var counts = new FindCounts();
                 var items = FindItems(path.FullName, path.WildCardFileName ?? "*", true, false, false, true, false, null, false, counts, false, false);
-                foreach (var item in items) PrintFile(item);
+                foreach (var item in items) PrintFile((FilePath)item,hideLineNumbers);
                 if (items.Count == 0)  Errorln($"more: no such file: {path.OriginalPath}");
             }
         }
 
         [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
         [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
-        void PrintFile(FileSystemPath file) // more c:\users\franc\*.txt
+        void PrintFile(FilePath file,bool hideLineNumbers) // more c:\users\franc\*.txt
         {
+            const string quit = "quit";
+            const string scrollnext = "display next k lines of text. Default to current screen size";
+
             var inputMaps = new List<InputMap>
             {
-                new InputMap("q",1)
+                new InputMap("q",quit),
+                new InputMap(" ",scrollnext)
             };
 
-            var n = file.Name.Length + TabLength;
-            var sep = "".PadRight(n, '-');
-            Println($"{Bdarkblue}{White}{sep}");
-            Println($"{Bdarkblue}{White}{file.Name.PadRight(n, ' ')}");
-            Println($"{Bdarkblue}{White}{sep}");
+            var fileEncoding = file.GetEncoding(Encoding.ASCII);
+            var lines = fileEncoding == null ? File.ReadAllLines(file.FullName, fileEncoding).ToArray() : File.ReadAllLines(file.FullName).ToArray();
+            var nblines = lines.Length;
+
+            var infos = $"    ({Plur("line", nblines)},encoding={(fileEncoding!=null?fileEncoding.EncodingName:"?")})";
+            var n = file.Name.Length + TabLength + infos.Length;
+            var sep = "".PadRight(n+1, '-');
+            Println($"{ColorSettings.TitleBar}{sep}");
+            Println($"{ColorSettings.TitleBar} {file.Name}{ColorSettings.TitleDarkText}{infos.PadRight(n- file.Name.Length, ' ')}");
+            Println($"{ColorSettings.TitleBar}{sep}");
 
             var preambleHeight = 3;
-            var lines = File.ReadAllLines(file.FullName).ToArray();
-            var nblines = lines.Length;
+            var linecollength = nblines.ToString().Length;
             var pos = 0;
             bool end = false;
+            int y =0;
+            int k = ActualWorkArea.bottom - ActualWorkArea.top + 1;
             while (!end)
             {
-                var h = sc.WindowHeight - 1;
-                var curNbLines = Math.Min(nblines, h + pos - 1 - preambleHeight);
-                var percent = nblines == 0 ? 100 : Math.Ceiling((double)curNbLines / (double)nblines);
-                for (int i=0; i<=curNbLines; i++)
+                var h = k - 1 - preambleHeight;
+                var curNbLines = Math.Min(nblines, h );
+                var percent = nblines == 0 ? 100 : Math.Ceiling((double)(Math.Min(curNbLines+pos,nblines)) / (double)nblines*100d);
+                int i = 0;
+                while (i<curNbLines && pos+i<nblines)
                 {
                     if (CommandLineProcessor.CancellationTokenSource.IsCancellationRequested) return;
-                    Println(lines[pos+i]);
+                    var prefix = hideLineNumbers ? "" : (ColorSettings.Dark + "  " + (pos + i + 1).ToString().PadRight(linecollength, ' ') + "  ");
+                    Println(prefix+ColorSettings.Default+lines[pos+i]);
+                    i++;
                 }
                 preambleHeight = 0;
-                var y = sc.CursorTop;
-                InputBar($"--more--({percent}%)",inputMaps);
-            }
+                y = sc.CursorTop;
+                var x = sc.CursorLeft;
+                var inputText = $"--more--({percent}%)";
+                end = pos + i >= nblines;
+                var action = end? quit: InputBar(inputText,inputMaps);                
+                end = (string)action == quit;
+                if ((string)action == scrollnext) pos += k;
+
+                lock (ConsoleLock)
+                {
+                    sc.CursorLeft = x;
+                    Print("".PadLeft(inputText.Length, ' '));
+                    sc.CursorLeft = x;
+                }
+            }            
         }
     }
 }
