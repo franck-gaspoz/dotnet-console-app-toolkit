@@ -379,6 +379,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 
         [Command("file viewer")]
         [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
+        [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
         public void More(
             [Parameter("file or folder path")] WildcardFilePath path
             )
@@ -393,7 +394,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                     var n = file.Name.Length + TabLength;
                     var sep = "".PadRight(n,':');
                     Println($"{Bdarkblue}{White}{sep}");
-                    Println($"{Bdarkblue}{White}{file.Name.PadRight(n,' ')}");
+                    Println($"{Bdarkblue}{White}{file.Name.PadRight(n, ' ')}");
                     Println($"{Bdarkblue}{White}{sep}");
                 }
 
@@ -401,7 +402,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                 {
                     printFileTitle(item);
                     var lines = File.ReadAllLines(item.FullName);
-                    foreach (var line in lines) Println(line);
+                    foreach (var line in lines)
+                    {
+                        if (CommandLineProcessor.CancellationTokenSource.IsCancellationRequested) return;
+                        Println(line);
+                    }
                 }
                 if (items.Count == 0)
                     Errorln($"more: no such file: {path.OriginalPath}");

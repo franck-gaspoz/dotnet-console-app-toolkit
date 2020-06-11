@@ -1,5 +1,6 @@
 ﻿#define dbg
 
+using DotNetConsoleSdk.Component.CommandLine.CommandLineReader;
 using DotNetConsoleSdk.Component.UI;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
@@ -9,18 +10,16 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using static DotNetConsoleSdk.Component.UI.UIElement;
-using sc = System.Console;
 using static DotNetConsoleSdk.Lib.Str;
-using System.Reflection;
-using DotNetConsoleSdk.Component.CommandLine.CommandLineReader;
-using DotNetConsoleSdk.Component.CommandLine;
+using sc = System.Console;
 
 [assembly: AssemblyDescription("DotNetConsoleToolkit core module")]
 [assembly: AssemblyCopyright("© Franck Gaspoz 2020")]
-[assembly: AssemblyTrademark("Franck Gaspoz")]
+[assembly: AssemblyTrademark("franck.gaspoz@gmail.com")]
 namespace DotNetConsoleSdk
 {
     /// <summary>

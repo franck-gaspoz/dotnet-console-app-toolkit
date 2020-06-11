@@ -83,13 +83,17 @@ namespace DotNetConsoleSdk.Component.CommandLine
 
         public static void InitializeCommandProcessor(string[] args, cmdlr.CommandLineReader commandLineReader,bool printInfo=true)
         {
-            CmdsHistory = new CommandsHistory(UserProfileFolder);
-            CmdLineReader = commandLineReader;
-
             SetArgs(args);
             if (!_isInitialized)
             {
                 _isInitialized = true;
+
+                Console.ForegroundColor = DefaultForeground;
+                Console.BackgroundColor = DefaultBackground;
+
+                CmdsHistory = new CommandsHistory(UserProfileFolder);
+                CmdLineReader = commandLineReader;
+
                 RegisterCommandsAssembly(Assembly.GetExecutingAssembly());
 #if enable_test_commands
                 RegisterCommandsClass<TestCommands>();
