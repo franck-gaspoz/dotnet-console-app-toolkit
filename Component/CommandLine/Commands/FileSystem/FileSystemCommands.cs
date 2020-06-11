@@ -5,7 +5,6 @@ using DotNetConsoleSdk.Lib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,6 +12,7 @@ using System.Threading.Tasks;
 using static DotNetConsoleSdk.DotNetConsole;
 using static DotNetConsoleSdk.Lib.Str;
 using sc = System.Console;
+using static DotNetConsoleSdk.Console.Interaction;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
 {

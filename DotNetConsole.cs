@@ -387,20 +387,7 @@ namespace DotNetConsoleSdk
             }
             return sc.ReadLine();
         }
-
-        public static bool Confirm(string question)
-        {
-            var r = false;
-            void endReadln(IAsyncResult result)
-            {
-                r = result.AsyncState?.ToString()?.ToLower() == "y";
-            }
-            var cmdlr = new CommandLineReader(question+"? ", null);
-            cmdlr.BeginReadln(endReadln,null,true,false);
-            Println();
-            return r;
-        }
-
+        
         public static void Echo(string s,bool lineBreak=false,[CallerMemberName]string callerMemberName="",[CallerLineNumber]int callerLineNumber=-1)
         {
             if (!FileEchoEnabled) return;
@@ -908,7 +895,7 @@ namespace DotNetConsoleSdk
 
         #endregion
 
-        #region disk operations
+        #region folders
 
         public static string TempPath => Path.Combine( Environment.CurrentDirectory , "Temp" );
 
