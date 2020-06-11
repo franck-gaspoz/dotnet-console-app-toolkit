@@ -111,9 +111,9 @@ namespace DotNetConsoleSdk
             if (DumpExceptions)
             {
                 ls = (ex + "").Split(_crlf, StringSplitOptions.None)
-                .Select(x => ((EnableColors) ? $"{Red}" : "") + x)
+                .Select(x => ((EnableColors) ? $"{ColorSettings.Error}" : "") + x)
                 .ToList();
-                if (message != null) ls.Insert(0, $"{Red}{message}");
+                if (message != null) ls.Insert(0, $"{ColorSettings.Error}{message}");
             } else
                 ls.Insert(0, $"{ColorSettings.Error}{message}: {ex.Message}");
             Errorln(ls);
@@ -341,8 +341,20 @@ namespace DotNetConsoleSdk
             lock (ConsoleLock)
             {
                 RedirectOutToError = true;
-                Print($"{Red}{s}", lineBreak);
+                Print($"{ColorSettings.Error}{s}", lineBreak);
                 RedirectOutToError = false;
+            }
+        }
+
+        public static void Warning(string s = "") => Warning(s, false);
+        public static void Warningln(string s = "") => Warning(s, true);
+        public static void Warningln(IEnumerable<string> ls) { foreach (var s in ls) Errorln(s); }
+        public static void Warning(IEnumerable<string> ls) { foreach (var s in ls) Error(s); }
+        public static void Warning(string s, bool lineBreak = false)
+        {
+            lock (ConsoleLock)
+            {
+                Print($"{ColorSettings.Warning}{s}", lineBreak);
             }
         }
 
