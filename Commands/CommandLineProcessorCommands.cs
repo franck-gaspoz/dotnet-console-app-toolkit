@@ -253,7 +253,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             return lastCmd;
         }
 
-        [Command("repeat the previous command if there is one, else does nothing")]
+        [Command("repeat the command specified by absolute or relative line number in command history list")]
         [CommandName("!")]        
         public string HistoryPreviousCommand(
             [Parameter("line number in the command history list if positive, else current command minus n if negative (! -1 equivalent to !!)")] int n
