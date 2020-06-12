@@ -16,7 +16,7 @@ using cons = DotNetConsoleSdk.DotNetConsole;
 
 namespace DotNetConsoleSdk.Component.CommandLine.Commands
 {
-    [Commands("commands related to the command line processor (dn shell - dnsh)")]
+    [Commands("commands related to the command line processor (dot net shell - dnsh)")]
     public class CommandLineProcessorCommands
     {
         [Command("print help about all commands or a specific command")]
@@ -73,7 +73,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
                 Errorln($"Command not found: '{commandName}'");
         }
 
-        [Command("list modules of commands if no option specified, either load or unload modules of commands")]
+        [Command("list modules of commands if no option specified, else load or unload modules of commands")]
         [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
         [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
         public void Module(
