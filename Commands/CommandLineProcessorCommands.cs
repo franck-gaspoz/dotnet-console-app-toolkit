@@ -241,5 +241,13 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             return CmdsHistory.History;
         }
 
+        [Command("repeat the previous command if there is one, else does nothing")]
+        [CommandName("!!")]
+        public string HistoryPreviousCommand()
+        {
+            var lastCmd = CmdsHistory.History.LastOrDefault();
+            if (lastCmd!=null) CmdLineReader.SendNextInput(lastCmd);
+            return lastCmd;
+        }
     }
 }

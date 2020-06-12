@@ -253,8 +253,13 @@ namespace DotNetConsoleSdk.Component.CommandLine
 
                     if (!syntaxError)
                     {
+                        var cmdNameAttr = method.GetCustomAttribute<CommandNameAttribute>();
+
+                        var cmdName = (cmdNameAttr != null && cmdNameAttr.Name != null) ? cmdNameAttr.Name
+                            : (cmd.Name ?? method.Name.ToLower());
+
                         var cmdspec = new CommandSpecification(
-                            method.Name.ToLower(),
+                            cmdName,
                             cmd.Description,
                             method,
                             instance,
