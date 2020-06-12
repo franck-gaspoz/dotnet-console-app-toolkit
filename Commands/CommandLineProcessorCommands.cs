@@ -1,5 +1,5 @@
 ﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
-using DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem;
+using DotNetConsoleSdk.Commands.FileSystem;
 using DotNetConsoleSdk.Component.CommandLine.Parsing;
 using DotNetConsoleSdk.Console;
 using System;
@@ -10,7 +10,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using static DotNetConsoleSdk.Component.CommandLine.CommandLineProcessor;
-using static DotNetConsoleSdk.Component.CommandLine.CommandLineReader.CommandLineReader;
 using static DotNetConsoleSdk.DotNetConsole;
 using static DotNetConsoleSdk.Lib.Str;
 using cons = DotNetConsoleSdk.DotNetConsole;

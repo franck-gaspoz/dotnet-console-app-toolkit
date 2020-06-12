@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
+namespace DotNetConsoleSdk.Commands.FileSystem
 {
     public class FindCounts
     {

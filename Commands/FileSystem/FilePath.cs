@@ -2,7 +2,7 @@
 using System.Text;
 using static DotNetConsoleSdk.DotNetConsole;
 
-namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
+namespace DotNetConsoleSdk.Commands.FileSystem
 {
     public class FilePath : FileSystemPath
     {

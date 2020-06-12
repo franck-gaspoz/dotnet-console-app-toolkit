@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using static DotNetConsoleSdk.Lib.Str;
 
-namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
+namespace DotNetConsoleSdk.Commands.FileSystem
 {
     public class Drives
     {

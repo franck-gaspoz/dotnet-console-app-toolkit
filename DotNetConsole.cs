@@ -1,6 +1,5 @@
 ﻿#define dbg
 
-using DotNetConsoleSdk.Component.CommandLine.CommandLineReader;
 using DotNetConsoleSdk.Component.UI;
 using DotNetConsoleSdk.Console;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
@@ -53,10 +52,11 @@ namespace DotNetConsoleSdk
         public static string CodeBlockBegin = "[[";
         public static string CodeBlockEnd = "]]";
         public static bool ForwardLogsToSystemDiagnostics = true;
-        static (string id,Rectangle rect) _workArea = (null,Rectangle.Empty);
-        public static (string id,Rectangle rect) WorkArea => (_workArea.id,new Rectangle(_workArea.rect.X, _workArea.rect.Y, _workArea.rect.Width, _workArea.rect.Height));
         public static int TabLength = 7;
 
+        static WorkArea _workArea = new WorkArea();
+        public static WorkArea WorkArea => new WorkArea(_workArea);
+            //=> (_workArea.id,new Rectangle(_workArea.rect.X, _workArea.rect.Y, _workArea.rect.Width, _workArea.rect.Height));
         public static EventHandler ViewSizeChanged;
         public static EventHandler<WorkAreaScrollEventArgs> WorkAreaScrolled;
         
@@ -278,30 +278,31 @@ namespace DotNetConsoleSdk
         {
             lock (ConsoleLock)
             {
-                _workArea = (id,new Rectangle(wx, wy, width, height));
+                _workArea = new WorkArea(id,wx, wy, width, height);
                 ApplyWorkArea();
                 EnableConstraintConsolePrintInsideWorkArea = true;
             }
         }
         public static void UnsetWorkArea()
         {
-            _workArea = (null,Rectangle.Empty);
+            _workArea = new WorkArea();
             EnableConstraintConsolePrintInsideWorkArea = false;
         }
-        public static (string id,int left,int top,int right,int bottom) ActualWorkArea
+        public static ActualWorkArea ActualWorkArea
         {
             get
             {
-                var x0 = _workArea.rect.IsEmpty ? 0 : _workArea.rect.X;
-                var y0 = _workArea.rect.IsEmpty ? 0 : _workArea.rect.Y;
-                var w0 = _workArea.rect.IsEmpty ? -1 : _workArea.rect.Width;
-                var h0 = _workArea.rect.IsEmpty ? -1 : _workArea.rect.Height;
+                var x0 = _workArea.Rect.IsEmpty ? 0 : _workArea.Rect.X;
+                var y0 = _workArea.Rect.IsEmpty ? 0 : _workArea.Rect.Y;
+                var w0 = _workArea.Rect.IsEmpty ? -1 : _workArea.Rect.Width;
+                var h0 = _workArea.Rect.IsEmpty ? -1 : _workArea.Rect.Height;
                 var (x, y, w, h) = GetCoords(x0, y0, w0, h0);
-                return (_workArea.id,x,y,w,h);
+                return new ActualWorkArea(_workArea.Id,x,y,w,h);
             }
         }       
         static void ApplyWorkArea(bool viewSizeChanged=false)
         {
+            if (_workArea.Rect.IsEmpty) return;
             lock (ConsoleLock)
             {
                 if ( ViewResizeStrategy!=ViewResizeStrategy.HostTerminalDefault &&
@@ -315,15 +316,13 @@ namespace DotNetConsoleSdk
                         sc.BufferHeight = sc.WindowHeight;
                     }
                     catch (Exception) { }
-                if (_workArea.rect.IsEmpty) return;
-
             }
         }
         public static void SetCursorAtBeginWorkArea()
         {
-            if (_workArea.rect.IsEmpty) return;
+            if (_workArea.Rect.IsEmpty) return;     // TODO: set cursor even if workarea empty?
             lock (ConsoleLock) {
-                SetCursorPos(_workArea.rect.X, _workArea.rect.Y);
+                SetCursorPos(_workArea.Rect.X, _workArea.Rect.Y);
             }
         }
 
@@ -835,7 +834,7 @@ namespace DotNetConsoleSdk
                         ApplyWorkArea(viewSizeChanged);
                         if (ViewResizeStrategy == ViewResizeStrategy.FitViewSize
                             && ClearOnViewResized)
-                            if (_workArea.rect.IsEmpty)
+                            if (_workArea.Rect.IsEmpty)
                                 SetCursorPos(cursorPosBackup);
                             else
                                 SetCursorAtBeginWorkArea();

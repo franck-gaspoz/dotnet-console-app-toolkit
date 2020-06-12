@@ -14,8 +14,9 @@ using static DotNetConsoleSdk.Lib.Str;
 using sc = System.Console;
 using static DotNetConsoleSdk.Console.Interaction;
 using System.Text;
+using DotNetConsoleSdk.Component.CommandLine;
 
-namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
+namespace DotNetConsoleSdk.Commands.FileSystem
 {
     [Commands("commands related to files,directories,mounts/filesystems and disks")]
     public class FileSystemCommands
@@ -166,7 +167,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
                         maxitlength = Math.Max(item.Name.Length, maxitlength);
                     }
                     maxitlength += 4;
-                    var nbcols = Math.Floor((double)(ActualWorkArea.right - ActualWorkArea.left+1)/(double)maxitlength);
+                    var (id,left,top,right,bottom) = DotNetConsole.ActualWorkArea;
+                    var nbcols = Math.Floor((double)(right - left+1)/(double)maxitlength);
 
                     int nocol = 0;
                     foreach (var item in items)
@@ -434,7 +436,8 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
             var pos = 0;
             bool end = false;
             int y =0,x=0;
-            int maxk = ActualWorkArea.bottom - ActualWorkArea.top + 1;
+            var actualWorkArea = DotNetConsole.ActualWorkArea;
+            int maxk = actualWorkArea.Bottom - actualWorkArea.Top + 1;
             int k = maxk;
             bool endReached = false;
             bool topReached = true;

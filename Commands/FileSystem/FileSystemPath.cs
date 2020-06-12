@@ -5,7 +5,7 @@ using static DotNetConsoleSdk.DotNetConsole;
 using System.Globalization;
 using DotNetConsoleSdk.Console;
 
-namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
+namespace DotNetConsoleSdk.Commands.FileSystem
 {
     [CustomParamaterType]
     public abstract class FileSystemPath

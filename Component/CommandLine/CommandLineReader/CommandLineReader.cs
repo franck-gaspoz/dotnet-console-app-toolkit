@@ -71,7 +71,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                         _beginOfLineCurPos.X += e.DeltaX;
                         _beginOfLineCurPos.Y += e.DeltaY;
                         var p = CursorPos;
-                        var (id,left, top, right, bottom) = ActualWorkArea;
+                        var (id,left, top, width, height) = ActualWorkArea;
                         var txt = _inputReaderStringBuilder.ToString();
                         if (!string.IsNullOrWhiteSpace(txt))
                         {
@@ -86,10 +86,10 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                             var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
                             EnableConstraintConsolePrintInsideWorkArea = false;
                             foreach (var (s, x, y, l) in slines)
-                                if (y >= top && y <= bottom)
+                                if (y >= top && y <= height)
                                 {
                                     SetCursorPos(x, y);
-                                    ConsolePrint("".PadLeft(right - x, ' '));
+                                    ConsolePrint("".PadLeft(width - x, ' '));
                                     SetCursorPos(x, y);
                                     ConsolePrint(s);
                                 }

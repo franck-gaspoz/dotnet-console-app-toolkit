@@ -1,4 +1,4 @@
-﻿using DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem;
+﻿using DotNetConsoleSdk.Commands.FileSystem;
 using System;
 using System.Collections.Generic;
 using System.IO;

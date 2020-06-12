@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using static DotNetConsoleSdk.DotNetConsole;
 
-namespace DotNetConsoleSdk.Component.CommandLine.Commands.FileSystem
+namespace DotNetConsoleSdk.Commands.FileSystem
 {
     public class WildcardFilePath : DirectoryPath
     {
