@@ -490,9 +490,17 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                         // process input
                         var s = _inputReaderStringBuilder.ToString();
                         _inputReaderStringBuilder.Clear();
+
+                        if (EnableConstraintConsolePrintInsideWorkAreaOnlyWhileReadingCommandLine)
+                            EnableConstraintConsolePrintInsideWorkArea = false;
+
                         asyncCallback?.Invoke(
                             new BeginReadlnAsyncResult(s)
                             );
+
+                        if (EnableConstraintConsolePrintInsideWorkAreaOnlyWhileReadingCommandLine)
+                            EnableConstraintConsolePrintInsideWorkArea = true;
+
                         _readingStarted = false;
                         if (_nextPrompt!=null)
                         {

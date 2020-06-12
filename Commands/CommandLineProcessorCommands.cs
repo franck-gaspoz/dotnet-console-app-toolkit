@@ -128,7 +128,7 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
             var col = singleout? "": "".PadRight(maxcnamelength, ' ');
             var f = GetCmd(PrintDirectives.f + "", DefaultForeground.ToString().ToLower());
             if (list)
-                Println($"{Darkcyan}{com.ModuleName.PadRight(maxmodlength, ' ')}{com.DeclaringTypeShortName.PadRight(maxcmdtypelength, ' ')}{Tab}{f}{com.Name.PadRight(maxcnamelength, ' ')}{Tab}{com.Description}");
+                Println($"{Darkcyan}{com.ModuleName.PadRight(maxmodlength, ' ')}   {com.DeclaringTypeShortName.PadRight(maxcmdtypelength, ' ')}{Tab}{f}{com.Name.PadRight(maxcnamelength, ' ')}{Tab}{com.Description}");
             else
             {
                 if (singleout)

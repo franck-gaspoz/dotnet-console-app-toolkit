@@ -35,6 +35,7 @@ namespace DotNetConsoleSdk
         public static bool FileEchoAutoFlush = true;
         public static bool FileEchoAutoLineBreak = true;
         public static bool EnableConstraintConsolePrintInsideWorkArea = true;
+        public static bool EnableConstraintConsolePrintInsideWorkAreaOnlyWhileReadingCommandLine = true;
         public static int CropX = -1;
         public static int UIWatcherThreadDelay = 500;
         public static ViewResizeStrategy ViewResizeStrategy = ViewResizeStrategy.FitViewSize;
@@ -56,7 +57,6 @@ namespace DotNetConsoleSdk
 
         static WorkArea _workArea = new WorkArea();
         public static WorkArea WorkArea => new WorkArea(_workArea);
-            //=> (_workArea.id,new Rectangle(_workArea.rect.X, _workArea.rect.Y, _workArea.rect.Width, _workArea.rect.Height));
         public static EventHandler ViewSizeChanged;
         public static EventHandler<WorkAreaScrollEventArgs> WorkAreaScrolled;
         
@@ -281,6 +281,7 @@ namespace DotNetConsoleSdk
                 _workArea = new WorkArea(id,wx, wy, width, height);
                 ApplyWorkArea();
                 EnableConstraintConsolePrintInsideWorkArea = true;
+                EnableConstraintConsolePrintInsideWorkAreaOnlyWhileReadingCommandLine = false;
             }
         }
         public static void UnsetWorkArea()
@@ -527,6 +528,8 @@ namespace DotNetConsoleSdk
                     Echo(s);
                     if (lineBreak)
                     {
+                        sc.ForegroundColor = ColorSettings.Default.Foreground.Value;
+                        sc.BackgroundColor = ColorSettings.Default.Background.Value;
                         sc.WriteLine(string.Empty);
                         Echo(string.Empty,true);
                     }
