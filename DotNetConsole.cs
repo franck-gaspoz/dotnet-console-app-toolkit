@@ -57,6 +57,7 @@ namespace DotNetConsoleSdk
 
         static WorkArea _workArea = new WorkArea();
         public static WorkArea WorkArea => new WorkArea(_workArea);
+        public static bool InWorkArea => !_workArea.Rect.IsEmpty;
         public static EventHandler ViewSizeChanged;
         public static EventHandler<WorkAreaScrollEventArgs> WorkAreaScrolled;
         

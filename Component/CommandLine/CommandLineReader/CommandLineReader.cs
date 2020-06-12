@@ -211,10 +211,11 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
             bool waitForReaderExited = true,
             bool loop=true
             )
-        {
+        {            
             _waitForReaderExited = waitForReaderExited;
             prompt ??= _defaultPrompt;
-            _prompt = prompt;            
+            _prompt = prompt;
+            bool noWorkArea = !InWorkArea;
             _inputReaderThread = new Thread(() =>
             {
                 try
@@ -491,14 +492,14 @@ namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
                         var s = _inputReaderStringBuilder.ToString();
                         _inputReaderStringBuilder.Clear();
 
-                        if (EnableConstraintConsolePrintInsideWorkAreaOnlyWhileReadingCommandLine)
+                        if (noWorkArea)
                             EnableConstraintConsolePrintInsideWorkArea = false;
 
                         asyncCallback?.Invoke(
                             new BeginReadlnAsyncResult(s)
                             );
 
-                        if (EnableConstraintConsolePrintInsideWorkAreaOnlyWhileReadingCommandLine)
+                        if (noWorkArea)
                             EnableConstraintConsolePrintInsideWorkArea = true;
 
                         _readingStarted = false;
