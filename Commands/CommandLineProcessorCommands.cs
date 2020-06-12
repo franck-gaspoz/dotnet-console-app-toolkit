@@ -222,11 +222,13 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
                     {
                         var lines = File.ReadAllLines(file.FullName);
                         foreach (var line in lines) CmdsHistory.HistoryAppend(line);
+                        CmdsHistory.HistorySetIndex(-1,false);
                     }
                     if (appendFromFile)
                     {
                         var lines = File.ReadAllLines(file.FullName);
                         foreach (var line in lines) if (!CmdsHistory.HistoryContains(line)) CmdsHistory.HistoryAppend(line);
+                        CmdsHistory.HistorySetIndex(-1,false);
                     }
                 }
                 return CmdsHistory.History;

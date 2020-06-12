@@ -66,7 +66,18 @@ namespace DotNetConsoleSdk.Component.CommandLine
         public void HistoryAppend(string s)
         {
             _history.Add(s);
-            _historyIndex = _history.Count - 1;
+            _historyIndex = _history.Count;
+        }
+
+        public void HistorySetIndex(int index,bool checkIndex=true)
+        {
+            if (index == -1)
+                index = _history.Count;
+            else
+                index--;
+            if (checkIndex && (index < 0 || index >= _history.Count))
+                Errorln($"history index out of bounds (1..{_history.Count})");
+            else _historyIndex = index;
         }
 
         public void ClearHistory() => _history.Clear();
