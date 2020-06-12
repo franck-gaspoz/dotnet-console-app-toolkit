@@ -35,7 +35,6 @@ namespace DotNetConsoleSdk
         public static bool FileEchoAutoFlush = true;
         public static bool FileEchoAutoLineBreak = true;
         public static bool EnableConstraintConsolePrintInsideWorkArea = true;
-        public static bool EnableConstraintConsolePrintInsideWorkAreaOnlyWhileReadingCommandLine = true;
         public static int CropX = -1;
         public static int UIWatcherThreadDelay = 500;
         public static ViewResizeStrategy ViewResizeStrategy = ViewResizeStrategy.FitViewSize;
@@ -282,7 +281,6 @@ namespace DotNetConsoleSdk
                 _workArea = new WorkArea(id,wx, wy, width, height);
                 ApplyWorkArea();
                 EnableConstraintConsolePrintInsideWorkArea = true;
-                EnableConstraintConsolePrintInsideWorkAreaOnlyWhileReadingCommandLine = false;
             }
         }
         public static void UnsetWorkArea()
@@ -525,7 +523,14 @@ namespace DotNetConsoleSdk
                 }
                 else
                 {
-                    Write(s);
+                    var dep = CursorLeft + s.Length - 1 > x + w - 1;
+                    if (dep)
+                    {                                         
+                        Write(s);
+                        FillLineFromCursor(' ');
+                    }
+                    else
+                        Write(s);
                     Echo(s);
                     if (lineBreak)
                     {
@@ -536,6 +541,28 @@ namespace DotNetConsoleSdk
                     }
                 }
             }
+        }
+
+        static void FillLineFromCursor(char c,bool resetCursorLeft=true,bool useDefaultColors=true)
+        {
+            var f = sc.ForegroundColor;
+            var b = sc.BackgroundColor;
+            var aw = ActualWorkArea;
+            var nb = aw.Right - CursorLeft;
+            var x = CursorLeft;
+            if (useDefaultColors)
+            {
+                sc.ForegroundColor = ColorSettings.Default.Foreground.Value;
+                sc.BackgroundColor = ColorSettings.Default.Background.Value;
+            }
+            Write("".PadLeft(nb, ' '));
+            if (useDefaultColors)
+            {
+                sc.ForegroundColor = f;
+                sc.BackgroundColor = b;
+            }
+            if (resetCursorLeft)
+                sc.CursorLeft = x;
         }
 
         static void Write(string s)

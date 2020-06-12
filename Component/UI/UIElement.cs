@@ -28,7 +28,10 @@ namespace DotNetConsoleSdk.Component.UI
 
         public static (int x, int y, int w, int h) GetCoords(int x, int y, int w, int h)
         {
-            // (1) dos console (eg. vs debug console) set WindowTop as y scroll position. WSL console doesn't (still 0)
+            // (1) dos console (eg. vs debug consolehep) set WindowTop as y scroll position. WSL console doesn't (still 0)
+            // scroll -> native dos console set WindowTop and WindowLeft as base scroll coordinates
+            // if WorkArea defined, we must use absolute coordinates and not related
+            // CursorLeft and CursorTop are always good
             lock (ConsoleLock)
             {
                 if (x < 0) x = sc.WindowLeft + sc.WindowWidth + x;
@@ -36,7 +39,7 @@ namespace DotNetConsoleSdk.Component.UI
                 if (y < 0) y = /*sc.WindowTop (fix 1) */ + sc.WindowHeight + y;
 
                 if (w < 0) w = sc.WindowWidth + ((AvoidConsoleAutoLineBreakAtEndOfLine) ? -1 : 0) + (w + 1)
-                        + sc.WindowLeft;
+                        /*+ sc.WindowLeft*/;
 
                 if (h < 0) h = sc.WindowHeight + h
                         + sc.WindowTop; /* fix 1*/
