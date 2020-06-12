@@ -234,8 +234,9 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
 
             foreach ( var h in hist )
             {
-                var hp = $"  {ColorSettings.Numeric}{i.ToString().PadRight(max + 2, ' ')}{f}{h}";
-                Println(hp);
+                var hp = $"  {ColorSettings.Numeric}{i.ToString().PadRight(max + 2, ' ')}{f}";
+                Print(hp);
+                ConsolePrint(h, true);
                 i++;
             }
             return CmdsHistory.History;
