@@ -249,7 +249,26 @@ namespace DotNetConsoleSdk.Component.CommandLine.Commands
         public string HistoryPreviousCommand()
         {
             var lastCmd = CmdsHistory.History.LastOrDefault();
-            if (lastCmd!=null) CmdLineReader.SendNextInput(lastCmd);
+            if (lastCmd != null) CmdLineReader.SendNextInput(lastCmd);
+            return lastCmd;
+        }
+
+        [Command("repeat the previous command if there is one, else does nothing")]
+        [CommandName("!")]        
+        public string HistoryPreviousCommand(
+            [Parameter("line number in the command history list if positive, else current command minus n if negative (! -1 equivalent to !!)")] int n
+            )
+        {
+            var h = CmdsHistory.History;
+            string lastCmd = null;
+            var index = (n < 0) ? h.Count + n : n;
+            if (index < 0 || index >= h.Count)
+                Errorln($"line number out of bounds of commands history list (1..{h.Count})");
+            else
+            {
+                lastCmd = h[index];
+                CmdLineReader.SendNextInput(lastCmd);
+            }
             return lastCmd;
         }
     }
