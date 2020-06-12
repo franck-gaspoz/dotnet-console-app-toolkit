@@ -20,7 +20,7 @@ namespace DotNetConsoleSdk.Component.CommandLine
     public static class CommandLineProcessor
     {
         public const string AppName = "dnsh";
-        public const string AppLongName = "dotnet shell";
+        public const string AppLongName = "Dot Net Shell";
         public const string AppEditor = "released on June 2020 under licence MIT";
 
         #region attributes

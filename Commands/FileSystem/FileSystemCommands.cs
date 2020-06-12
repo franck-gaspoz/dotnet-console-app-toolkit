@@ -402,22 +402,28 @@ namespace DotNetConsoleSdk.Commands.FileSystem
         [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
         void PrintFile(FilePath file, bool hideLineNumbers)
         {
-            const int cl = 14;
-            string quit = $"{"qQ",cl}quit";
-            string scrollnext = $"{"space",cl}display next lines of text, according to current screen size";
-            string scrolllinedown = $"{"down arrow",cl}scroll one line down";
-            string scrolllineup = $"{"up arrow",cl}scroll one line up";
-            string pagedown = $"{"right arrow",cl}scroll one page down";
-            string pageup = $"{"left arrow",cl}scroll one page up";
+            const int cl = -14;
+            string quit = $"{ColorSettings.ParameterName}{$"q|Q",cl}{ColorSettings.Default}quit";
+            string help = $"{ColorSettings.ParameterName}{$"h|H",cl}{ColorSettings.Default}print this help";
+            string scrollnext = $"{ColorSettings.ParameterName}{$"space",cl}{ColorSettings.Default}display next lines of text, according to current screen size";
+            string scrolllinedown = $"{ColorSettings.ParameterName}{$"down arrow",cl}{ColorSettings.Default}scroll one line down";
+            string scrolllineup = $"{ColorSettings.ParameterName}{$"up arrow",cl}{ColorSettings.Default}scroll one line up";
+            string pagedown = $"{ColorSettings.ParameterName}{$"right arrow",cl}{ColorSettings.Default}jump one page down, according to current screen size";
+            string pageup = $"{ColorSettings.ParameterName}{$"left arrow",cl}{ColorSettings.Default}jump one page up, according to current screen size";
+            string totop = $"{ColorSettings.ParameterName}{$"t|T",cl}{ColorSettings.Default}jump to the top of the file";
+            string toend = $"{ColorSettings.ParameterName}{$"e|E",cl}{ColorSettings.Default}jump to the end of the file";
 
             var inputMaps = new List<InputMap>
             {
                 new InputMap("q",quit),
+                new InputMap("h",help),
                 new InputMap(" ",scrollnext),
                 new InputMap((str,key)=>key.Key==ConsoleKey.DownArrow?InputMap.ExactMatch:InputMap.NoMatch,scrolllinedown),
                 new InputMap((str,key)=>key.Key==ConsoleKey.UpArrow?InputMap.ExactMatch:InputMap.NoMatch,scrolllineup),
                 new InputMap((str,key)=>key.Key==ConsoleKey.RightArrow?InputMap.ExactMatch:InputMap.NoMatch,pagedown),
-                new InputMap((str,key)=>key.Key==ConsoleKey.LeftArrow?InputMap.ExactMatch:InputMap.NoMatch,pageup)
+                new InputMap((str,key)=>key.Key==ConsoleKey.LeftArrow?InputMap.ExactMatch:InputMap.NoMatch,pageup),
+                new InputMap("t",totop),
+                new InputMap("e",toend)
             };
 
             var fileEncoding = file.GetEncoding(Encoding.Default);
@@ -443,6 +449,7 @@ namespace DotNetConsoleSdk.Commands.FileSystem
             bool topReached = true;
             bool skipPrint = false;
             bool scroll1down = false;
+            bool forcePrintInputBar = false;
             int decpos = 0;
 
             while (!end)
@@ -475,8 +482,7 @@ namespace DotNetConsoleSdk.Commands.FileSystem
 
                 var oldpos = pos;
 
-                if ((string)action == scrollnext) { k = maxk; pos += k; }
-                // TODO: use a new console operation 'ClearWorkArea'
+                if ((string)action == scrollnext) { k = maxk; pos += k - 1 - preambleHeight; }
                 if ((string)action == scrolllinedown && !endReached)
                 {
                     if (!scroll1down)
@@ -493,20 +499,36 @@ namespace DotNetConsoleSdk.Commands.FileSystem
                     decpos = 0;
                 }
 
+                if ((string)action == totop) { k = maxk; pos = 0; if (pos != oldpos) Clear(); }
+                if ((string)action == toend) { k = maxk; pos = Math.Max(0,nblines-maxk+1); if (pos != oldpos) Clear(); }
+
                 if ((string)action == scrolllineup && !topReached) { 
-                    Clear(); k = maxk; pos = Math.Max(0, pos- 1); }
+                    Clear(); k = maxk; pos = Math.Max(0, pos- 1); 
+                }
                 if ((string)action == pagedown && !endReached) { Clear(); k = maxk; pos+=k-1-preambleHeight; }
                 if ((string)action == pageup && !topReached) { Clear(); k = maxk; pos = Math.Max(0, pos - k+1); }
 
+                if ((string)action == help)
+                {
+                    var sepw = inputMaps.Select(x => ((string)x.Code).Length).Max();
+                    var hsep = "".PadRight(sepw + 10, '-');
+                    Println(Br+hsep+Br);
+                    inputMaps.ForEach(x => Println((string)x.Code+Br));
+                    Println(hsep);
+                    forcePrintInputBar = true;
+                }
+
                 preambleHeight = 0;
                 skipPrint = oldpos == pos;
+
                 lock (ConsoleLock)
                 {
                     sc.CursorLeft = x;
-                    if (!skipPrint || end)
+                    if (forcePrintInputBar || !skipPrint || end)
                     {
                         Print("".PadLeft(inputText.Length, ' '));
                         sc.CursorLeft = x;
+                        forcePrintInputBar = false;
                     }
                 }
             }            

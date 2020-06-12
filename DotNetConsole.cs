@@ -17,8 +17,8 @@ using static DotNetConsoleSdk.Component.UI.UIElement;
 using static DotNetConsoleSdk.Lib.Str;
 using sc = System.Console;
 
-[assembly: AssemblyDescription("DotNetConsoleToolkit core module")]
-[assembly: AssemblyCopyright("© Franck Gaspoz 2020")]
+[assembly: AssemblyDescription("Dot Net Console SDK core module")]
+[assembly: AssemblyCopyright("© June 2020")]
 [assembly: AssemblyTrademark("franck.gaspoz@gmail.com")]
 namespace DotNetConsoleSdk
 {
