@@ -1,0 +1,5 @@
+short name: dotnet-console-app-toolkit
+long name: Dot Net Console App Toolkit
+
+nuget dependencies:
+Install-Package Microsoft.CodeAnalysis.CSharp.Scripting -Version 3.7.0-1.final
