@@ -81,6 +81,6 @@ This is a view of what is done with the C# project <a href="https://github.com/f
     Environment.Exit(returnCode);
 ```
 
-## packages dependencies:
+## Packages dependencies:
 
 Microsoft.CodeAnalysis.CSharp.Scripting 3.7.0-1.final
