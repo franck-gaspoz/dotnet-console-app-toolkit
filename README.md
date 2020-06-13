@@ -9,8 +9,12 @@ The toolkit provides functionalities needed to build console applications runnin
 - <b>a text printer engine </b>that supports <b>print directives</b> allowing to manage console functionalities from text itself, as html would do but with a simplest grammar (that can be configured). That makes possible colored outputs, cursor control, text scrolling and also dynamic C# execution (scripting), based on several APIs like <b>System.Console</b> and <b> ANSI VT100 / VT52</b>. The print directives are available as commands strings, as a command from the integrated shell or from an underlying shell
 
     > <small><b>a string containing print directives:</b><br/>
-    > "(f=red,b=yellow)red text on yellow background(br),current time is: (exec=System.DateTime.Now)"
+    > "(f=red,b=yellow)red text on yellow background(br),current time is: (exec=System.DateTime.Now)"`
     > </small>
+    
+  - <small>a string containing print directives:</small><br><small>"(f=red,b=yellow)red text on yellow background(br),current time is: (exec=System.DateTime.Now)"</small>
+  
+  <quote>quote example</quote>
     
 - <b>UI controls</b> for displaying texts and graphical characters in a various way and handling user inputs
 
