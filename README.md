@@ -12,9 +12,11 @@ The toolkit provides functionalities needed to build console applications runnin
     > "(f=red,b=yellow)red text on yellow background(br),current time is: (exec=System.DateTime.Now)"`
     > </small>
     
-  - <small>a string containing print directives:</small><br><small>"(f=red,b=yellow)red text on yellow background(br),current time is: (exec=System.DateTime.Now)"</small>
+  - <small>a string containing print directives:</small>
   
-  <quote>quote example</quote>
+    ``` csharp
+    "(f=red,b=yellow)red text on yellow background(br),current time is: (exec=System.DateTime.Now)"
+     ```
     
 - <b>UI controls</b> for displaying texts and graphical characters in a various way and handling user inputs
 
