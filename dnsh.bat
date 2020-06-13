@@ -1,1 +1,0 @@
-@dotnet-console-sdk.exe %*

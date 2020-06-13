@@ -1,4 +1,4 @@
-short name: dotnet-console-app-toolkit
+project name: dotnet-console-app-toolkit
 long name: Dot Net Console App Toolkit
 
 nuget dependencies:
