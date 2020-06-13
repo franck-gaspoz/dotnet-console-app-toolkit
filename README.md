@@ -22,9 +22,9 @@ The toolkit provides functionalities needed to build console applications runnin
 
 - <b>data types</b> related to the system and the environment that provides usefull methods
 
-- <b>shell commands</b> that allows to run a complete shell, containing the most usefull and usual commands of a traditional shell (dir/ls, cd, rm, mv, find, more, ...)
+- <b>shell commands</b> that allows to run a complete shell, containing the most usefull and usual commands of a traditional shell (dir/ls, cd, rm, mv, find, more, ...), with user session and extensibility (commands modules that can be installed and uninstalled from repositories)
 
-## Example : the Dot Net Console Toolkit integrated Shell 
+## Example : the Dot Net Console Toolkit integrated shell (dnsh)
 
 <img src="Doc/2020-06-13 02_34_57-Window-github.png"/>
 
