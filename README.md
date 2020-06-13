@@ -15,7 +15,9 @@ The toolkit provides functionalities needed to build console applications runnin
   - <small>a string containing print directives:</small>
   
     ``` csharp
+    // a string containing print directives:
     "(f=red,b=yellow)red text on yellow background(br),current time is: (exec=System.DateTime.Now)"
+    (f=red,b=yellow)red text on yellow background(br),current time is: (exec=System.DateTime.Now)
      ```
     
 - <b>UI controls</b> for displaying texts and graphical characters in a various way and handling user inputs
