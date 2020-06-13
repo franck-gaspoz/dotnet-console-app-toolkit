@@ -170,8 +170,12 @@ namespace DotNetConsoleAppToolkit
             { PrintDirectives.exit+""  , (x) => RelayCall(() => Exit()) },
             { PrintDirectives.exec+"=" , (x) => ExecCSharp((string)x) },
 
+            { PrintDirectives.invon+"" , (x) => RelayCall(EnableInvert) },
+            { PrintDirectives.novon+"" , (x) => RelayCall(EnableNoVisible) },
+            { PrintDirectives.lion+"" , (x) => RelayCall(EnableLowIntensity) },
             { PrintDirectives.uon+"" , (x) => RelayCall(EnableUnderline) },
             { PrintDirectives.bon+"" , (x) => RelayCall(EnableBold) },
+            { PrintDirectives.blon+"" , (x) => RelayCall(EnableBlink) },
             { PrintDirectives.tdoff+"" , (x) => RelayCall(DisableTextDecoration) }
         };
 
@@ -184,6 +188,10 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
+        public static void EnableNoVisible() => Lock(() => { Print($"{(char)27}[8m"); });
+        public static void EnableInvert() => Lock(() => { Print($"{(char)27}[7m"); });
+        public static void EnableBlink() => Lock(() => { Print($"{(char)27}[5m"); });
+        public static void EnableLowIntensity() => Lock(() => { Print($"{(char)27}[2m"); });
         public static void EnableUnderline() => Lock(() => { Print($"{(char)27}[4m"); });
         public static void EnableBold() => Lock(() => { Print($"{(char)27}[1m"); });
         public static void DisableTextDecoration() => Lock(() => { Print($"{(char)27}[0m"); });
@@ -1155,7 +1163,11 @@ namespace DotNetConsoleAppToolkit
 
         #region commands shortcuts
 
+        public static string Novon => GetCmd(PrintDirectives.novon);
+        public static string Invon => GetCmd(PrintDirectives.invon);
+        public static string Blon => GetCmd(PrintDirectives.blon);
         public static string Uon => GetCmd(PrintDirectives.uon);
+        public static string Lion => GetCmd(PrintDirectives.lion);
         public static string Bon => GetCmd(PrintDirectives.bon);
         public static string Tdoff => GetCmd(PrintDirectives.tdoff);
 

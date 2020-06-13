@@ -60,6 +60,10 @@
         // VT100
         uon,
         bon,
+        blon,
+        invon,
+        novon,
+        lion,
         tdoff
     }
 }
