@@ -3,6 +3,12 @@
 
 [![licence mit](https://img.shields.io/badge/licence-MIT-blue.svg)](license.md) This project is licensed under the terms of the MIT license: [LICENSE.md](LICENSE.md)
 
+# Index
+
+- [Features](https://github.com/franck-gaspoz/dotnet-console-app-toolkit/blob/master/README.md#features)
+- [Example: the Dot Net Console Toolkit Shell (dnsh)](https://github.com/franck-gaspoz/dotnet-console-app-toolkit/blob/master/README.md#example--the-dot-net-console-toolkit-integrated-shell-dnsh)
+- [Packages dependencies](https://github.com/franck-gaspoz/dotnet-console-app-toolkit/blob/master/README.md#packages-dependencies)
+
 # Features
 
 The toolkit provides functionalities needed to build console applications running in a terminal (WSL/WSL2, cmd.exe, ConEmu, bash, ...) with text interface. That includes:
@@ -65,7 +71,7 @@ The toolkit provides functionalities needed to build console applications runnin
 
 This is a view of what is done with the C# project <a href="https://github.com/franck-gaspoz/dotnet-console-app-toolkit-shell"><b>dotnet-console-app-toolkit-shell</b></a>. The <b>Dot Net Console App Toolkit</b> integrates anything needed to run a complete shell, writes shell commands using C# and use console UI components.
 
-> ### :information_source: &nbsp;&nbsp;&nbsp;&nbsp;How this exemple is coded ?
+> ### :information_source: &nbsp;&nbsp;&nbsp;&nbsp;How this example is coded ?
 > This shell example runs with just a few lines of code:
 
 ``` csharp
