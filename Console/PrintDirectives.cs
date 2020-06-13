@@ -35,6 +35,18 @@
     *      exit: exit
     * scripts engines:
     *      exec: exec csharp from text
+    * text decoration (vt100):
+    *      underline on: uon
+    *      bold on: bon                             (windows not supported)
+    *      blink on: blon                           (windows not supported)
+    *      inverted text on: invon
+    *      hidden text on: novon                    (windows not supported)
+    *      light text on: lion                      (windows not supported)
+    *      text decoration off: tdoff
+    * line print:
+    *      cllcr : clear line from cursor right     (windows not supported)
+    *      cllcl: clear line from cursor left       (windows not supported)
+    *      cll: clear entire line                   (windows not supported)
     */
     public enum PrintDirectives
     {
@@ -57,6 +69,7 @@
         cry,
         exit,
         exec,
+
         // VT100
         uon,
         bon,
@@ -64,6 +77,10 @@
         invon,
         novon,
         lion,
-        tdoff
+        tdoff,
+
+        cllcr,
+        cllcl,
+        cll
     }
 }

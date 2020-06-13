@@ -176,7 +176,11 @@ namespace DotNetConsoleAppToolkit
             { PrintDirectives.uon+"" , (x) => RelayCall(EnableUnderline) },
             { PrintDirectives.bon+"" , (x) => RelayCall(EnableBold) },
             { PrintDirectives.blon+"" , (x) => RelayCall(EnableBlink) },
-            { PrintDirectives.tdoff+"" , (x) => RelayCall(DisableTextDecoration) }
+            { PrintDirectives.tdoff+"" , (x) => RelayCall(DisableTextDecoration) },
+            
+            { PrintDirectives.cll+"" , (x) => RelayCall(ClearLine) },     
+            { PrintDirectives.cllcr+"" , (x) => RelayCall(ClearLineFromCursorRight) },
+            { PrintDirectives.cllcl+"" , (x) => RelayCall(ClearLineFromCursorLeft) }            
         };
 
         static object RelayCall(Action method) { method(); return null; }
@@ -187,6 +191,10 @@ namespace DotNetConsoleAppToolkit
                 action?.Invoke();
             }
         }
+
+        public static void ClearLineFromCursorRight() => Lock(() => { Print($"{(char)27}[K"); });
+        public static void ClearLineFromCursorLeft() => Lock(() => { Print($"{(char)27}[1K"); });
+        public static void ClearLine() => Lock(() => { Print($"{(char)27}[2K"); });
 
         public static void EnableNoVisible() => Lock(() => { Print($"{(char)27}[8m"); });       // not available on windows
         public static void EnableInvert() => Lock(() => { Print($"{(char)27}[7m"); });          
@@ -1170,6 +1178,10 @@ namespace DotNetConsoleAppToolkit
         public static string Lion => GetCmd(PrintDirectives.lion);
         public static string Bon => GetCmd(PrintDirectives.bon);
         public static string Tdoff => GetCmd(PrintDirectives.tdoff);
+        
+        public static string Cllcl => GetCmd(PrintDirectives.cllcl);
+        public static string Cllcr => GetCmd(PrintDirectives.cllcr);
+        public static string Cll => GetCmd(PrintDirectives.cll);
 
         public static string DefaultBackgroundCmd => GetCmd(PrintDirectives.b + "", DefaultBackground.ToString().ToLower());
         public static string DefaultForegroundCmd => GetCmd(PrintDirectives.f + "", DefaultForeground.ToString().ToLower());
