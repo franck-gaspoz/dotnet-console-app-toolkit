@@ -19,8 +19,10 @@ using DotNetConsoleAppToolkit.Component.CommandLine;
 namespace DotNetConsoleAppToolkit.Commands.FileSystem
 {
     [Commands("commands related to files,directories,mounts/filesystems and disks")]
-    public class FileSystemCommands
+    public class FileSystemCommands : CommandsType
     {
+        public FileSystemCommands(CommandLineProcessor commandLineProcessor) : base(commandLineProcessor) { }
+
         [Command("search for files and/or folders")]
         public List<FileSystemPath> Find(
             [Parameter("search path")] DirectoryPath path,

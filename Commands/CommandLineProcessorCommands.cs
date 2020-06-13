@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
-using static DotNetConsoleAppToolkit.Component.CommandLine.CommandLineProcessor;
 using static DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.Str;
 using cons = DotNetConsoleAppToolkit.DotNetConsole;
@@ -17,8 +16,10 @@ using cons = DotNetConsoleAppToolkit.DotNetConsole;
 namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 {
     [Commands("commands related to the command line processor (dot net shell - dnsh)")]
-    public class CommandLineProcessorCommands
+    public class CommandLineProcessorCommands : CommandsType
     {
+        public CommandLineProcessorCommands(CommandLineProcessor commandLineProcessor) : base(commandLineProcessor) { }
+
         [Command("print help about all commands or a specific command")]
         public void Help(
             [Option("s", "set short view")] bool shortView,
@@ -84,8 +85,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             var f = GetCmd(PrintDirectives.f + "", DefaultForeground.ToString().ToLower());
             if (loadModulePath==null && unloadModuleName==null)
             {
-                var col1length = Modules.Values.Select(x => x.Name.Length).Max() + 1;
-                foreach (var kvp in Modules)
+                var col1length = CommandLineProcessor.Modules.Values.Select(x => x.Name.Length).Max() + 1;
+                foreach (var kvp in CommandLineProcessor.Modules)
                 {
                     Println($"{kvp.Value.Name.PadRight(col1length,' ')}{kvp.Value.Description} [types count={Cyan}{kvp.Value.TypesCount}{f} commands count={Cyan}{kvp.Value.CommandsCount}{f}]");
                     Println($"{"".PadRight(col1length, ' ')}{ColorSettings.Label}assembly:{ColorSettings.HalfDark}{kvp.Value.Assembly.FullName}");
@@ -97,7 +98,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                 if (loadModulePath.CheckExists())
                 {
                     var a = Assembly.LoadFrom(loadModulePath.FileSystemInfo.FullName);
-                    var (typesCount, commandsCount) = RegisterCommandsAssembly(a);
+                    var (typesCount, commandsCount) = CommandLineProcessor.RegisterCommandsAssembly(a);
                     if (commandsCount == 0)
                         Errorln("no commands have been loaded");
                     else
@@ -106,9 +107,9 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             }
             if (unloadModuleName!=null)
             {
-                if (Modules.Values.Any(x => x.Name==unloadModuleName))
+                if (CommandLineProcessor.Modules.Values.Any(x => x.Name==unloadModuleName))
                 {
-                    var (typesCount, commandsCount) = UnregisterCommandsAssembly(unloadModuleName);
+                    var (typesCount, commandsCount) = CommandLineProcessor.UnregisterCommandsAssembly(unloadModuleName);
                     if (commandsCount == 0)
                         Errorln("no commands have been unloaded");
                     else
@@ -165,8 +166,12 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 
         [Command("set the command line prompt")]
         public void Prompt(
-            [Parameter("text of the prompt",false)] string prompt
-            ) => CmdLineReader.SetPrompt(prompt);
+            [Parameter("text of the prompt", false)] string prompt
+            )
+        {
+            CommandLineProcessor.AssertCommandLineProcessorHasACommandLineReader();
+            CommandLineProcessor.CmdLineReader.SetPrompt(prompt);
+        }
 
         [Command("exit the shell")]
         public void Exit()
@@ -189,7 +194,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             [Parameter(1,"file",true)] FilePath file
             )
         {
-            var hist = CmdsHistory.History;
+            var hist = CommandLineProcessor.CmdsHistory.History;
             var max = hist.Count().ToString().Length;
             int i = 1;
             var f = DefaultForegroundCmd;
@@ -199,39 +204,39 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                 if (num<1 || num>hist.Count)
                 {
                     Errorln($"history entry number out of range (1..{hist.Count})");
-                    return CmdsHistory.History;
+                    return CommandLineProcessor.CmdsHistory.History;
                 }
                 var h = hist[num-1];
-                CmdLineReader.SendNextInput(h);
-                return CmdsHistory.History;
+                CommandLineProcessor.CmdLineReader.SendNextInput(h);
+                return CommandLineProcessor.CmdsHistory.History;
             }
 
             if (clear)
             {
-                CmdsHistory.ClearHistory();
-                return CmdsHistory.History;
+                CommandLineProcessor.CmdsHistory.ClearHistory();
+                return CommandLineProcessor.CmdsHistory.History;
             }
 
             if (appendToFile || readFromFile || appendFromFile)
             {
-                file ??= CmdsHistory.UserCommandsHistoryFilePath;
+                file ??= CommandLineProcessor.CmdsHistory.UserCommandsHistoryFilePath;
                 if (file.CheckPathExists())
                 {
                     if (appendToFile) File.AppendAllLines(file.FullName, hist);
                     if (readFromFile)
                     {
                         var lines = File.ReadAllLines(file.FullName);
-                        foreach (var line in lines) CmdsHistory.HistoryAppend(line);
-                        CmdsHistory.HistorySetIndex(-1,false);
+                        foreach (var line in lines) CommandLineProcessor.CmdsHistory.HistoryAppend(line);
+                        CommandLineProcessor.CmdsHistory.HistorySetIndex(-1,false);
                     }
                     if (appendFromFile)
                     {
                         var lines = File.ReadAllLines(file.FullName);
-                        foreach (var line in lines) if (!CmdsHistory.HistoryContains(line)) CmdsHistory.HistoryAppend(line);
-                        CmdsHistory.HistorySetIndex(-1,false);
+                        foreach (var line in lines) if (!CommandLineProcessor.CmdsHistory.HistoryContains(line)) CommandLineProcessor.CmdsHistory.HistoryAppend(line);
+                        CommandLineProcessor.CmdsHistory.HistorySetIndex(-1,false);
                     }
                 }
-                return CmdsHistory.History;
+                return CommandLineProcessor.CmdsHistory.History;
             }
 
             foreach ( var h in hist )
@@ -241,15 +246,16 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                 ConsolePrint(h, true);
                 i++;
             }
-            return CmdsHistory.History;
+            return CommandLineProcessor.CmdsHistory.History;
         }
 
         [Command("repeat the previous command if there is one, else does nothing")]
         [CommandName("!!")]
         public string HistoryPreviousCommand()
         {
-            var lastCmd = CmdsHistory.History.LastOrDefault();
-            if (lastCmd != null) CmdLineReader.SendNextInput(lastCmd);
+            var lastCmd = CommandLineProcessor.CmdsHistory.History.LastOrDefault();
+            CommandLineProcessor.AssertCommandLineProcessorHasACommandLineReader();
+            if (lastCmd != null) CommandLineProcessor.CmdLineReader.SendNextInput(lastCmd);
             return lastCmd;
         }
 
@@ -259,7 +265,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             [Parameter("line number in the command history list if positive, else current command minus n if negative (! -1 equivalent to !!)")] int n
             )
         {
-            var h = CmdsHistory.History;
+            var h = CommandLineProcessor.CmdsHistory.History;
             string lastCmd = null;
             var index = (n < 0) ? h.Count + n : n;
             if (index < 0 || index >= h.Count)
@@ -267,7 +273,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             else
             {
                 lastCmd = h[index];
-                CmdLineReader.SendNextInput(lastCmd);
+                CommandLineProcessor.AssertCommandLineProcessorHasACommandLineReader();
+                CommandLineProcessor.CmdLineReader.SendNextInput(lastCmd);
             }
             return lastCmd;
         }

@@ -69,8 +69,8 @@ This is a view of what is done with the C# project <a href="https://github.com/f
 > This shell example runs with just a few lines of code:
 
 ``` csharp
-    var commandLineReader = new CommandLineReader();
-    InitializeCommandProcessor(args,commandLineReader);
+    var commandLineProcessor = new CommandLineProcessor(args);
+    var commandLineReader = new CommandLineReader(commandLineProcessor);
     var returnCode = commandLineReader.ReadCommandLine();
     Environment.Exit(returnCode);
 ```

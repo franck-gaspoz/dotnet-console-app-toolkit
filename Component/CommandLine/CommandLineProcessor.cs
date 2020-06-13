@@ -17,7 +17,7 @@ using cons = System.Console;
 
 namespace DotNetConsoleAppToolkit.Component.CommandLine
 {
-    public static class CommandLineProcessor
+    public class CommandLineProcessor
     {
         public const string AppName = "dnsh";
         public const string AppLongName = "Dot Net Shell";
@@ -27,18 +27,18 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
         public static CancellationTokenSource CancellationTokenSource;
 
-        public static int ReturnCodeOK = 0;
-        public static int ReturnCodeError = 1;
-        public static int ReturnCodeNotDefined = 1;
+        public const int ReturnCodeOK = 0;
+        public const int ReturnCodeError = 1;
+        public const int ReturnCodeNotDefined = 1;
 
-        static string[] _args;
-        static bool _isInitialized = false;
+        string[] _args;
+        bool _isInitialized = false;
 
-        static readonly Dictionary<string, List<CommandSpecification>> _commands = new Dictionary<string, List<CommandSpecification>>();
+        readonly Dictionary<string, List<CommandSpecification>> _commands = new Dictionary<string, List<CommandSpecification>>();
 
-        public static readonly ReadOnlyDictionary<string, List<CommandSpecification>> Commands = new ReadOnlyDictionary<string, List<CommandSpecification>>(_commands);
+        public ReadOnlyDictionary<string, List<CommandSpecification>> Commands => new ReadOnlyDictionary<string, List<CommandSpecification>>(_commands);
 
-        public static List<CommandSpecification> AllCommands {
+        public List<CommandSpecification> AllCommands {
             get {
                 var coms = new List<CommandSpecification>();
                 foreach (var kvp in _commands)
@@ -49,32 +49,32 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
             }
         }
 
-        static readonly SyntaxAnalyser _syntaxAnalyzer = new SyntaxAnalyser();
+        readonly SyntaxAnalyser _syntaxAnalyzer = new SyntaxAnalyser();
 
-        static readonly Dictionary<string, CommandsModule> _modules = new Dictionary<string, CommandsModule>();
+        readonly Dictionary<string, CommandsModule> _modules = new Dictionary<string, CommandsModule>();
 
-        public static IReadOnlyDictionary<string, CommandsModule> Modules => new ReadOnlyDictionary<string, CommandsModule>(_modules);
+        public IReadOnlyDictionary<string, CommandsModule> Modules => new ReadOnlyDictionary<string, CommandsModule>(_modules);
 
-        public static IEnumerable<string> CommandDeclaringTypesNames => AllCommands.Select(x => x.DeclaringTypeShortName);
+        public IEnumerable<string> CommandDeclaringTypesNames => AllCommands.Select(x => x.DeclaringTypeShortName);
 
-        public static CommandsHistory CmdsHistory;
+        public CommandsHistory CmdsHistory { get; protected set; }
 
-        public static cmdlr.CommandLineReader CmdLineReader;
+        public cmdlr.CommandLineReader CmdLineReader { get; set; }
 
         #endregion
 
         #region cli methods
 
-        public static string Arg(int n)
+        public string Arg(int n)
         {
             if (_args == null) return null;
             if (_args.Length <= n) return null;
             return _args[n];
         }
 
-        public static bool HasArgs => _args != null && _args.Length > 0;
+        public bool HasArgs => _args != null && _args.Length > 0;
 
-        static void SetArgs(string[] args)
+        void SetArgs(string[] args)
         {
             _args = (string[])args?.Clone();
         }
@@ -83,7 +83,12 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
         #region command engine operations
 
-        public static void InitializeCommandProcessor(string[] args, cmdlr.CommandLineReader commandLineReader,bool printInfo=true)
+        public CommandLineProcessor(string[] args, bool printInfo = true)
+        {
+            InitializeCommandProcessor(args, printInfo);
+        }
+
+        void InitializeCommandProcessor(string[] args, bool printInfo=true)
         {
             SetArgs(args);
             if (!_isInitialized)
@@ -94,7 +99,6 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
                 cons.BackgroundColor = DefaultBackground;
 
                 CmdsHistory = new CommandsHistory(UserProfileFolder);
-                CmdLineReader = commandLineReader;
 
                 RegisterCommandsAssembly(Assembly.GetExecutingAssembly());
 #if enable_test_commands
@@ -104,7 +108,12 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
             }
         }
 
-        public static void PrintInfo()
+        public void AssertCommandLineProcessorHasACommandLineReader()
+        {
+            if (CmdLineReader == null) throw new Exception("a command line reader is required by the command line processor to perform this action");
+        }
+
+        public void PrintInfo()
         {
             Println($"{ColorSettings.Label}{Uon} {AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}" + ("".PadRight(30,' ')) + Tdoff);
             Println($" {AppEditor}");
@@ -112,7 +121,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
             Println();
         }
 
-        public static (int typesCount,int commandsCount) UnregisterCommandsAssembly(string assemblyName)
+        public (int typesCount,int commandsCount) UnregisterCommandsAssembly(string assemblyName)
         {
             var module = _modules.Values.Where(x => x.Name == assemblyName).FirstOrDefault();
             if (module!=null)
@@ -129,7 +138,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
             }
         }
 
-        static bool RemoveCommand(CommandSpecification comSpec)
+        bool RemoveCommand(CommandSpecification comSpec)
         {
             if (_commands.TryGetValue(comSpec.Name, out var cmdLst))
             {
@@ -143,13 +152,13 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
             return false;
         }
 
-        public static (int typesCount, int commandsCount) RegisterCommandsAssembly(string assemblyPath)
+        public (int typesCount, int commandsCount) RegisterCommandsAssembly(string assemblyPath)
         {
             var assembly = Assembly.LoadFrom(assemblyPath);
             return RegisterCommandsAssembly(assembly);
         }
 
-        public static (int typesCount,int commandsCount) RegisterCommandsAssembly(Assembly assembly)
+        public (int typesCount,int commandsCount) RegisterCommandsAssembly(Assembly assembly)
         {
             if (_modules.ContainsKey(assembly.FullName))
             {
@@ -178,11 +187,11 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
             return (typesCount,comTotCount);    
         }
 
-        public static void RegisterCommandsClass<T>() => RegisterCommandsClass(typeof(T),true);
+        public void RegisterCommandsClass<T>() => RegisterCommandsClass(typeof(T),true);
 
-        public static int RegisterCommandsClass(Type type) => RegisterCommandsClass(type, true);
+        public int RegisterCommandsClass(Type type) => RegisterCommandsClass(type, true);
 
-        static int RegisterCommandsClass(Type type,bool registerAsModule)
+        int RegisterCommandsClass(Type type,bool registerAsModule)
         {
             var comsCount = 0;
             object instance = Activator.CreateInstance(type);            
@@ -306,7 +315,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
         #region command processor session operations
 
-        public static string UserProfileFolder => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        public string UserProfileFolder => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
         #endregion
 
@@ -321,7 +330,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
         /// </summary>
         /// <param name="expr">expression to be evaluated</param>
         /// <returns>return code</returns>
-        public static ExpressionEvaluationResult Eval(string expr,int outputX)
+        public ExpressionEvaluationResult Eval(string expr,int outputX)
         {
             var parseResult = Parse(_syntaxAnalyzer,expr);
             ExpressionEvaluationResult r = null;

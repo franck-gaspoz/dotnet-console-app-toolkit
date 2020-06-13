@@ -20,7 +20,7 @@ namespace DotNetConsoleAppToolkit.Console
             {
                 r = result.AsyncState?.ToString()?.ToLower() == "y";
             }
-            var cmdlr = new CommandLineReader(question + "? ", null);
+            var cmdlr = new CommandLineReader(null,question + "? ", null);
             cmdlr.BeginReadln(endReadln, null, true, false);
             Println();
             return r;

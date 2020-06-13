@@ -188,12 +188,12 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        public static void EnableNoVisible() => Lock(() => { Print($"{(char)27}[8m"); });
-        public static void EnableInvert() => Lock(() => { Print($"{(char)27}[7m"); });
-        public static void EnableBlink() => Lock(() => { Print($"{(char)27}[5m"); });
-        public static void EnableLowIntensity() => Lock(() => { Print($"{(char)27}[2m"); });
+        public static void EnableNoVisible() => Lock(() => { Print($"{(char)27}[8m"); });       // not available on windows
+        public static void EnableInvert() => Lock(() => { Print($"{(char)27}[7m"); });          
+        public static void EnableBlink() => Lock(() => { Print($"{(char)27}[5m"); });           // not available on windows
+        public static void EnableLowIntensity() => Lock(() => { Print($"{(char)27}[2m"); });    // not available on windows
         public static void EnableUnderline() => Lock(() => { Print($"{(char)27}[4m"); });
-        public static void EnableBold() => Lock(() => { Print($"{(char)27}[1m"); });
+        public static void EnableBold() => Lock(() => { Print($"{(char)27}[1m"); });            // not available on windows
         public static void DisableTextDecoration() => Lock(() => { Print($"{(char)27}[0m"); });
 
         public static void BackupForeground() => Lock(()=>_foregroundBackup = sc.ForegroundColor);

@@ -5,8 +5,10 @@ using cons = DotNetConsoleAppToolkit.DotNetConsole;
 namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 {
     [Commands("commands of the console")]
-    public class ConsoleCommands
+    public class ConsoleCommands : CommandsType
     {
+        public ConsoleCommands(CommandLineProcessor commandLineProcessor) : base(commandLineProcessor) { }
+
         [Command("write any given expression to the output stream")]
         public void Print(
             [Parameter("expression that will be write to output",true)] string expr = ""

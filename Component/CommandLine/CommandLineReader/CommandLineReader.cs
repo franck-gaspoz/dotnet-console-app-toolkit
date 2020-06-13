@@ -29,6 +29,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
         bool _readingStarted;
         string _nextPrompt = null;
         readonly string _defaultPrompt = null;
+        readonly CommandLineProcessor CommandLineProcessor;
 
         public Action<IAsyncResult> InputProcessor { get; set; }
 
@@ -36,8 +37,13 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
 
         #region initialization operations
 
-        public CommandLineReader(string prompt=null,ExpressionEvaluationCommandDelegate evalCommandDelegate = null)
+        public CommandLineReader(
+            CommandLineProcessor commandLineProcessor = null,
+            string prompt = null,
+            ExpressionEvaluationCommandDelegate evalCommandDelegate = null)
         {
+            CommandLineProcessor = commandLineProcessor;
+            CommandLineProcessor.CmdLineReader = this;
             _defaultPrompt = prompt ?? $"{Green}> ";
             Initialize(evalCommandDelegate);
         }
@@ -49,7 +55,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
 
         void Initialize(ExpressionEvaluationCommandDelegate evalCommandDelegate = null)
         {
-            _evalCommandDelegate = evalCommandDelegate ?? Eval;
+            _evalCommandDelegate = evalCommandDelegate ?? CommandLineProcessor.Eval;
             ViewSizeChanged += (o, e) =>
             {
                 if (_inputReaderThread != null)
@@ -171,7 +177,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                 }
             }
             if (enableHistory && !string.IsNullOrWhiteSpace(commandLine))
-                CmdsHistory.HistoryAppend(commandLine);
+                CommandLineProcessor.CmdsHistory.HistoryAppend(commandLine);
         }
 
         private void CancelKeyPress(object sender, ConsoleCancelEventArgs e)
@@ -385,7 +391,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                                         {
                                             if (CursorTop == _beginOfLineCurPos.Y)
                                             {
-                                                var h = CmdsHistory.GetBackwardHistory();
+                                                var h = CommandLineProcessor.CmdsHistory.GetBackwardHistory();
                                                 if (h != null)
                                                 {
                                                     HideCur();
@@ -410,7 +416,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                                             var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
                                             if (CursorTop == slines.Max(o => o.y))
                                             {
-                                                var fh = CmdsHistory.GetForwardHistory();
+                                                var fh = CommandLineProcessor.CmdsHistory.GetForwardHistory();
                                                 if (fh != null)
                                                 {
                                                     HideCur();
