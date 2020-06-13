@@ -3,6 +3,7 @@
 using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 using DotNetConsoleAppToolkit.Component.CommandLine.Parsing;
 using DotNetConsoleAppToolkit.Console;
+using DotNetConsoleAppToolkit.Lib;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -172,7 +173,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
                 var comsAttr = type.GetCustomAttribute<CommandsAttribute>();
 
                 var comCount = 0;
-                if (comsAttr != null)
+                if (comsAttr != null && type.InheritsFrom(typeof(CommandsType)))
                     comCount = RegisterCommandsClass(type,false);                
                 if (comCount > 0)
                     typesCount++;
@@ -193,8 +194,10 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
         int RegisterCommandsClass(Type type,bool registerAsModule)
         {
+            if (!type.InheritsFrom(typeof(CommandsType)))
+                throw new Exception($"the type '{type.FullName}' must be an instance of '{typeof(CommandsType).FullName}' to be registered as a command class");
             var comsCount = 0;
-            object instance = Activator.CreateInstance(type);            
+            object instance = Activator.CreateInstance(type,new object[] { this });            
             var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             if (registerAsModule && _modules.ContainsKey(type.FullName))
             {
