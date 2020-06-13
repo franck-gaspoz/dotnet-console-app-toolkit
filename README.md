@@ -49,9 +49,9 @@ The toolkit provides functionalities needed to build console applications runnin
         return r;
     }
     ```
-  - that will be auto documented like this:
+  - that will be auto documented like this by the integrated shell (dnsh):
   
-  <image src="Doc/2020-06-13 06_36_43-Window.png"/>
+    <image src="Doc/2020-06-13 06_36_43-Window.png"/>
 
 - <b>libraries of methods</b> for performing various print operations, data conversions, process management, ..
 
