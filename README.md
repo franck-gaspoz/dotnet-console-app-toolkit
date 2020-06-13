@@ -24,9 +24,34 @@ The toolkit provides functionalities needed to build console applications runnin
     
 - <b>UI controls</b> for displaying texts and graphical characters in a various way and handling user inputs
 
-- <b>command line analyser / interpretor</b> with an adaptable syntax, that can interact with any underlying shell, allowing to build either a stand alone shell or a shell extension
+- <b>command line analyser / interpretor</b> with an adaptable syntax, that can interact with any underlying shell, allowing to build either a stand alone shell or an extension for an existing shell
 
 - <b>a simple way to define shell commands</b> using C# method and parameters attributes, avoiding the developer to handle syntax analyzing and shell integration (command help, pipelines, standard stream redirections) councerns, allowing to support either simple values types (int,float,string,date time,..) and object types (even generic collection), and that can interacts together and with the shell throught data objects
+
+    ``` csharp
+    // a Unix rm command implementation:
+    [Command("remove file(s) and/or the directory(ies)")]
+    public List<string> Rm(
+        [Parameter("file or folder path")] WildcardFilePath path,
+        [Option("r", "also remove files and folders in sub directories")] bool recurse,
+        [Option("i","prompt before any removal")] bool interactive,
+        [Option("v", "explain what is being done")] bool verbose,
+        [Option("d", "remove empty directories")] bool rmEmptyDirs,
+        [Option("na", "do not print file system attributes when verbose")] bool noattributes,
+        [Option("s", "don't remove any file/or folder, just simulate the operation (enable verbose)")] bool simulate
+    )
+    {
+        var r = new List<string>();
+        if (path.CheckExists())
+        {
+            /* ... */
+        }
+        return r;
+    }
+    ```
+  - that will be auto documented like this:
+  
+  <image src="Doc/2020-06-13 06_36_43-Window.png"/>
 
 - <b>libraries of methods</b> for performing various print operations, data conversions, process management, ..
 
