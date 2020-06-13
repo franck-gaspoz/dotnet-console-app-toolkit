@@ -7,8 +7,11 @@
 
 The toolkit provides functionalities needed to build console applications running in a terminal (WSL/WSL2, cmd.exe, ConEmu, bash, ...) with text interface. That includes:
 - <b>a text printer engine </b>that supports <b>print directives</b> allowing to manage console functionalities from text itself, as html would do but with a simplest grammar (that can be configured). That makes possible colored outputs, cursor control, text scrolling and so on, based on several APIs like System.Console and VT100. The print directives are available as commands strings, as a command from the integrated shell or from an underlying shell
+
 - <b>UI controls</b> for displaying texts and graphical characters in a various way and handling user inputs
+
 - <b>command line analyser / interpretor</b> with an adaptable syntax, that can interact with any underlying shell, allowing to build either a stand alone shell or a shell extension
+
 - <b>a simple way to define shell commands</b> using C# method and parameters attributes, avoiding the developer to handle syntax analyzing and shell integration (command help, pipelines, standard stream redirections) councerns
 
 
