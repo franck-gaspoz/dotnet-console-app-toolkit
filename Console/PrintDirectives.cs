@@ -22,6 +22,8 @@
     *      restore foreground: rsf
     *      restore background: rsb
     *      consoleColor (ignoreCase) := Black | DarkBlue | DarkGreen | DarkCyan | DarkRed  | DarkMagenta | DarkYellow | Gray | DarkGray  | Blue | Green | Cyan  | Red  | Magenta  | Yellow  | White
+    * vt100 text effects:
+    *      enable underline:  uon
     * print control:
     *      clear console: cl
     *      line break: br
@@ -54,6 +56,9 @@
         crx,
         cry,
         exit,
-        exec
+        exec,
+        // VT100
+        uon,
+        tdoff
     }
 }

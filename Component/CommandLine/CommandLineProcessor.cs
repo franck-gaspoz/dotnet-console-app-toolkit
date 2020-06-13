@@ -100,15 +100,16 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 #if enable_test_commands
                 RegisterCommandsClass<TestCommands>();
 #endif
-                if (printInfo)
-                {
-                    var f = DefaultForegroundCmd;
-                    Println($" {ColorSettings.Label}{AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}");
-                    Println($" {AppEditor}");
-                    Println($" OS {Environment.OSVersion} CLR {Environment.Version}");
-                    Println();
-                }
+                if (printInfo) PrintInfo();
             }
+        }
+
+        public static void PrintInfo()
+        {
+            Println($"{ColorSettings.Label}{Uon} {AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}" + ("".PadRight(30,' ')) + Tdoff);
+            Println($" {AppEditor}");
+            Println($" OS {Environment.OSVersion} CLR {Environment.Version}");
+            Println();
         }
 
         public static (int typesCount,int commandsCount) UnregisterCommandsAssembly(string assemblyName)
