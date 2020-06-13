@@ -171,6 +171,7 @@ namespace DotNetConsoleAppToolkit
             { PrintDirectives.exec+"=" , (x) => ExecCSharp((string)x) },
 
             { PrintDirectives.uon+"" , (x) => RelayCall(EnableUnderline) },
+            { PrintDirectives.bon+"" , (x) => RelayCall(EnableBold) },
             { PrintDirectives.tdoff+"" , (x) => RelayCall(DisableTextDecoration) }
         };
 
@@ -184,6 +185,7 @@ namespace DotNetConsoleAppToolkit
         }
 
         public static void EnableUnderline() => Lock(() => { Print($"{(char)27}[4m"); });
+        public static void EnableBold() => Lock(() => { Print($"{(char)27}[1m"); });
         public static void DisableTextDecoration() => Lock(() => { Print($"{(char)27}[0m"); });
 
         public static void BackupForeground() => Lock(()=>_foregroundBackup = sc.ForegroundColor);
@@ -1154,6 +1156,7 @@ namespace DotNetConsoleAppToolkit
         #region commands shortcuts
 
         public static string Uon => GetCmd(PrintDirectives.uon);
+        public static string Bon => GetCmd(PrintDirectives.bon);
         public static string Tdoff => GetCmd(PrintDirectives.tdoff);
 
         public static string DefaultBackgroundCmd => GetCmd(PrintDirectives.b + "", DefaultBackground.ToString().ToLower());

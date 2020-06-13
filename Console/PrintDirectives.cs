@@ -59,6 +59,7 @@
         exec,
         // VT100
         uon,
+        bon,
         tdoff
     }
 }
