@@ -1,10 +1,10 @@
-﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
+﻿using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 using System;
 using System.Data;
 using System.Linq;
 using System.Reflection;
 
-namespace DotNetConsoleSdk.Component.CommandLine.Parsing
+namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
 {
     public class ParameterSyntax
     {

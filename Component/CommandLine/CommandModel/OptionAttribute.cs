@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
+namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandModel
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
     public class OptionAttribute : Attribute

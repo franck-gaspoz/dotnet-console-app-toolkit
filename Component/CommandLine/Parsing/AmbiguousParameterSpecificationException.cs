@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DotNetConsoleSdk.Component.CommandLine.Parsing
+namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
 {
     public class AmbiguousParameterSpecificationException : Exception
     {

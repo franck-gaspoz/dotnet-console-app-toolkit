@@ -2,9 +2,9 @@
 
 using sc = System.Console;
 using System;
-using static DotNetConsoleSdk.DotNetConsole;
+using static DotNetConsoleAppToolkit.DotNetConsole;
 
-namespace DotNetConsoleSdk.Component.UI
+namespace DotNetConsoleAppToolkit.Component.UI
 {
     public abstract class UIElement
     {

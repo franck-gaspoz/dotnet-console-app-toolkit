@@ -1,14 +1,14 @@
 ﻿//#define printDefaultValueInSyntax
 
-using DotNetConsoleSdk.Component.CommandLine.Parsing;
-using DotNetConsoleSdk.Console;
+using DotNetConsoleAppToolkit.Component.CommandLine.Parsing;
+using DotNetConsoleAppToolkit.Console;
 using System.Reflection;
-using static DotNetConsoleSdk.DotNetConsole;
+using static DotNetConsoleAppToolkit.DotNetConsole;
 #if printDefaultValueInSyntax
-using static DotNetConsoleSdk.Lib.Str;
+using static DotNetConsoleAppToolkit.Lib.Str;
 #endif
 
-namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
+namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandModel
 {
     public class CommandParameterSpecification
     {

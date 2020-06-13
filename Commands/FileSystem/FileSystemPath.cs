@@ -1,11 +1,11 @@
-﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
+﻿using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 using System.IO;
-using static DotNetConsoleSdk.Lib.Str;
-using static DotNetConsoleSdk.DotNetConsole;
+using static DotNetConsoleAppToolkit.Lib.Str;
+using static DotNetConsoleAppToolkit.DotNetConsole;
 using System.Globalization;
-using DotNetConsoleSdk.Console;
+using DotNetConsoleAppToolkit.Console;
 
-namespace DotNetConsoleSdk.Commands.FileSystem
+namespace DotNetConsoleAppToolkit.Commands.FileSystem
 {
     [CustomParamaterType]
     public abstract class FileSystemPath

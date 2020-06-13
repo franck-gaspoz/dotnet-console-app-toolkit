@@ -1,6 +1,6 @@
-﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
+﻿using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 
-namespace DotNetConsoleSdk.Component.CommandLine.Parsing
+namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
 {
     public interface IMatchingParameter
     {

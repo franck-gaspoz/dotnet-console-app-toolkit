@@ -1,7 +1,7 @@
 ﻿using System;
-using static DotNetConsoleSdk.DotNetConsole;
+using static DotNetConsoleAppToolkit.DotNetConsole;
 
-namespace DotNetConsoleSdk.Console
+namespace DotNetConsoleAppToolkit.Console
 {
     public class TextColor
     {

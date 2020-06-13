@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace DotNetConsoleSdk.Console
+namespace DotNetConsoleAppToolkit.Console
 {
     public class WorkArea
     {

@@ -6,7 +6,7 @@ using System;
 using System.Globalization;
 using System.IO;
 
-namespace DotNetConsoleSdk.Component.CommandLine.CommandModel
+namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandModel
 {
     public class CommandSpecification
     {

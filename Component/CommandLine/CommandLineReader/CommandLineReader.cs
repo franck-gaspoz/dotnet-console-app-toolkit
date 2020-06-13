@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static DotNetConsoleSdk.Component.CommandLine.CommandLineProcessor;
-using static DotNetConsoleSdk.DotNetConsole;
+using static DotNetConsoleAppToolkit.Component.CommandLine.CommandLineProcessor;
+using static DotNetConsoleAppToolkit.DotNetConsole;
 using sc = System.Console;
 
-namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
+namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
 {
     public class CommandLineReader
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DotNetConsoleSdk.Console
+namespace DotNetConsoleAppToolkit.Console
 {
     public class InputMap
     {

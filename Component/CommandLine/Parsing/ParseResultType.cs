@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DotNetConsoleSdk.Component.CommandLine.Parsing
+namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
 {
     public enum ParseResultType
     {

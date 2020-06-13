@@ -1,7 +1,7 @@
 ﻿#define dbg
 
-using DotNetConsoleSdk.Component.UI;
-using DotNetConsoleSdk.Console;
+using DotNetConsoleAppToolkit.Component.UI;
+using DotNetConsoleAppToolkit.Console;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using System;
@@ -13,14 +13,14 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using static DotNetConsoleSdk.Component.UI.UIElement;
-using static DotNetConsoleSdk.Lib.Str;
+using static DotNetConsoleAppToolkit.Component.UI.UIElement;
+using static DotNetConsoleAppToolkit.Lib.Str;
 using sc = System.Console;
 
-[assembly: AssemblyDescription("Dot Net Console App Toolkit core module")]
+[assembly: AssemblyDescription("Dot Net Console App Toolkit core commands module")]
 [assembly: AssemblyCopyright("© June 2020")]
 [assembly: AssemblyTrademark("franck.gaspoz@gmail.com")]
-namespace DotNetConsoleSdk
+namespace DotNetConsoleAppToolkit
 {
     /// <summary>
     /// dotnet core sdk helps build fastly nice console applications
@@ -543,7 +543,7 @@ namespace DotNetConsoleSdk
             }
         }
 
-        static void FillLineFromCursor(char c,bool resetCursorLeft=true,bool useDefaultColors=true)
+        static void FillLineFromCursor(char c=' ',bool resetCursorLeft=true,bool useDefaultColors=true)
         {
             var f = sc.ForegroundColor;
             var b = sc.BackgroundColor;
@@ -555,7 +555,7 @@ namespace DotNetConsoleSdk
                 sc.ForegroundColor = ColorSettings.Default.Foreground.Value;
                 sc.BackgroundColor = ColorSettings.Default.Background.Value;
             }
-            Write("".PadLeft(nb, ' '));
+            Write("".PadLeft(nb, c));
             if (useDefaultColors)
             {
                 sc.ForegroundColor = f;

@@ -1,7 +1,7 @@
-﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
-using DotNetConsoleSdk.Commands.FileSystem;
-using DotNetConsoleSdk.Component.CommandLine.Parsing;
-using DotNetConsoleSdk.Console;
+﻿using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
+using DotNetConsoleAppToolkit.Commands.FileSystem;
+using DotNetConsoleAppToolkit.Component.CommandLine.Parsing;
+using DotNetConsoleAppToolkit.Console;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -9,12 +9,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
-using static DotNetConsoleSdk.Component.CommandLine.CommandLineProcessor;
-using static DotNetConsoleSdk.DotNetConsole;
-using static DotNetConsoleSdk.Lib.Str;
-using cons = DotNetConsoleSdk.DotNetConsole;
+using static DotNetConsoleAppToolkit.Component.CommandLine.CommandLineProcessor;
+using static DotNetConsoleAppToolkit.DotNetConsole;
+using static DotNetConsoleAppToolkit.Lib.Str;
+using cons = DotNetConsoleAppToolkit.DotNetConsole;
 
-namespace DotNetConsoleSdk.Component.CommandLine.Commands
+namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 {
     [Commands("commands related to the command line processor (dot net shell - dnsh)")]
     public class CommandLineProcessorCommands

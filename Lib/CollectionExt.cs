@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DotNetConsoleSdk.Lib
+namespace DotNetConsoleAppToolkit.Lib
 {
     public static class CollectionExt
     {

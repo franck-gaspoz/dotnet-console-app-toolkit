@@ -1,4 +1,4 @@
-﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
+﻿using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text;
 
-namespace DotNetConsoleSdk.Component.CommandLine.Parsing
+namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
 {
     public class CommandSyntax
     {

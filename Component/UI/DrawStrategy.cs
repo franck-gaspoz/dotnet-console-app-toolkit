@@ -1,4 +1,4 @@
-﻿namespace DotNetConsoleSdk.Component.UI
+﻿namespace DotNetConsoleAppToolkit.Component.UI
 {
     public enum DrawStrategy
     {        

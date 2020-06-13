@@ -1,7 +1,7 @@
-﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
-using DotNetConsoleSdk.Component.CommandLine.Parsing;
-using DotNetConsoleSdk.Console;
-using DotNetConsoleSdk.Lib;
+﻿using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
+using DotNetConsoleAppToolkit.Component.CommandLine.Parsing;
+using DotNetConsoleAppToolkit.Console;
+using DotNetConsoleAppToolkit.Lib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -9,14 +9,14 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using static DotNetConsoleSdk.DotNetConsole;
-using static DotNetConsoleSdk.Lib.Str;
+using static DotNetConsoleAppToolkit.DotNetConsole;
+using static DotNetConsoleAppToolkit.Lib.Str;
 using sc = System.Console;
-using static DotNetConsoleSdk.Console.Interaction;
+using static DotNetConsoleAppToolkit.Console.Interaction;
 using System.Text;
-using DotNetConsoleSdk.Component.CommandLine;
+using DotNetConsoleAppToolkit.Component.CommandLine;
 
-namespace DotNetConsoleSdk.Commands.FileSystem
+namespace DotNetConsoleAppToolkit.Commands.FileSystem
 {
     [Commands("commands related to files,directories,mounts/filesystems and disks")]
     public class FileSystemCommands

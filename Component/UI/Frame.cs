@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using sc = System.Console;
 using System.Threading;
-using static DotNetConsoleSdk.DotNetConsole;
+using static DotNetConsoleAppToolkit.DotNetConsole;
 
-namespace DotNetConsoleSdk.Component.UI
+namespace DotNetConsoleAppToolkit.Component.UI
 {
     public delegate List<string> GetContentDelegate(Frame x);
 

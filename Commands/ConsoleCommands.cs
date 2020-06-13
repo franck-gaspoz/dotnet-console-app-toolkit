@@ -1,8 +1,8 @@
-﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
-using static DotNetConsoleSdk.DotNetConsole;
-using cons = DotNetConsoleSdk.DotNetConsole;
+﻿using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
+using static DotNetConsoleAppToolkit.DotNetConsole;
+using cons = DotNetConsoleAppToolkit.DotNetConsole;
 
-namespace DotNetConsoleSdk.Component.CommandLine.Commands
+namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 {
     [Commands("commands of the console")]
     public class ConsoleCommands

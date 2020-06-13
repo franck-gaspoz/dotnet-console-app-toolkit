@@ -1,11 +1,11 @@
-﻿using DotNetConsoleSdk.Component.CommandLine.CommandModel;
+﻿using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using sc = System.Console;
-using static DotNetConsoleSdk.DotNetConsole;
+using static DotNetConsoleAppToolkit.DotNetConsole;
 
-namespace DotNetConsoleSdk.Component.CommandLine.Commands
+namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 {
     [Commands("tests commands")]
     public class TestCommands

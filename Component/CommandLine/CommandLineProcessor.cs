@@ -1,8 +1,8 @@
 ﻿//#define enable_test_commands
 
-using DotNetConsoleSdk.Component.CommandLine.CommandModel;
-using DotNetConsoleSdk.Component.CommandLine.Parsing;
-using DotNetConsoleSdk.Console;
+using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
+using DotNetConsoleAppToolkit.Component.CommandLine.Parsing;
+using DotNetConsoleAppToolkit.Console;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,12 +10,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using static DotNetConsoleSdk.Component.CommandLine.Parsing.CommandLineParser;
-using static DotNetConsoleSdk.DotNetConsole;
-using cmdlr = DotNetConsoleSdk.Component.CommandLine.CommandLineReader;
+using static DotNetConsoleAppToolkit.Component.CommandLine.Parsing.CommandLineParser;
+using static DotNetConsoleAppToolkit.DotNetConsole;
+using cmdlr = DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader;
 using cons = System.Console;
 
-namespace DotNetConsoleSdk.Component.CommandLine
+namespace DotNetConsoleAppToolkit.Component.CommandLine
 {
     public static class CommandLineProcessor
     {

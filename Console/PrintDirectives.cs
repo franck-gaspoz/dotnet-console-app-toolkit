@@ -1,4 +1,4 @@
-﻿namespace DotNetConsoleSdk.Console
+﻿namespace DotNetConsoleAppToolkit.Console
 {
     /*
     * print directives global syntax:

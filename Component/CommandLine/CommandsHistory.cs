@@ -1,10 +1,10 @@
-﻿using DotNetConsoleSdk.Commands.FileSystem;
+﻿using DotNetConsoleAppToolkit.Commands.FileSystem;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using static DotNetConsoleSdk.DotNetConsole;
+using static DotNetConsoleAppToolkit.DotNetConsole;
 
-namespace DotNetConsoleSdk.Component.CommandLine
+namespace DotNetConsoleAppToolkit.Component.CommandLine
 {
     public class CommandsHistory
     {

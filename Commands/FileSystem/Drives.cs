@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using static DotNetConsoleSdk.Lib.Str;
+using static DotNetConsoleAppToolkit.Lib.Str;
 
-namespace DotNetConsoleSdk.Commands.FileSystem
+namespace DotNetConsoleAppToolkit.Commands.FileSystem
 {
     public class Drives
     {

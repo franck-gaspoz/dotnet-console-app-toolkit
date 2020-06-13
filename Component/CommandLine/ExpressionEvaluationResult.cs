@@ -1,7 +1,7 @@
-﻿using DotNetConsoleSdk.Component.CommandLine.Parsing;
+﻿using DotNetConsoleAppToolkit.Component.CommandLine.Parsing;
 using System;
 
-namespace DotNetConsoleSdk.Component.CommandLine
+namespace DotNetConsoleAppToolkit.Component.CommandLine
 {
     public class ExpressionEvaluationResult
     {

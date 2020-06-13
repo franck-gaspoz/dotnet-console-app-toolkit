@@ -1,8 +1,8 @@
 ﻿using System.IO;
 using System.Text;
-using static DotNetConsoleSdk.DotNetConsole;
+using static DotNetConsoleAppToolkit.DotNetConsole;
 
-namespace DotNetConsoleSdk.Commands.FileSystem
+namespace DotNetConsoleAppToolkit.Commands.FileSystem
 {
     public class FilePath : FileSystemPath
     {

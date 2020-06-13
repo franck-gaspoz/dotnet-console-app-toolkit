@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace DotNetConsoleSdk.Component.CommandLine
+namespace DotNetConsoleAppToolkit.Component.CommandLine
 {
     public class CommandsModule
     {

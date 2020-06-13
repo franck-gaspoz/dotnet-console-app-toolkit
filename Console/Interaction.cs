@@ -1,10 +1,10 @@
-﻿using DotNetConsoleSdk.Component.CommandLine.CommandLineReader;
+﻿using DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader;
 using System;
 using System.Collections.Generic;
-using static DotNetConsoleSdk.DotNetConsole;
+using static DotNetConsoleAppToolkit.DotNetConsole;
 using sc = System.Console;
 
-namespace DotNetConsoleSdk.Console
+namespace DotNetConsoleAppToolkit.Console
 {
     public static class Interaction
     {

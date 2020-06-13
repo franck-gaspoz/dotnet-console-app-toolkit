@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace DotNetConsoleSdk.Component.CommandLine.CommandLineReader
+namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
 {
     public class BeginReadlnAsyncResult : IAsyncResult
     {
