@@ -23,9 +23,7 @@
     *      restore background: rsb
     *      set colors to defaults: rdc
     *      consoleColor (ignoreCase) := Black | DarkBlue | DarkGreen | DarkCyan | DarkRed  | DarkMagenta | DarkYellow | Gray | DarkGray  | Blue | Green | Cyan  | Red  | Magenta  | Yellow  | White
-    * vt100 text effects:
-    *      enable underline:  uon
-    * print control:
+    * print flow control:
     *      clear console: cl
     *      line break: br
     *      backup cursor pos: bkcr
@@ -38,16 +36,8 @@
     *      exec: exec csharp from text
     * text decoration (vt100):
     *      underline on: uon
-    *      bold on: bon                             (windows not supported)
-    *      blink on: blon                           (windows not supported)
     *      inverted text on: invon
-    *      hidden text on: novon                    (windows not supported)
-    *      light text on: lion                      (windows not supported)
     *      text decoration off: tdoff
-    * line print:
-    *      cllcr : clear line from cursor right     (windows not supported)
-    *      cllcl: clear line from cursor left       (windows not supported)
-    *      cll: clear entire line                   (windows not supported)
     */
     public enum PrintDirectives
     {
@@ -74,15 +64,15 @@
 
         // VT100
         uon,
-        bon,
-        blon,
+        //bon,
+        //blon,
         invon,
-        novon,
-        lion,
+        //novon,
+        //lion,
         tdoff,
 
-        cllcr,
-        cllcl,
-        cll
+        //cllcr,
+        //cllcl,
+        //cll
     }
 }

@@ -175,16 +175,16 @@ namespace DotNetConsoleAppToolkit
             { PrintDirectives.exec+"=" , (x) => ExecCSharp((string)x) },
 
             { PrintDirectives.invon+"" , (x) => RelayCall(EnableInvert) },
-            { PrintDirectives.novon+"" , (x) => RelayCall(EnableNoVisible) },
-            { PrintDirectives.lion+"" , (x) => RelayCall(EnableLowIntensity) },
+            //{ PrintDirectives.novon+"" , (x) => RelayCall(EnableNoVisible) },
+            //{ PrintDirectives.lion+"" , (x) => RelayCall(EnableLowIntensity) },
             { PrintDirectives.uon+"" , (x) => RelayCall(EnableUnderline) },
-            { PrintDirectives.bon+"" , (x) => RelayCall(EnableBold) },
-            { PrintDirectives.blon+"" , (x) => RelayCall(EnableBlink) },
+            //{ PrintDirectives.bon+"" , (x) => RelayCall(EnableBold) },
+            //{ PrintDirectives.blon+"" , (x) => RelayCall(EnableBlink) },
             { PrintDirectives.tdoff+"" , (x) => RelayCall(DisableTextDecoration) },
 
-            { PrintDirectives.cll+"" , (x) => RelayCall(ClearLine) },
-            { PrintDirectives.cllcr+"" , (x) => RelayCall(ClearLineFromCursorRight) },
-            { PrintDirectives.cllcl+"" , (x) => RelayCall(ClearLineFromCursorLeft) }
+            //{ PrintDirectives.cll+"" , (x) => RelayCall(ClearLine) },
+            //{ PrintDirectives.cllcr+"" , (x) => RelayCall(ClearLineFromCursorRight) },
+            //{ PrintDirectives.cllcl+"" , (x) => RelayCall(ClearLineFromCursorLeft) }
         };
 
         static object RelayCall(Action method) { method(); return null; }
@@ -200,12 +200,12 @@ namespace DotNetConsoleAppToolkit
         public static void ClearLineFromCursorLeft() => Lock(() => { Print($"{(char)27}[1K"); });       // not available on windows
         public static void ClearLine() => Lock(() => { Print($"{(char)27}[2K"); });                     // not available on windows
 
-        public static void EnableNoVisible() => Lock(() => { Print($"{(char)27}[8m"); });       // not available on windows
+        //public static void EnableNoVisible() => Lock(() => { Print($"{(char)27}[8m"); });       // not available on windows
         public static void EnableInvert() => Lock(() => { Print($"{(char)27}[7m"); });
-        public static void EnableBlink() => Lock(() => { Print($"{(char)27}[5m"); });           // not available on windows
-        public static void EnableLowIntensity() => Lock(() => { Print($"{(char)27}[2m"); });    // not available on windows
+        //public static void EnableBlink() => Lock(() => { Print($"{(char)27}[5m"); });           // not available on windows
+        //public static void EnableLowIntensity() => Lock(() => { Print($"{(char)27}[2m"); });    // not available on windows
         public static void EnableUnderline() => Lock(() => { Print($"{(char)27}[4m"); });
-        public static void EnableBold() => Lock(() => { Print($"{(char)27}[1m"); });            // not available on windows
+        //public static void EnableBold() => Lock(() => { Print($"{(char)27}[1m"); });            // not available on windows
         public static void DisableTextDecoration() => Lock(() => { Print($"{(char)27}[0m"); RestoreDefaultColors(); });
 
         public static void BackupForeground() => Lock(() => _foregroundBackup = sc.ForegroundColor);
@@ -1168,18 +1168,19 @@ namespace DotNetConsoleAppToolkit
 
         #region commands shortcuts
 
-        public static string Novon => GetCmd(PrintDirectives.novon);
+        //public static string Cllcl => GetCmd(PrintDirectives.cllcl);
+        //public static string Cllcr => GetCmd(PrintDirectives.cllcr);
+        //public static string Cll => GetCmd(PrintDirectives.cll);
+        
+        //public static string Lion => GetCmd(PrintDirectives.lion);
+        //public static string Bon => GetCmd(PrintDirectives.bon);
+        //public static string Blon => GetCmd(PrintDirectives.blon);
+        //public static string Novon => GetCmd(PrintDirectives.novon);
+        //public static string Blon => GetCmd(PrintDirectives.blon);
         public static string Invon => GetCmd(PrintDirectives.invon);
-        public static string Blon => GetCmd(PrintDirectives.blon);
         public static string Uon => GetCmd(PrintDirectives.uon);
-        public static string Lion => GetCmd(PrintDirectives.lion);
-        public static string Bon => GetCmd(PrintDirectives.bon);
         public static string Tdoff => GetCmd(PrintDirectives.tdoff);
         
-        public static string Cllcl => GetCmd(PrintDirectives.cllcl);
-        public static string Cllcr => GetCmd(PrintDirectives.cllcr);
-        public static string Cll => GetCmd(PrintDirectives.cll);
-
         public static string DefaultBackgroundCmd => GetCmd(PrintDirectives.b + "", DefaultBackground.ToString().ToLower());
         public static string DefaultForegroundCmd => GetCmd(PrintDirectives.f + "", DefaultForeground.ToString().ToLower());
         public static string Rdc => GetCmd(PrintDirectives.rdc);
