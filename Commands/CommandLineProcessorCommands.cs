@@ -195,6 +195,12 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             cons.Exit();
         }
 
+        [Command("print command processor infos")]
+        public void Cpinfo()
+        {
+            CommandLineProcessor.PrintInfo();
+        }
+
         [Command("displays the commands history list or manipulate it")]
         [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
         [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
