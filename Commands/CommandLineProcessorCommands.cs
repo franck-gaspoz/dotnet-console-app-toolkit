@@ -23,14 +23,16 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
         [Command("print help about all commands or a specific command")]
         public void Help(
             [Option("s", "set short view")] bool shortView,
-            [Option("l","list all commands names and their description")] bool list,
+            [Option("all","list all commands")] bool all,
             [Option("t","filter commands list by command declaring type",true,true)] string type = "",
             [Option("m", "filter commands list by module name", true,true)] string module = "",
             [Parameter("prints help for this command name", true)] string commandName = ""
             )
         {
+            var hascn = !string.IsNullOrWhiteSpace(commandName);
+            var list = !all && !hascn;
             var cmds = CommandLineProcessor.AllCommands.AsQueryable();
-            if (!string.IsNullOrWhiteSpace(commandName))
+            if (hascn)
                 cmds = cmds.Where(x => x.Name.Equals(commandName, CommandLineParser.SyntaxMatchingRule));
 
             if (cmds.Count() > 0)
@@ -162,10 +164,10 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                             if (!string.IsNullOrWhiteSpace(supdef)) Println($"{col}{Tab}{" ".PadRight(mpl)}{supdef}");
                         }
                         Println();
+                        Println($"{col}{ColorSettings.Label}type  : {ColorSettings.DarkLabel}{com.DeclaringTypeShortName}");
+                        Println($"{col}{ColorSettings.Label}module: {ColorSettings.DarkLabel}{com.ModuleName}{ColorSettings.Default}");
                     }
                 }
-                Println($"{col}{ColorSettings.Label}type  : {ColorSettings.DarkLabel}{com.DeclaringTypeShortName}");
-                Println($"{col}{ColorSettings.Label}module: {ColorSettings.DarkLabel}{com.ModuleName}{ColorSettings.Default}");
             }
 #pragma warning restore IDE0071WithoutSuggestion // Simplifier l’interpolation
 #pragma warning restore IDE0071 // Simplifier l’interpolation
