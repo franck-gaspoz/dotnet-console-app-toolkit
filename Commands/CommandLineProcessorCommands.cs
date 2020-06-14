@@ -275,6 +275,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 
             foreach ( var h in hist )
             {
+                if (CommandLineProcessor.CancellationTokenSource.IsCancellationRequested)
+                    break; 
                 var hp = $"  {ColorSettings.Numeric}{i.ToString().PadRight(max + 2, ' ')}{f}";
                 Print(hp);
                 ConsolePrint(h, true);
