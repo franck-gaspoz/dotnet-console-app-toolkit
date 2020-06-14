@@ -8,7 +8,7 @@ using DotNetConsoleAppToolkit.Console;
 namespace DotNetConsoleAppToolkit.Commands.FileSystem
 {
     [CustomParamaterType]
-    public abstract class FileSystemPath
+    public class FileSystemPath
     {
         public static string ErrorColorization = $"{Red}";
         public static string NormalDirectoryColorization = $"{Blue}";
@@ -41,12 +41,31 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
 
         public string Error;
 
+        public FileSystemPath(string fileSystemPath)
+        {
+            FileSystemInfo = new DirectoryInfo(fileSystemPath);
+            if (!FileSystemInfo.Exists)
+            {
+                var fi = new FileInfo(fileSystemPath);
+                if (fi.Exists) FileSystemInfo = fi;
+            }
+        }
+
         public FileSystemPath(FileSystemInfo fileSystemInfo)
         {
             FileSystemInfo = fileSystemInfo;
         }
 
-        public abstract bool CheckExists(bool dumpError = true);
+        public virtual bool CheckExists(bool dumpError = true)
+        {
+            if (!FileSystemInfo.Exists)
+            {
+                if (dumpError)
+                    Errorln($"path doesn't exists: {this}");
+                return false;
+            }
+            return true;
+        }
 
         public bool IsDirectory => FileSystemInfo.Attributes.HasFlag(FileAttributes.Directory);
         public bool IsFile => !IsDirectory;
@@ -103,6 +122,11 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             DotNetConsole.Print(r);
             if (HasError)
                 DotNetConsole.Print($" {ErrorColorization}{GetError()}");
+        }
+
+        public override string ToString()
+        {
+            return FileSystemInfo.FullName;
         }
     }
 }

@@ -26,7 +26,7 @@ The toolkit provides functionalities needed to build console applications runnin
     // 3) from C# using DotNetConsole.cs
     Println($"{Br}{Yellow}{BRed}yellow text on red background{Br}{Cyan}current time is: {System.DateTime.Now}{Br}");
      ```
-     <image src="Doc/2020-06-13 06_18_08-Window.png"/>
+     <image src="Doc/Images/2020-06-13 06_18_08-Window.png"/>
     
 - <b>UI controls</b> for displaying texts and graphical characters in a various way and handling user inputs
 
@@ -57,7 +57,7 @@ The toolkit provides functionalities needed to build console applications runnin
     ```
   - that will be auto documented like this by the integrated shell (dnsh):
   
-    <image src="Doc/2020-06-13 06_36_43-Window.png"/>
+    <image src="Doc/Images/2020-06-13 06_36_43-Window.png"/>
 
 - <b>libraries of methods</b> for performing various print operations, data conversions, process management, ..
 
@@ -67,7 +67,7 @@ The toolkit provides functionalities needed to build console applications runnin
 
 ## Example : the Dot Net Console Toolkit integrated shell (dnsh)
 
-<img src="Doc/2020-06-13 02_34_57-Window-github.png"/>
+<img src="Doc/Images/2020-06-13 02_34_57-Window-github.png"/>
 
 This is a view of what is done with the C# project <a href="https://github.com/franck-gaspoz/dotnet-console-app-toolkit-shell"><b>dotnet-console-app-toolkit-shell</b></a>. The <b>Dot Net Console App Toolkit</b> integrates anything needed to run a complete shell, writes shell commands using C# and use console UI components.
 

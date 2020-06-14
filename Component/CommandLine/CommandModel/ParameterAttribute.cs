@@ -14,7 +14,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandModel
         /// </summary>
         /// <param name="index"></param>
         /// <param name="description"></param>
-        public ParameterAttribute(int index,string description,bool isOptional)
+        public ParameterAttribute(int index,string description,bool isOptional=false)
         {
             if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
             Index = index;

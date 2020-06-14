@@ -6,11 +6,13 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandModel
     public class CommandAttribute : Attribute
     {
         public readonly string Description;
+        public readonly string LongDescription;
         public readonly string Name;
 
-        public CommandAttribute(string description,string name=null)
+        public CommandAttribute(string description,string longDescription=null,string name=null)
         {
             Description = description;
+            LongDescription = longDescription;
             Name = name;
         }
     }

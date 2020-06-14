@@ -43,7 +43,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
             ExpressionEvaluationCommandDelegate evalCommandDelegate = null)
         {
             CommandLineProcessor = commandLineProcessor;
-            CommandLineProcessor.CmdLineReader = this;
+            if (CommandLineProcessor!=null && CommandLineProcessor!=null) CommandLineProcessor.CmdLineReader = this;
             _defaultPrompt = prompt ?? $"{Green}> ";
             Initialize(evalCommandDelegate);
         }
@@ -55,7 +55,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
 
         void Initialize(ExpressionEvaluationCommandDelegate evalCommandDelegate = null)
         {
-            _evalCommandDelegate = evalCommandDelegate ?? CommandLineProcessor.Eval;
+            if (evalCommandDelegate==null && CommandLineProcessor!=null) _evalCommandDelegate = CommandLineProcessor.Eval;
             ViewSizeChanged += (o, e) =>
             {
                 if (_inputReaderThread != null)

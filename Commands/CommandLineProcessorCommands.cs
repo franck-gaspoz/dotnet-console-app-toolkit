@@ -65,7 +65,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                     foreach (var cmd in cmds)
                     {
                         if (!list && n > 0) Println();
-                        PrintCommandHelp(cmd, shortView, list, maxcmdlength, maxcmdtypelength, maxmodlength, cmds.Count() == 1);
+                        PrintCommandHelp(cmd, shortView, list, maxcmdlength, maxcmdtypelength, maxmodlength, !string.IsNullOrWhiteSpace(commandName));
                         n++;
                     }
                 }
@@ -120,7 +120,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             }
         }
 
-        static void PrintCommandHelp(CommandSpecification com, bool shortView = false, bool list = false, int maxcnamelength=-1, int maxcmdtypelength=-1, int maxmodlength=-1, bool singleout=false)
+        void PrintCommandHelp(CommandSpecification com, bool shortView = false, bool list = false, int maxcnamelength=-1, int maxcmdtypelength=-1, int maxmodlength=-1, bool singleout=false)
         {
 #pragma warning disable IDE0071 // Simplifier l’interpolation
 #pragma warning disable IDE0071WithoutSuggestion // Simplifier l’interpolation
@@ -133,9 +133,15 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             else
             {
                 if (singleout)
+                {
                     Println(com.Description);
+                    Println(GetPrintableLongDescription(com, list, shortView, 0));
+                }
                 else
+                {
                     Println($"{com.Name.PadRight(maxcnamelength, ' ')}{com.Description}");
+                    Println(GetPrintableLongDescription(com, list, shortView, maxcnamelength));
+                }
             }
 
             if (!list)
@@ -162,6 +168,15 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             }
 #pragma warning restore IDE0071WithoutSuggestion // Simplifier l’interpolation
 #pragma warning restore IDE0071 // Simplifier l’interpolation
+        }
+
+        string GetPrintableLongDescription(CommandSpecification commandSpecification,bool list,bool shortView,int leftMarginSize)
+        {
+            if (string.IsNullOrWhiteSpace(commandSpecification.LongDescription) || shortView || list) return "";
+            var lst = commandSpecification.LongDescription.Split('-').AsQueryable();
+            lst = lst.Select(x => "".PadRight(leftMarginSize,' ') + "- " +x+Br);
+            if (!string.IsNullOrWhiteSpace(lst.FirstOrDefault())) lst = lst.Skip(1);
+            return string.Join( "", lst);
         }
 
         [Command("set the command line prompt")]

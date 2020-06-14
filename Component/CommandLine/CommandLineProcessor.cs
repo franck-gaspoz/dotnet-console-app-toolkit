@@ -274,6 +274,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
                         var cmdspec = new CommandSpecification(
                             cmdName,
                             cmd.Description,
+                            cmd.LongDescription,
                             method,
                             instance,
                             paramspecs);

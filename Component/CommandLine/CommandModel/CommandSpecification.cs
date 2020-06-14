@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Reflection;
-using System.Linq;
-using System;
-using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 
 namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandModel
 {
@@ -13,6 +12,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandModel
         public readonly object MethodOwner;
         public readonly MethodInfo MethodInfo;
         public readonly string Description;
+        public readonly string LongDescription;
         public readonly string Name;
 
         readonly Dictionary<string, CommandParameterSpecification> _parametersSpecifications = new Dictionary<string, CommandParameterSpecification>();
@@ -22,12 +22,14 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandModel
         public CommandSpecification(
             string name,
             string description,
+            string longDescription,
             MethodInfo methodInfo, 
             object methodOwner,
             IList<CommandParameterSpecification> commandParameterSpecifications = null)
         {
             Name = name;
             Description = description;
+            LongDescription = longDescription;
             MethodOwner = methodOwner;
             MethodInfo = methodInfo;
             if (commandParameterSpecifications != null)

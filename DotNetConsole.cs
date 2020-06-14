@@ -192,9 +192,9 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        public static void ClearLineFromCursorRight() => Lock(() => { Print($"{(char)27}[K"); });
-        public static void ClearLineFromCursorLeft() => Lock(() => { Print($"{(char)27}[1K"); });
-        public static void ClearLine() => Lock(() => { Print($"{(char)27}[2K"); });
+        public static void ClearLineFromCursorRight() => Lock(() => { Print($"{(char)27}[K"); });       // not available on windows
+        public static void ClearLineFromCursorLeft() => Lock(() => { Print($"{(char)27}[1K"); });       // not available on windows
+        public static void ClearLine() => Lock(() => { Print($"{(char)27}[2K"); });                     // not available on windows
 
         public static void EnableNoVisible() => Lock(() => { Print($"{(char)27}[8m"); });       // not available on windows
         public static void EnableInvert() => Lock(() => { Print($"{(char)27}[7m"); });          

@@ -354,6 +354,90 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             return r;
         }
 
+        [Command("move or rename files and directories" ,
+            "- if multiple source, move to a directory that must exists" +
+            "- if source is a file or a directory and dest is an existing directory move the source" +
+            "- if source and target are a file that exists remame the source and replace the dest" +
+            "- if dest doesn't exists rename the source that must be a file or a directory")]
+        public void Mv(
+            [Parameter("source: file/directory or several corresponding to a wildcarded path")] WildcardFilePath source,
+            [Parameter(1,"destination: a file or a directory")] FileSystemPath dest,
+            [Option("i","prompt before overwrite")] bool interactive,
+            [Option("v","explain what is being done")] bool verbose
+            )
+        {
+            if (source.CheckExists())
+            {
+                var counts = new FindCounts();
+                var items = FindItems(source.FullName, source.WildCardFileName ?? "*", true, true, false,true, false, null, false, counts, false, false);
+                var sourceCount = items.Count;
+                if (sourceCount > 1)
+                {
+                    if (dest.CheckExists())
+                    {
+                        if (!dest.IsDirectory)
+                            Errorln("dest must be a directory");
+                        else
+                        {
+                            // move multiple source to dest
+                            foreach ( var item in items )
+                            {
+                                var msg = $"move {item.GetPrintableName()} to {dest.GetPrintableName()}";
+                                if (!interactive || Confirm("mv: " + msg))
+                                {
+                                    if (source.IsFile)
+                                        File.Move(item.FullName, Path.Combine(dest.FullName,item.Name));
+                                    else
+                                        Directory.Move(item.FullName, Path.Combine(dest.FullName, item.Name));
+                                    if (verbose) Println(msg.Replace("move ", "moved "));
+                                }
+                            }
+                        }
+                    }
+                } else
+                {
+                    if (dest.CheckExists(false))
+                    {
+                        if (dest.IsDirectory)
+                        {
+                            // move one source to dest
+                            var msg = $"move {source.GetPrintableNameWithWlidCard()} to {dest.GetPrintableName()}";
+                            if (!interactive || Confirm("mv: " + msg))
+                            {
+                                if (source.IsFile)
+                                    File.Move(source.FullNameWithWildcard, Path.Combine(dest.FullName, source.NameWithWildcard));
+                                else
+                                    Directory.Move(source.FullName, Path.Combine(dest.FullName, source.NameWithWildcard));
+                                if (verbose) Println(msg.Replace("move ", "moved "));
+                            }
+                        } else
+                        {
+                            // rename source (file) to dest (overwrite dest)
+                            var msg = $"rename {source.GetPrintableNameWithWlidCard()} to {dest.GetPrintableName()}";
+                            if (!interactive || Confirm("mv: "+msg))
+                            {
+                                dest.FileSystemInfo.Delete();
+                                File.Move(source.FullNameWithWildcard, dest.FullName );
+                                if (verbose) Println(msg.Replace("rename ", "renamed "));
+                            }
+                        }
+                    } else
+                    {
+                        // rename source to dest
+                        var msg = $"rename {source.GetPrintableNameWithWlidCard()} to {dest.GetPrintableName()}";
+                        if (!interactive || Confirm("mv: " + msg))
+                        {
+                            if (source.IsFile)
+                                File.Move(source.FullNameWithWildcard, dest.FullName);
+                            else
+                                Directory.Move(source.FullName, dest.FullName);
+                            if (verbose) Println(msg.Replace("rename ", "renamed "));
+                        }
+                    }
+                }
+            }
+        }
+
         List<string> RecurseInteractiveDeleteDir(DirectoryPath dir,bool simulate,bool noattributes,bool verbose,CancellationTokenSource cancellationTokenSource)
         {
             var fullname = true;
@@ -534,6 +618,6 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                     }
                 }
             }            
-        }
+        }        
     }
 }
