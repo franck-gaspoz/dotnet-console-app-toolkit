@@ -1,4 +1,6 @@
 ﻿using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
+using DotNetConsoleAppToolkit.Console;
+using System;
 using System.Data;
 using System.Diagnostics;
 using static DotNetConsoleAppToolkit.Console.PrintPrimitives;
@@ -26,6 +28,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             var cbp = table.Columns.Add("prio");
             var cws = table.Columns.Add("ws");
             var cpgms = table.Columns.Add("pgms");
+            //var ctpt = table.Columns.Add("tpt");
             //var cvms = table.Columns.Add("vms");
             //var ctitle = table.Columns.Add("window title");
             //var cmname = table.Columns.Add("Module name");
@@ -45,11 +48,18 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                 row[cpgms] = HumanFormatOfSize(process.PagedMemorySize64, 2);
                 row[cws] = HumanFormatOfSize(process.WorkingSet64, 2);
                 row[cbp] = process.BasePriority;
+                //row[ctpt] = process.TotalProcessorTime+" %";
                 //row[ctitle] = process.MainWindowTitle;
 
                 if (select) table.Rows.Add(row);
             }
             Print(table);
+        }
+
+        [Command("get information about current user")]
+        public void Whoami()
+        {
+            Println($"{Environment.UserName} [{ColorSettings.Highlight}{Environment.UserDomainName}{ColorSettings.Default}]");
         }
     }
 }
