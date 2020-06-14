@@ -407,7 +407,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
                     errorText += $"{Red}ambiguous syntaxes:{Br}";
                     foreach (var prs in parseResult.SyntaxParsingResults)
                         errorText += $"{Red}{prs.CommandSyntax}{Br}";
-                    Print(errorText);
+                    Error(errorText);
                     r = new ExpressionEvaluationResult(errorText, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);
                     break;
 

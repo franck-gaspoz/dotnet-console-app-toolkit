@@ -135,26 +135,24 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                 if (singleout)
                 {
                     Println(com.Description);
+                    if (com.ParametersCount > 0) Println($"{Br}{col}{ColorSettings.Label}syntax: {f}{com.ToColorizedString()}");
                     Println(GetPrintableLongDescription(com, list, shortView, 0));
                 }
                 else
                 {
                     Println($"{com.Name.PadRight(maxcnamelength, ' ')}{com.Description}");
+                    if (com.ParametersCount>0) Println($"{Br}{col}{ColorSettings.Label}syntax: {f}{com.ToColorizedString()}");
                     Println(GetPrintableLongDescription(com, list, shortView, maxcnamelength));
                 }
             }
 
             if (!list)
             {
-                Println($"{col}{ColorSettings.Label}type  : {ColorSettings.DarkLabel}{com.DeclaringTypeShortName}");
-                Println($"{col}{ColorSettings.Label}module: {ColorSettings.DarkLabel}{com.ModuleName}");
                 if (com.ParametersCount > 0)
                 {
-                    Println($"{col}{ColorSettings.Label}syntax: {f}{com.ToColorizedString()}");                    
                     if (!shortView)
                     {
                         var mpl = com.ParametersSpecifications.Values.Select(x => x.Dump(false).Length).Max() + TabLength;
-                        Println();
                         foreach (var p in com.ParametersSpecifications.Values)
                         {
                             var ptype = (!p.IsOption && p.HasValue) ? $"of type: {Darkyellow}{p.ParameterInfo.ParameterType.Name}{f}" : "";
@@ -163,8 +161,11 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                             Println($"{col}{Tab}{p.ToColorizedString(false)}{"".PadRight(mpl - p.Dump(false).Length, ' ')}{p.Description}");
                             if (!string.IsNullOrWhiteSpace(supdef)) Println($"{col}{Tab}{" ".PadRight(mpl)}{supdef}");
                         }
+                        Println();
                     }
                 }
+                Println($"{col}{ColorSettings.Label}type  : {ColorSettings.DarkLabel}{com.DeclaringTypeShortName}");
+                Println($"{col}{ColorSettings.Label}module: {ColorSettings.DarkLabel}{com.ModuleName}");
             }
 #pragma warning restore IDE0071WithoutSuggestion // Simplifier l’interpolation
 #pragma warning restore IDE0071 // Simplifier l’interpolation
@@ -176,7 +177,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             var lst = commandSpecification.LongDescription.Split('-').AsQueryable();
             lst = lst.Select(x => "".PadRight(leftMarginSize,' ') + "- " +x+Br);
             if (!string.IsNullOrWhiteSpace(lst.FirstOrDefault())) lst = lst.Skip(1);
-            return string.Join( "", lst);
+            return Br+string.Join( "", lst);
         }
 
         [Command("set the command line prompt")]

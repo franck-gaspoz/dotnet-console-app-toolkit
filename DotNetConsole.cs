@@ -558,10 +558,14 @@ namespace DotNetConsoleAppToolkit
                     Echo(s);
                     if (lineBreak)
                     {
+                        var f = sc.ForegroundColor;
+                        var b = sc.BackgroundColor;
                         sc.ForegroundColor = ColorSettings.Default.Foreground.Value;
                         sc.BackgroundColor = ColorSettings.Default.Background.Value;
                         sc.WriteLine(string.Empty);
                         Echo(string.Empty,true);
+                        sc.ForegroundColor = f;
+                        sc.BackgroundColor = b;
                     }
                 }
             }
