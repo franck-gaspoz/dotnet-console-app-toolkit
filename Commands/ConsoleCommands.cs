@@ -40,7 +40,7 @@ current print directives are:
 
     (3) (uon)print flow control:(tdoff)
 
-    (f=yellow)cl(rdc)                  : clear screen
+    (f=yellow)cls(rdc)                 : clear screen
     (f=yellow)br(rdc)                  : jump begin of next line (line break)   
     (f=yellow)bkcr(rdc)                : backup cursor position
     (f=yellow)rscr(rdc)                : restore cursor position
@@ -54,9 +54,9 @@ current print directives are:
     (f=yellow)cnright=(f=darkyellow)Int32(rdc)       : move cursor n characters right
     (f=yellow)cnup=(f=darkyellow)Int32(rdc)          : move cursor n lines up
     (f=yellow)cndown=(f=darkyellow)Int32(rdc)        : move cursor n lines down
-    (f=yellow)clrl(rdc)                : clear line
-    (f=yellow)clrlcleft(rdc)           : clear line from cursor left
-    (f=yellow)clrlcright(rdc)          : clear line from cursor right
+    (f=yellow)cl(rdc)                  : clear line
+    (f=yellow)clleft(rdc)              : clear line from cursor left
+    (f=yellow)clright(rdc)             : clear line from cursor right
 
     (4) (uon)script engine:(tdoff)
 

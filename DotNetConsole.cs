@@ -162,7 +162,7 @@ namespace DotNetConsoleAppToolkit
             { PrintDirectives.db+"="   , (x) => RelayCall(() => SetDefaultBackground( TextColor.ParseColor(x))) },
             { PrintDirectives.rdc+""   , (x) => RelayCall(RestoreDefaultColors)},
 
-            { PrintDirectives.cl+""    , (x) => RelayCall(() => Clear()) },
+            { PrintDirectives.cls+""    , (x) => RelayCall(() => Clear()) },
             { PrintDirectives.br+""    , (x) => RelayCall(LineBreak) },
             { PrintDirectives.inf+""   , (x) => RelayCall(Infos) },
             { PrintDirectives.bkcr+""  , (x) => RelayCall(BackupCursorPos) },
@@ -182,9 +182,9 @@ namespace DotNetConsoleAppToolkit
             //{ PrintDirectives.blon+"" , (x) => RelayCall(EnableBlink) },
             { PrintDirectives.tdoff+"" , (x) => RelayCall(DisableTextDecoration) },
 
-            { PrintDirectives.clrl+"" , (x) => RelayCall(ClearLine) },
-            { PrintDirectives.clrlcright+"" , (x) => RelayCall(ClearLineFromCursorRight) },
-            { PrintDirectives.clrlcleft+"" , (x) => RelayCall(ClearLineFromCursorLeft) },
+            { PrintDirectives.cl+"" , (x) => RelayCall(ClearLine) },
+            { PrintDirectives.clright+"" , (x) => RelayCall(ClearLineFromCursorRight) },
+            { PrintDirectives.clleft+"" , (x) => RelayCall(ClearLineFromCursorLeft) },
 
             { PrintDirectives.cup+"" , (x) => RelayCall(() => MoveCursorTop(1)) },
             { PrintDirectives.cdown+"" , (x) => RelayCall(() => MoveCursorDown(1)) },
@@ -1185,9 +1185,9 @@ namespace DotNetConsoleAppToolkit
 
         #region commands shortcuts
 
-        public static string Clrcleft => GetCmd(PrintDirectives.clrlcleft);
-        public static string Clrcright => GetCmd(PrintDirectives.clrlcright);
-        public static string Clrl => GetCmd(PrintDirectives.clrl);
+        public static string Clleft => GetCmd(PrintDirectives.clleft);
+        public static string Clright => GetCmd(PrintDirectives.clright);
+        public static string Cl => GetCmd(PrintDirectives.cl);
 
         //public static string Lion => GetCmd(PrintDirectives.lion);
         //public static string Bon => GetCmd(PrintDirectives.bon);
@@ -1249,7 +1249,7 @@ namespace DotNetConsoleAppToolkit
         public static string Rf => GetCmd(PrintDirectives.rsf );
         public static string Bkb => GetCmd(PrintDirectives.bkb );
         public static string Rb => GetCmd(PrintDirectives.rsb );
-        public static string Cl => GetCmd(PrintDirectives.cl );
+        public static string Cls => GetCmd(PrintDirectives.cls );
         public static string Br => GetCmd(PrintDirectives.br );
 
         public static string B(ConsoleColor c) => GetCmd(PrintDirectives.b , c+"");
