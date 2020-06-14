@@ -15,6 +15,7 @@ using sc = System.Console;
 using static DotNetConsoleAppToolkit.Console.Interaction;
 using System.Text;
 using DotNetConsoleAppToolkit.Component.CommandLine;
+using System.Data;
 
 namespace DotNetConsoleAppToolkit.Commands.FileSystem
 {
@@ -238,7 +239,8 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
 
         [Command("print informations about drives")]
         public void Driveinfo(
-            [Parameter("drive name for which informations must be printed. if no drive specified, list all drives",true)] string drive
+            [Parameter("drive name for which informations must be printed. if no drive specified, list all drives",true)] string drive,
+            [Option("nb", "if set supress table borders")] bool noBorders
             )
         {
             var drives = DriveInfo.GetDrives().AsQueryable();
@@ -249,17 +251,25 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                     Errorln($"drive \"{drive}\" not found");
                 }
             }
+            var table = new DataTable();
+            table.AddColumns("name","label","type","format","bytes");
             foreach ( var di in drives )
             {
                 var f = DefaultForegroundCmd;
                 try
                 {
-                    var r = $"{ColorSettings.Highlight}{di.Name,-10}{f} root dir={ColorSettings.HighlightIdentifier}{di.RootDirectory,-10}{f} label={ColorSettings.Highlight}{di.VolumeLabel,-20}{f} type={ColorSettings.Name}{di.DriveType,-10}{f} format={ColorSettings.Name}{di.DriveFormat,-8}{f} bytes={HumanFormatOfSize(di.TotalFreeSpace, 2," ", ColorSettings.Numeric.ToString(),f)}{f}/{ColorSettings.Numeric}{HumanFormatOfSize(di.TotalSize, 2, " ", ColorSettings.Numeric.ToString(),f)} {f}({ColorSettings.Highlight}{Math.Round((double)di.TotalFreeSpace/(double)di.TotalSize*100d,2)}{f} %)";
-                    Println(r);
+                    var row = table.NewRow();
+                    row["name"] = $"{ColorSettings.Highlight}{di.Name}{f}";
+                    row["label"] = $"{ColorSettings.Highlight}{di.VolumeLabel}{f}";
+                    row["type"] = $"{ColorSettings.Name}{di.DriveType}{f}";
+                    row["format"] = $"{ColorSettings.Name}{di.DriveFormat}{f}";
+                    row["bytes"] = $"{HumanFormatOfSize(di.TotalFreeSpace, 2, " ", ColorSettings.Numeric.ToString(), f)}{f}/{ColorSettings.Numeric}{HumanFormatOfSize(di.TotalSize, 2, " ", ColorSettings.Numeric.ToString(), f)} {f}({ColorSettings.Highlight}{Math.Round((double)di.TotalFreeSpace / (double)di.TotalSize * 100d, 2)}{f} %)";
+                    table.Rows.Add(row);
                 } catch (UnauthorizedAccessException) {
                     Errorln($"unauthorized access to drive {di.Name}");
                 }
             }
+            table.Print(noBorders);
         }
 
         [Command("remove file(s) and/or the directory(ies)")]

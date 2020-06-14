@@ -406,6 +406,7 @@ namespace DotNetConsoleAppToolkit
         {
             lock (ConsoleLock)
             {
+                if (string.IsNullOrWhiteSpace(s)) return s;
                 var ms = new MemoryStream(s.Length * 4);
                 var sw = new StreamWriter(ms);
                 RedirectOutputTo(sw);

@@ -18,7 +18,7 @@ namespace DotNetConsoleAppToolkit.Console
                 var cols = ((DataRow)rw).ItemArray;
                 for (int i = 0; i < cols.Length; i++)
                 {
-                    var s = cols[i]?.ToString() ?? "";
+                    var s = GetPrint(cols[i]?.ToString()) ?? "";
                     colLengths[i] = Math.Max(s.Length, colLengths[i]);
                     colLengths[i] = Math.Max(table.Columns[i].ColumnName.Length, colLengths[i]);
                 }
@@ -55,7 +55,8 @@ namespace DotNetConsoleAppToolkit.Console
                 for (int i=0;i<arr.Length;i++)
                 {
                     if (i == 0) cons.Print(colsep);
-                    cons.Print(ColorSettings.Default+arr[i].ToString().PadRight(colLengths[i],' ')+colsep);
+                    var txt = (arr[i]==null)?"":arr[i].ToString();
+                    cons.Print(ColorSettings.Default+GetPrint(txt).PadRight(colLengths[i],' ')+colsep);
                 }
                 Println();
             }
