@@ -248,6 +248,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             if (clear)
             {
                 CommandLineProcessor.CmdsHistory.ClearHistory();
+                File.Delete(CommandLineProcessor.CmdsHistory.UserCommandsHistoryFilePath.FullName);
+                File.Create(CommandLineProcessor.CmdsHistory.UserCommandsHistoryFilePath.FullName);
                 return CommandLineProcessor.CmdsHistory.History;
             }
 
