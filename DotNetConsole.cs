@@ -220,7 +220,7 @@ namespace DotNetConsoleAppToolkit
 
         public static void MoveCursorDown(int n=1) => Lock(() => { Print($"{(char)27}[{n}B"); });
         public static void MoveCursorTop(int n = 1) => Lock(() => { Print($"{(char)27}[{n}A"); });
-        public static void MoveCursorLeft(int n = 1) => Lock(() => { Print($"{(char)27}[{n}D"); });     // clear the screen !!
+        public static void MoveCursorLeft(int n = 1) => Lock(() => {  Print($"{(char)27}[{n}D"); });
         public static void MoveCursorRight(int n = 1) => Lock(() => { Print($"{(char)27}[{n}C"); });
 
         public static void BackupForeground() => Lock(() => _foregroundBackup = sc.ForegroundColor);
@@ -1066,7 +1066,7 @@ namespace DotNetConsoleAppToolkit
                         {
                             cmd = ccmd;
                             isAssignation = ccmd.Key.EndsWith("=");
-                            break;
+                            //break;
                         }
                     }
                     if (cmd == null)
