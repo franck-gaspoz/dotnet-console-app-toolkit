@@ -57,8 +57,6 @@ current print directives are:
 
     (f=darkyellow)ConsoleColor := DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White(rdc) (not case sensitive)
 ";
-        //     (f=yellow)=(f=darkyellow)(rdc)      : 
-        //     (f=yellow)(rdc)                 : 
 
         [Command("write text to the output stream",null,_printDocText
             )]
