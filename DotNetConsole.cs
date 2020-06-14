@@ -45,12 +45,14 @@ namespace DotNetConsoleAppToolkit
         public static bool DumpExceptions = true;
         public static ConsoleColor DefaultForeground = ConsoleColor.White;
         public static ConsoleColor DefaultBackground = ConsoleColor.Black;
+
         public static char CommandBlockBeginChar = '(';
         public static char CommandBlockEndChar = ')';
         public static char CommandSeparatorChar = ',';
         public static char CommandValueAssignationChar = '=';
         public static string CodeBlockBegin = "[[";
         public static string CodeBlockEnd = "]]";
+
         public static bool ForwardLogsToSystemDiagnostics = true;
         public static int TabLength = 7;
 
@@ -154,11 +156,13 @@ namespace DotNetConsoleAppToolkit
             { PrintDirectives.bkb+""   , (x) => RelayCall(BackupBackground) },
             { PrintDirectives.rsf+""   , (x) => RelayCall(RestoreForeground) },
             { PrintDirectives.rsb+""   , (x) => RelayCall(RestoreBackground) },
-            { PrintDirectives.cl+""    , (x) => RelayCall(() => Clear()) },
             { PrintDirectives.f+"="    , (x) => RelayCall(() => SetForeground( TextColor.ParseColor(x))) },
             { PrintDirectives.b+"="    , (x) => RelayCall(() => SetBackground( TextColor.ParseColor(x))) },
             { PrintDirectives.df+"="   , (x) => RelayCall(() => SetDefaultForeground( TextColor.ParseColor(x))) },
             { PrintDirectives.db+"="   , (x) => RelayCall(() => SetDefaultBackground( TextColor.ParseColor(x))) },
+            { PrintDirectives.rdc+""   , (x) => RelayCall(RestoreDefaultColors)},
+
+            { PrintDirectives.cl+""    , (x) => RelayCall(() => Clear()) },
             { PrintDirectives.br+""    , (x) => RelayCall(LineBreak) },
             { PrintDirectives.inf+""   , (x) => RelayCall(Infos) },
             { PrintDirectives.bkcr+""  , (x) => RelayCall(BackupCursorPos) },
@@ -202,7 +206,7 @@ namespace DotNetConsoleAppToolkit
         public static void EnableLowIntensity() => Lock(() => { Print($"{(char)27}[2m"); });    // not available on windows
         public static void EnableUnderline() => Lock(() => { Print($"{(char)27}[4m"); });
         public static void EnableBold() => Lock(() => { Print($"{(char)27}[1m"); });            // not available on windows
-        public static void DisableTextDecoration() => Lock(() => { Print($"{(char)27}[0m"); });
+        public static void DisableTextDecoration() => Lock(() => { Print($"{(char)27}[0m"); RestoreDefaultColors(); });
 
         public static void BackupForeground() => Lock(() => _foregroundBackup = sc.ForegroundColor);
         public static void BackupBackground() => Lock(() => _backgroundBackup = sc.BackgroundColor);
@@ -1178,6 +1182,7 @@ namespace DotNetConsoleAppToolkit
 
         public static string DefaultBackgroundCmd => GetCmd(PrintDirectives.b + "", DefaultBackground.ToString().ToLower());
         public static string DefaultForegroundCmd => GetCmd(PrintDirectives.f + "", DefaultForeground.ToString().ToLower());
+        public static string Rdc => GetCmd(PrintDirectives.rdc);
 
         public static string Bblack => GetCmd(PrintDirectives.b+"", "black");
         public static string Bdarkblue => GetCmd(PrintDirectives.b , "darkblue");

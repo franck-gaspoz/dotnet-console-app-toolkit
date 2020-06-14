@@ -21,6 +21,7 @@
     *      backup background:  bkb
     *      restore foreground: rsf
     *      restore background: rsb
+    *      set colors to defaults: rdc
     *      consoleColor (ignoreCase) := Black | DarkBlue | DarkGreen | DarkCyan | DarkRed  | DarkMagenta | DarkYellow | Gray | DarkGray  | Blue | Green | Cyan  | Red  | Magenta  | Yellow  | White
     * vt100 text effects:
     *      enable underline:  uon
@@ -54,6 +55,7 @@
         bkb,
         rsf,
         rsb,
+        rdc,
         cl,
         f,
         b,

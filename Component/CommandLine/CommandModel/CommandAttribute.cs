@@ -8,10 +8,12 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandModel
         public readonly string Description;
         public readonly string LongDescription;
         public readonly string Name;
+        public readonly string Documentation;
 
-        public CommandAttribute(string description,string longDescription=null,string name=null)
+        public CommandAttribute(string description,string longDescription=null,string documentation=null,string name=null)
         {
             Description = description;
+            Documentation = documentation;
             LongDescription = longDescription;
             Name = name;
         }

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 
 namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandModel
 {
@@ -13,6 +14,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandModel
         public readonly MethodInfo MethodInfo;
         public readonly string Description;
         public readonly string LongDescription;
+        public readonly string Documentation;
         public readonly string Name;
 
         readonly Dictionary<string, CommandParameterSpecification> _parametersSpecifications = new Dictionary<string, CommandParameterSpecification>();
@@ -23,6 +25,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandModel
             string name,
             string description,
             string longDescription,
+            string documentation,
             MethodInfo methodInfo, 
             object methodOwner,
             IList<CommandParameterSpecification> commandParameterSpecifications = null)
@@ -30,6 +33,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandModel
             Name = name;
             Description = description;
             LongDescription = longDescription;
+            Documentation = documentation;
             MethodOwner = methodOwner;
             MethodInfo = methodInfo;
             if (commandParameterSpecifications != null)

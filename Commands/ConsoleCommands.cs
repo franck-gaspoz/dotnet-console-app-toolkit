@@ -1,6 +1,5 @@
 ﻿using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 using static DotNetConsoleAppToolkit.DotNetConsole;
-using cons = DotNetConsoleAppToolkit.DotNetConsole;
 
 namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 {
@@ -9,14 +8,32 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
     {
         public ConsoleCommands(CommandLineProcessor commandLineProcessor) : base(commandLineProcessor) { }
 
-        [Command("write any given expression to the output stream")]
+        const string _printDocText =
+@"text can contains (uon)print directives(tdoff) that changes the print behavior. 
+the print directive syntax is formed according to these pattern:
+
+(f=darkyellow)(printDirective) or (printDirective=printDirectiveValue)(rdc)
+
+- multiple print directives can separated by a (f=darkyellow),(rdc) to be grouped in a single text in parentheses: (f=darkyellow)(printDirective1,printDirective2=..,printDirective3)(rdc)
+- a print directiveValue can be written inside a 'code' text block, depending on each print directive, with the syntax: (f=darkyellow)[[...]](rdc)
+- symbols of this grammar can be configured throught the class (uon)DotNetConsole(tdoff)
+
+current print directives are:
+
+    (f=yellow)f=(f=darkyellow)ConsoleColor(rdc)      : set foreground color
+    (f=yellow)b=(f=darkyellow)ConsoleColor(rdc)      : set background color
+";
+
+        [Command("write text to the output stream",null,
+            _printDocText
+            )]
         public void Print(
-            [Parameter("expression that will be write to output",true)] string expr = ""
+            [Parameter("text to be writen to output",true)] string expr = ""
             ) => DotNetConsole.Print(expr);
 
-        [Command("write any given expression to the output stream followed by a line break")]
+        [Command("write text to the output stream followed by a line break")]
         public void Println(
-            [Parameter("expression that will be write to output", true)] string expr = ""
+            [Parameter("text to be writen to output", true)] string expr = ""
             ) => DotNetConsole.Println(expr);
 
         [Command("clear console screen")]

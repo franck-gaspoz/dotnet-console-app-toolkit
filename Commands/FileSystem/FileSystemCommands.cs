@@ -355,10 +355,10 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
         }
 
         [Command("move or rename files and directories" ,
-            "- if multiple source, move to a directory that must exists" +
-            "- if source is a file or a directory and dest is an existing directory move the source" +
-            "- if source and target are a file that exists remame the source and replace the dest" +
-            "- if dest doesn't exists rename the source that must be a file or a directory")]
+@"- if multiple source, move to a directory that must exists
+- if source is a file or a directory and dest is an existing directory move the source
+- if source and target are a file that exists remame the source and replace the dest
+- if dest doesn't exists rename the source that must be a file or a directory")]
         public void Mv(
             [Parameter("source: file/directory or several corresponding to a wildcarded path")] WildcardFilePath source,
             [Parameter(1,"destination: a file or a directory")] FileSystemPath dest,

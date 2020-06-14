@@ -138,13 +138,13 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                 {
                     Println(com.Description);
                     if (com.ParametersCount > 0) Print($"{Br}{col}{ColorSettings.Label}syntax: {f}{com.ToColorizedString()}{(!shortView?Br:"")}");
-                    Println(GetPrintableLongDescription(com, list, shortView, 0));
+                    Println(GetPrintableDocText(com.LongDescription, list, shortView, 0));
                 }
                 else
                 {
                     Println($"{com.Name.PadRight(maxcnamelength, ' ')}{com.Description}");
                     if (com.ParametersCount>0) Print($"{Br}{col}{ColorSettings.Label}syntax: {f}{com.ToColorizedString()}{(!shortView ? Br : "")}");
-                    Println(GetPrintableLongDescription(com, list, shortView, maxcnamelength));
+                    Print(GetPrintableDocText(com.LongDescription, list, shortView, maxcnamelength));
                 }
             }
 
@@ -163,9 +163,15 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                             Println($"{col}{Tab}{p.ToColorizedString(false)}{"".PadRight(mpl - p.Dump(false).Length, ' ')}{p.Description}");
                             if (!string.IsNullOrWhiteSpace(supdef)) Println($"{col}{Tab}{" ".PadRight(mpl)}{supdef}");
                         }
-                        Println();
+
+                        if (string.IsNullOrWhiteSpace(com.Documentation)) Println();
+                        Print(GetPrintableDocText(com.Documentation, list, shortView, singleout ? 0 : maxcnamelength));
+                        
                         Println($"{col}{ColorSettings.Label}type  : {ColorSettings.DarkLabel}{com.DeclaringTypeShortName}");
                         Println($"{col}{ColorSettings.Label}module: {ColorSettings.DarkLabel}{com.ModuleName}{ColorSettings.Default}");
+                    } else
+                    {
+                        Println(GetPrintableDocText(com.Documentation, list, shortView, singleout ? 0 : maxcnamelength));
                     }
                 }
             }
@@ -173,13 +179,17 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 #pragma warning restore IDE0071 // Simplifier l’interpolation
         }
 
-        string GetPrintableLongDescription(CommandSpecification commandSpecification,bool list,bool shortView,int leftMarginSize)
+        string GetPrintableDocText(string docText,bool list,bool shortView,int leftMarginSize)
         {
-            if (string.IsNullOrWhiteSpace(commandSpecification.LongDescription) || shortView || list) return "";
-            var lst = commandSpecification.LongDescription.Split('-').AsQueryable();
-            lst = lst.Select(x => "".PadRight(leftMarginSize,' ') + "- " +x+Br);
-            if (!string.IsNullOrWhiteSpace(lst.FirstOrDefault())) lst = lst.Skip(1);
-            return Br+string.Join( "", lst);
+            if (string.IsNullOrWhiteSpace(docText) || shortView || list) return "";
+            var lineStart = Environment.NewLine;
+            var prfx0 = "{]=);:_&é'(";
+            var prfx1 = "$*^ùè-_à'";
+            docText = docText.Replace(lineStart, prfx0+prfx1);
+            var lst = docText.Split(prfx0).AsQueryable();
+            if (string.IsNullOrWhiteSpace(lst.FirstOrDefault())) lst = lst.Skip(1);
+            lst = lst.Select(x => "".PadRight(leftMarginSize, ' ') + x + Br);
+            return Br+string.Join( "", lst).Replace(prfx1, "");
         }
 
         [Command("set the command line prompt")]

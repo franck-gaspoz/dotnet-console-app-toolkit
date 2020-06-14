@@ -278,6 +278,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
                             cmdName,
                             cmd.Description,
                             cmd.LongDescription,
+                            cmd.Documentation,
                             method,
                             instance,
                             paramspecs);
