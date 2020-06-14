@@ -185,6 +185,16 @@ namespace DotNetConsoleAppToolkit
             //{ PrintDirectives.cll+"" , (x) => RelayCall(ClearLine) },
             //{ PrintDirectives.cllcr+"" , (x) => RelayCall(ClearLineFromCursorRight) },
             //{ PrintDirectives.cllcl+"" , (x) => RelayCall(ClearLineFromCursorLeft) }
+
+            { PrintDirectives.cup+"" , (x) => RelayCall(() => MoveCursorTop(1)) },
+            { PrintDirectives.cdown+"" , (x) => RelayCall(() => MoveCursorDown(1)) },
+            { PrintDirectives.cleft+"" , (x) => RelayCall(() => MoveCursorLeft(1)) },
+            { PrintDirectives.cright+"" , (x) => RelayCall(() => MoveCursorRight(1)) },
+
+            { PrintDirectives.cnup+"=" , (x) => RelayCall(() => MoveCursorTop(Convert.ToInt32(x))) },
+            { PrintDirectives.cndown+"=" , (x) => RelayCall(() => MoveCursorDown(Convert.ToInt32(x))) },
+            { PrintDirectives.cnleft+"=" , (x) => RelayCall(() => MoveCursorLeft(Convert.ToInt32(x))) },
+            { PrintDirectives.cnright+"=" , (x) => RelayCall(() => MoveCursorRight(Convert.ToInt32(x))) },
         };
 
         static object RelayCall(Action method) { method(); return null; }
@@ -207,6 +217,11 @@ namespace DotNetConsoleAppToolkit
         public static void EnableUnderline() => Lock(() => { Print($"{(char)27}[4m"); });
         //public static void EnableBold() => Lock(() => { Print($"{(char)27}[1m"); });            // not available on windows
         public static void DisableTextDecoration() => Lock(() => { Print($"{(char)27}[0m"); RestoreDefaultColors(); });
+
+        public static void MoveCursorDown(int n=1) => Lock(() => { Print($"{(char)27}[{n}B"); });
+        public static void MoveCursorTop(int n = 1) => Lock(() => { Print($"{(char)27}[{n}A"); });
+        public static void MoveCursorLeft(int n = 1) => Lock(() => { Print($"{(char)27}[{n}D"); });     // clear the screen !!
+        public static void MoveCursorRight(int n = 1) => Lock(() => { Print($"{(char)27}[{n}C"); });
 
         public static void BackupForeground() => Lock(() => _foregroundBackup = sc.ForegroundColor);
         public static void BackupBackground() => Lock(() => _backgroundBackup = sc.BackgroundColor);

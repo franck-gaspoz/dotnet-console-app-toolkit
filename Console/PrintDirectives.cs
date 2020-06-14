@@ -69,10 +69,18 @@
         invon,
         //novon,
         //lion,
-        tdoff,
 
+        tdoff,
         //cllcr,
         //cllcl,
-        //cll
+        //cll,
+        cup,
+        cdown,
+        cleft,
+        cright,
+        cnup,
+        cndown,
+        cnleft,
+        cnright
     }
 }
