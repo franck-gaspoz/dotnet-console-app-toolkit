@@ -56,7 +56,8 @@ namespace DotNetConsoleAppToolkit.Console
                 {
                     if (i == 0) cons.Print(colsep);
                     var txt = (arr[i]==null)?"":arr[i].ToString();
-                    cons.Print(ColorSettings.Default+GetPrint(txt).PadRight(colLengths[i],' ')+colsep);
+                    var l = GetPrint(txt).Length;
+                    cons.Print(ColorSettings.Default+txt+("".PadRight(Math.Max(0,colLengths[i]-l),' '))+colsep);
                 }
                 Println();
             }
