@@ -1,7 +1,6 @@
 ﻿using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 using System.Data;
 using System.Diagnostics;
-using System.Reflection.Metadata.Ecma335;
 using static DotNetConsoleAppToolkit.Console.PrintPrimitives;
 using static DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.Str;
