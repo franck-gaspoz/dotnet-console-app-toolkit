@@ -135,13 +135,13 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                 if (singleout)
                 {
                     Println(com.Description);
-                    if (com.ParametersCount > 0) Println($"{Br}{col}{ColorSettings.Label}syntax: {f}{com.ToColorizedString()}");
+                    if (com.ParametersCount > 0) Print($"{Br}{col}{ColorSettings.Label}syntax: {f}{com.ToColorizedString()}{(!shortView?Br:"")}");
                     Println(GetPrintableLongDescription(com, list, shortView, 0));
                 }
                 else
                 {
                     Println($"{com.Name.PadRight(maxcnamelength, ' ')}{com.Description}");
-                    if (com.ParametersCount>0) Println($"{Br}{col}{ColorSettings.Label}syntax: {f}{com.ToColorizedString()}");
+                    if (com.ParametersCount>0) Print($"{Br}{col}{ColorSettings.Label}syntax: {f}{com.ToColorizedString()}{(!shortView ? Br : "")}");
                     Println(GetPrintableLongDescription(com, list, shortView, maxcnamelength));
                 }
             }
