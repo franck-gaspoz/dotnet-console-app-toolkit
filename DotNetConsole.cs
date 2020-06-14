@@ -29,6 +29,7 @@ namespace DotNetConsoleAppToolkit
     {
         #region attributes
 
+        public static bool EnableFillLineFromCursor = true;
         public static bool RedirectOutToError = false;
         public static bool FileEchoDumpDebugInfo = true;
         public static bool FileEchoCommands = true;
@@ -572,10 +573,11 @@ namespace DotNetConsoleAppToolkit
 
         static void FillLineFromCursor(char c=' ',bool resetCursorLeft=true,bool useDefaultColors=true)
         {
+            if (!EnableFillLineFromCursor) return;
             var f = sc.ForegroundColor;
             var b = sc.BackgroundColor;
             var aw = ActualWorkArea;
-            var nb = aw.Right - CursorLeft;
+            var nb = Math.Max(aw.Right,sc.BufferWidth-1) - CursorLeft -1;
             var x = CursorLeft;
             if (useDefaultColors)
             {

@@ -24,6 +24,9 @@ namespace DotNetConsoleAppToolkit.Console
         public static TextColor TitleBar = new TextColor(ConsoleColor.White, ConsoleColor.DarkBlue);
         public static TextColor TitleDarkText = new TextColor(ConsoleColor.Gray,ConsoleColor.DarkBlue);
 
+        public static TextColor TableBorder = new TextColor(ConsoleColor.Cyan,null);
+        public static TextColor TableColumnName = new TextColor(ConsoleColor.Yellow,null);
+
         public static TextColor ParameterName = new TextColor(ConsoleColor.Yellow, null);
         public static TextColor ParameterValueType = new TextColor(ConsoleColor.DarkYellow, null);
         public static TextColor OptionPrefix = new TextColor(ConsoleColor.Yellow, null);

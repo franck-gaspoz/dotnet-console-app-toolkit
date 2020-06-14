@@ -4,12 +4,15 @@ using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 using DotNetConsoleAppToolkit.Component.CommandLine.Parsing;
 using DotNetConsoleAppToolkit.Console;
 using DotNetConsoleAppToolkit.Lib;
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using static DotNetConsoleAppToolkit.Component.CommandLine.Parsing.CommandLineParser;
 using static DotNetConsoleAppToolkit.DotNetConsole;
@@ -118,8 +121,17 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
         {
             Println($"{ColorSettings.Label}{Uon} {AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}" + ("".PadRight(30,' ')) + Tdoff);
             Println($" {AppEditor}");
-            Println($" OS {Environment.OSVersion} CLR {Environment.Version}");
+            Println($" {RuntimeInformation.OSDescription} {RuntimeInformation.OSArchitecture} - {RuntimeInformation.FrameworkDescription}");
             Println();
+        }
+
+        OSPlatform? GetOSPlatform()
+        {
+            OSPlatform? oSPlatform = null;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) oSPlatform = OSPlatform.Windows;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) oSPlatform = OSPlatform.OSX;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) oSPlatform = OSPlatform.Linux;
+            return oSPlatform;
         }
 
         public (int typesCount,int commandsCount) UnregisterCommandsAssembly(string assemblyName)
