@@ -57,6 +57,7 @@ current print directives are:
     (f=yellow)cl(rdc)                  : clear line
     (f=yellow)clleft(rdc)              : clear line from cursor left
     (f=yellow)clright(rdc)             : clear line from cursor right
+    (f=yellow)chome(rdc)               : move cursor to upper left corner
 
     (4) (uon)script engine:(tdoff)
 
@@ -66,7 +67,7 @@ current print directives are:
 
     (f=yellow)exit(rdc)                : exit the current process
 
-    (f=darkyellow)ConsoleColor := DarkBlue|DarkGreen|DarkCyan|DarkRed|DarkMagenta|DarkYellow|Gray|DarkGray|Blue|Green|Cyan|Red|Magenta|Yellow|White(rdc) (not case sensitive)
+    (f=darkyellow)ConsoleColor := darkblue|darkgreen|darkcyan|darkred|darkmagenta|darkyellow|gray|darkgray|blue|green|cyan|red|magenta|yellow|white(rdc) (not case sensitive)
 ";
 
         [Command("write text to the output stream",null,_printDocText

@@ -81,6 +81,7 @@
         cnup,
         cndown,
         cnleft,
-        cnright
+        cnright,
+        chome
     }
 }

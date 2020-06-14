@@ -162,7 +162,7 @@ namespace DotNetConsoleAppToolkit
             { PrintDirectives.db+"="   , (x) => RelayCall(() => SetDefaultBackground( TextColor.ParseColor(x))) },
             { PrintDirectives.rdc+""   , (x) => RelayCall(RestoreDefaultColors)},
 
-            { PrintDirectives.cls+""    , (x) => RelayCall(() => Clear()) },
+            { PrintDirectives.cls+""   , (x) => RelayCall(() => Clear()) },
             { PrintDirectives.br+""    , (x) => RelayCall(LineBreak) },
             { PrintDirectives.inf+""   , (x) => RelayCall(Infos) },
             { PrintDirectives.bkcr+""  , (x) => RelayCall(BackupCursorPos) },
@@ -190,6 +190,7 @@ namespace DotNetConsoleAppToolkit
             { PrintDirectives.cdown+"" , (x) => RelayCall(() => MoveCursorDown(1)) },
             { PrintDirectives.cleft+"" , (x) => RelayCall(() => MoveCursorLeft(1)) },
             { PrintDirectives.cright+"" , (x) => RelayCall(() => MoveCursorRight(1)) },
+            { PrintDirectives.chome+"" , (x) => RelayCall(CursorHome) },
 
             { PrintDirectives.cnup+"=" , (x) => RelayCall(() => MoveCursorTop(Convert.ToInt32(x))) },
             { PrintDirectives.cndown+"=" , (x) => RelayCall(() => MoveCursorDown(Convert.ToInt32(x))) },
@@ -206,9 +207,10 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        public static void ClearLineFromCursorRight() => Lock(() => { Print($"{(char)27}[K"); });       // not available on windows
-        public static void ClearLineFromCursorLeft() => Lock(() => { Print($"{(char)27}[1K"); });       // not available on windows
-        public static void ClearLine() => Lock(() => { Print($"{(char)27}[2K"); });                     // not available on windows
+        public static void CursorHome() => Lock(() => { Print($"{(char)27}[H"); });
+        public static void ClearLineFromCursorRight() => Lock(() => { Print($"{(char)27}[K"); });
+        public static void ClearLineFromCursorLeft() => Lock(() => { Print($"{(char)27}[1K"); });
+        public static void ClearLine() => Lock(() => { Print($"{(char)27}[2K"); });
 
         //public static void EnableNoVisible() => Lock(() => { Print($"{(char)27}[8m"); });       // not available on windows
         public static void EnableInvert() => Lock(() => { Print($"{(char)27}[7m"); });
@@ -1188,6 +1190,7 @@ namespace DotNetConsoleAppToolkit
         public static string Clleft => GetCmd(PrintDirectives.clleft);
         public static string Clright => GetCmd(PrintDirectives.clright);
         public static string Cl => GetCmd(PrintDirectives.cl);
+        public static string Chome => GetCmd(PrintDirectives.chome);
 
         //public static string Lion => GetCmd(PrintDirectives.lion);
         //public static string Bon => GetCmd(PrintDirectives.bon);
