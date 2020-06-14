@@ -35,7 +35,7 @@ current print directives are:
     (2) (uon)text decoration (vt100):(tdoff)
 
     (f=yellow)uon(rdc)                 : underline on
-    (f=yellow)invon(rdc)               : underline on
+    (f=yellow)invon(rdc)               : inverted colors on
     (f=yellow)tdoff(rdc)               : text decoration off and reset default colors
 
     (3) (uon)print flow control:(tdoff)
