@@ -263,7 +263,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                     row["label"] = $"{ColorSettings.Highlight}{di.VolumeLabel}{f}";
                     row["type"] = $"{ColorSettings.Name}{di.DriveType}{f}";
                     row["format"] = $"{ColorSettings.Name}{di.DriveFormat}{f}";
-                    row["bytes"] = $"{HumanFormatOfSize(di.TotalFreeSpace, 2, " ", ColorSettings.Numeric.ToString(), f)}{f}/{ColorSettings.Numeric}{HumanFormatOfSize(di.TotalSize, 2, " ", ColorSettings.Numeric.ToString(), f)} {f}({ColorSettings.Highlight}{Math.Round((double)di.TotalFreeSpace / (double)di.TotalSize * 100d, 2)}{f} %)";
+                    row["bytes"] = (di.TotalSize==0)?"": $"{HumanFormatOfSize(di.TotalFreeSpace, 2, " ", ColorSettings.Numeric.ToString(), f)}{f}/{ColorSettings.Numeric}{HumanFormatOfSize(di.TotalSize, 2, " ", ColorSettings.Numeric.ToString(), f)} {f}({ColorSettings.Highlight}{Math.Round((double)di.TotalFreeSpace / (double)di.TotalSize * 100d, 2)}{f} %)";
                     table.Rows.Add(row);
                 } catch (UnauthorizedAccessException) {
                     Errorln($"unauthorized access to drive {di.Name}");
