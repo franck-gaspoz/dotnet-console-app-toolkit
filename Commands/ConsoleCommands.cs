@@ -46,6 +46,17 @@ current print directives are:
     (f=yellow)rscr(rdc)                : restore cursor position
     (f=yellow)crx=(f=darkyellow)Int32(rdc)           : set cursor x ((f=cyan)0<=x<=WindowWidth(rdc))
     (f=yellow)cry=(f=darkyellow)Int32(rdc)           : set cursor y ((f=cyan)0<=y<=WindowHeight(rdc))
+    (f=yellow)cleft(rdc)               : move cursor left
+    (f=yellow)cright(rdc)              : move cursor right
+    (f=yellow)cup(rdc)                 : move cursor up
+    (f=yellow)cdown(rdc)               : move cursor down
+    (f=yellow)cnleft=(f=darkyellow)Int32(rdc)        : move cursor n characters left
+    (f=yellow)cnright=(f=darkyellow)Int32(rdc)       : move cursor n characters right
+    (f=yellow)cnup=(f=darkyellow)Int32(rdc)          : move cursor n lines up
+    (f=yellow)cndown=(f=darkyellow)Int32(rdc)        : move cursor n lines down
+    (f=yellow)clrl(rdc)                : clear line
+    (f=yellow)clrlcleft(rdc)           : clear line from cursor left
+    (f=yellow)clrlcright(rdc)          : clear line from cursor right
 
     (4) (uon)script engine:(tdoff)
 

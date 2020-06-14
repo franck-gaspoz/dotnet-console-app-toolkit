@@ -182,9 +182,9 @@ namespace DotNetConsoleAppToolkit
             //{ PrintDirectives.blon+"" , (x) => RelayCall(EnableBlink) },
             { PrintDirectives.tdoff+"" , (x) => RelayCall(DisableTextDecoration) },
 
-            //{ PrintDirectives.cll+"" , (x) => RelayCall(ClearLine) },
-            //{ PrintDirectives.cllcr+"" , (x) => RelayCall(ClearLineFromCursorRight) },
-            //{ PrintDirectives.cllcl+"" , (x) => RelayCall(ClearLineFromCursorLeft) }
+            { PrintDirectives.clrl+"" , (x) => RelayCall(ClearLine) },
+            { PrintDirectives.clrlcright+"" , (x) => RelayCall(ClearLineFromCursorRight) },
+            { PrintDirectives.clrlcleft+"" , (x) => RelayCall(ClearLineFromCursorLeft) },
 
             { PrintDirectives.cup+"" , (x) => RelayCall(() => MoveCursorTop(1)) },
             { PrintDirectives.cdown+"" , (x) => RelayCall(() => MoveCursorDown(1)) },
@@ -1058,6 +1058,7 @@ namespace DotNetConsoleAppToolkit
                 KeyValuePair<string, CommandDelegate>? cmd = null;
                 int n = s.Length;
                 bool isAssignation = false;
+                int cmdindex = -1;
                 while (cmd == null && i < n)
                 {
                     foreach (var ccmd in _drtvs)
@@ -1065,8 +1066,8 @@ namespace DotNetConsoleAppToolkit
                         if (s.IndexOf(CommandBlockBeginChar + ccmd.Key, i) == i)
                         {
                             cmd = ccmd;
+                            cmdindex = i;
                             isAssignation = ccmd.Key.EndsWith("=");
-                            //break;
                         }
                     }
                     if (cmd == null)
@@ -1078,6 +1079,7 @@ namespace DotNetConsoleAppToolkit
                     ConsolePrint(tmps, false);
                     return;
                 }
+                else i = cmdindex;
 
                 if (!string.IsNullOrEmpty(tmps))
                     ConsolePrint(tmps);
@@ -1183,15 +1185,25 @@ namespace DotNetConsoleAppToolkit
 
         #region commands shortcuts
 
-        //public static string Cllcl => GetCmd(PrintDirectives.cllcl);
-        //public static string Cllcr => GetCmd(PrintDirectives.cllcr);
-        //public static string Cll => GetCmd(PrintDirectives.cll);
-        
+        public static string Clrcleft => GetCmd(PrintDirectives.clrlcleft);
+        public static string Clrcright => GetCmd(PrintDirectives.clrlcright);
+        public static string Clrl => GetCmd(PrintDirectives.clrl);
+
         //public static string Lion => GetCmd(PrintDirectives.lion);
         //public static string Bon => GetCmd(PrintDirectives.bon);
         //public static string Blon => GetCmd(PrintDirectives.blon);
         //public static string Novon => GetCmd(PrintDirectives.novon);
         //public static string Blon => GetCmd(PrintDirectives.blon);
+
+        public static string Cleft => GetCmd(PrintDirectives.cleft);
+        public static string Cright => GetCmd(PrintDirectives.cright);
+        public static string Cup => GetCmd(PrintDirectives.cup);
+        public static string Cdown => GetCmd(PrintDirectives.cdown);
+        public static string Cnleft(int n) => GetCmd(PrintDirectives.cleft+"",n+"");
+        public static string Cnright(int n) => GetCmd(PrintDirectives.cright + "", n + "");
+        public static string Cnup(int n) => GetCmd(PrintDirectives.cup + "", n + "");
+        public static string Cndown(int n) => GetCmd(PrintDirectives.cdown + "", n + "");
+
         public static string Invon => GetCmd(PrintDirectives.invon);
         public static string Uon => GetCmd(PrintDirectives.uon);
         public static string Tdoff => GetCmd(PrintDirectives.tdoff);

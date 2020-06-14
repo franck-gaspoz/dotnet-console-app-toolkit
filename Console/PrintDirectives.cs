@@ -71,9 +71,9 @@
         //lion,
 
         tdoff,
-        //cllcr,
-        //cllcl,
-        //cll,
+        clrlcright,
+        clrlcleft,
+        clrl,
         cup,
         cdown,
         cleft,
