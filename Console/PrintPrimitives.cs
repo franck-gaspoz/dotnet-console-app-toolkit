@@ -8,7 +8,7 @@ namespace DotNetConsoleAppToolkit.Console
 {
     public class PrintPrimitives
     {
-        public static void Print(DataTable table)
+        public static void Print(DataTable table,bool noBorders=false)
         {
             EnableFillLineFromCursor = false;
             HideCur();
@@ -23,12 +23,12 @@ namespace DotNetConsoleAppToolkit.Console
                     colLengths[i] = Math.Max(table.Columns[i].ColumnName.Length, colLengths[i]);
                 }
             }
-            var colsep = ColorSettings.TableBorder+" | "+ColorSettings.Default;
-            var colseplength = 3;
-            var tablewidth = 3;
+            var colsep = noBorders ? " " : (ColorSettings.TableBorder + " | " + ColorSettings.Default);
+            var colseplength = noBorders?0:3;
+            var tablewidth = noBorders ? 0 : 3;
             for (int i = 0; i < table.Columns.Count; i++)
                 tablewidth += table.Columns[i].ColumnName.PadRight(colLengths[i], ' ').Length + colseplength;
-            var line = ColorSettings.TableBorder + "".PadRight(tablewidth, '-');
+            var line = noBorders ? "" : (ColorSettings.TableBorder + "".PadRight(tablewidth, '-'));
 
             Println(line);
             for (int i=0;i<table.Columns.Count;i++)

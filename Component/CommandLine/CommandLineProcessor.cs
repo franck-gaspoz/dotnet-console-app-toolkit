@@ -124,16 +124,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
             Println($" {RuntimeInformation.OSDescription} {RuntimeInformation.OSArchitecture} - {RuntimeInformation.FrameworkDescription}");
             Println();
         }
-
-        OSPlatform? GetOSPlatform()
-        {
-            OSPlatform? oSPlatform = null;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) oSPlatform = OSPlatform.Windows;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) oSPlatform = OSPlatform.OSX;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) oSPlatform = OSPlatform.Linux;
-            return oSPlatform;
-        }
-
+        
         public (int typesCount,int commandsCount) UnregisterCommandsAssembly(string assemblyName)
         {
             var module = _modules.Values.Where(x => x.Name == assemblyName).FirstOrDefault();
