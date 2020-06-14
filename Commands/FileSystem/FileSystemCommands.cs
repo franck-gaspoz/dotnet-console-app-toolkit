@@ -237,7 +237,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             }
         }
 
-        [Command("print informations about drives")]
+        [Command("print informations about drives/mount points")]
         public void Driveinfo(
             [Parameter("drive name for which informations must be printed. if no drive specified, list all drives",true)] string drive,
             [Option("nb", "if set supress table borders")] bool noBorders
