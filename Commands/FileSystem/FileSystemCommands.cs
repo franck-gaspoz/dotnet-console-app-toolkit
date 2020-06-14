@@ -521,7 +521,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             var sep = "".PadRight(n+1, '-');
             Println($"{ColorSettings.TitleBar}{sep}");
             Println($"{ColorSettings.TitleBar} {file.Name}{ColorSettings.TitleDarkText}{infos.PadRight(n- file.Name.Length, ' ')}");
-            Println($"{ColorSettings.TitleBar}{sep}");
+            Println($"{ColorSettings.TitleBar}{sep}{ColorSettings.Default}");
 
             var preambleHeight = 3;
             var linecollength = nblines.ToString().Length;

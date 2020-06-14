@@ -39,9 +39,8 @@ namespace DotNetConsoleAppToolkit
         public static int UIWatcherThreadDelay = 500;
         public static ViewResizeStrategy ViewResizeStrategy = ViewResizeStrategy.FitViewSize;
         public static bool ClearOnViewResized = true;      // false not works properly in Windows Terminal + fit view size
-        public static bool SaveColors = true;
+        public static bool SaveColors = /*true*/ false; /*bug fix*/
         public static bool TraceCommandErrors = true;
-        public static bool EnableColors = true;
         public static bool DumpExceptions = true;
         public static ConsoleColor DefaultForeground = ConsoleColor.White;
         public static ConsoleColor DefaultBackground = ConsoleColor.Black;
@@ -59,7 +58,7 @@ namespace DotNetConsoleAppToolkit
         public static bool InWorkArea => !_workArea.Rect.IsEmpty;
         public static EventHandler ViewSizeChanged;
         public static EventHandler<WorkAreaScrollEventArgs> WorkAreaScrolled;
-        
+
         static int _cursorLeftBackup;
         static int _cursorTopBackup;
         static ConsoleColor _backgroundBackup = ConsoleColor.Black;
@@ -68,7 +67,7 @@ namespace DotNetConsoleAppToolkit
 
         static Thread _watcherThread;
         static readonly Dictionary<int, UIElement> _uielements = new Dictionary<int, UIElement>();
-        
+
         static TextWriter _outputWriter;
         static StreamWriter _outputStreamWriter;
         static FileStream _outputFileStream;
@@ -87,7 +86,7 @@ namespace DotNetConsoleAppToolkit
 
         public static void LogError(Exception ex)
         {
-            if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(ex+"");
+            if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(ex + "");
             if (DumpExceptions)
                 LogException(ex);
             else
@@ -99,19 +98,19 @@ namespace DotNetConsoleAppToolkit
                     msg += Environment.NewLine + ex.Message;
                 }
                 var ls = msg.Split(_crlf, StringSplitOptions.None)
-                    .Select(x => ((EnableColors) ? $"{ColorSettings.Error}" : "") + x);
+                    .Select(x => ColorSettings.Error + x);
                 Errorln(ls);
             }
         }
 
-        public static void LogException(Exception ex,string message = "")
+        public static void LogException(Exception ex, string message = "")
         {
-            if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(message+_crlf+ex+"");
+            if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(message + _crlf + ex + "");
             var ls = new List<string>();
             if (DumpExceptions)
             {
                 ls = (ex + "").Split(_crlf, StringSplitOptions.None)
-                .Select(x => ((EnableColors) ? $"{ColorSettings.Error}" : "") + x)
+                .Select(x => ColorSettings.Error + x)
                 .ToList();
                 if (message != null) ls.Insert(0, $"{ColorSettings.Error}{message}");
             } else
@@ -123,7 +122,7 @@ namespace DotNetConsoleAppToolkit
         {
             if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(s);
             var ls = (s + "").Split(_crlf, StringSplitOptions.None)
-                .Select(x => ((EnableColors) ? $"{ColorSettings.Error}" : "") + x);
+                .Select(x => ColorSettings.Error + x);
             Errorln(ls);
         }
 
@@ -131,7 +130,7 @@ namespace DotNetConsoleAppToolkit
         {
             if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(s);
             var ls = (s + "").Split(_crlf, StringSplitOptions.None)
-                .Select(x => ((EnableColors) ? $"{ColorSettings.Warning}" : "") + x);
+                .Select(x => ColorSettings.Warning + x);
             Errorln(ls);
         }
 
@@ -139,14 +138,14 @@ namespace DotNetConsoleAppToolkit
         {
             if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(s);
             var ls = (s + "").Split(_crlf, StringSplitOptions.None)
-                .Select(x => ((EnableColors) ? $"{ColorSettings.Log}" : "") + x);
+                .Select(x => ColorSettings.Log + x);
             Println(ls);
         }
 
         #endregion
 
         #region console operations
-        
+
         delegate object CommandDelegate(object x);
 
         static readonly Dictionary<string, CommandDelegate> _drtvs = new Dictionary<string, CommandDelegate>() {
@@ -177,10 +176,10 @@ namespace DotNetConsoleAppToolkit
             { PrintDirectives.bon+"" , (x) => RelayCall(EnableBold) },
             { PrintDirectives.blon+"" , (x) => RelayCall(EnableBlink) },
             { PrintDirectives.tdoff+"" , (x) => RelayCall(DisableTextDecoration) },
-            
-            { PrintDirectives.cll+"" , (x) => RelayCall(ClearLine) },     
+
+            { PrintDirectives.cll+"" , (x) => RelayCall(ClearLine) },
             { PrintDirectives.cllcr+"" , (x) => RelayCall(ClearLineFromCursorRight) },
-            { PrintDirectives.cllcl+"" , (x) => RelayCall(ClearLineFromCursorLeft) }            
+            { PrintDirectives.cllcl+"" , (x) => RelayCall(ClearLineFromCursorLeft) }
         };
 
         static object RelayCall(Action method) { method(); return null; }
@@ -197,14 +196,14 @@ namespace DotNetConsoleAppToolkit
         public static void ClearLine() => Lock(() => { Print($"{(char)27}[2K"); });                     // not available on windows
 
         public static void EnableNoVisible() => Lock(() => { Print($"{(char)27}[8m"); });       // not available on windows
-        public static void EnableInvert() => Lock(() => { Print($"{(char)27}[7m"); });          
+        public static void EnableInvert() => Lock(() => { Print($"{(char)27}[7m"); });
         public static void EnableBlink() => Lock(() => { Print($"{(char)27}[5m"); });           // not available on windows
         public static void EnableLowIntensity() => Lock(() => { Print($"{(char)27}[2m"); });    // not available on windows
         public static void EnableUnderline() => Lock(() => { Print($"{(char)27}[4m"); });
         public static void EnableBold() => Lock(() => { Print($"{(char)27}[1m"); });            // not available on windows
         public static void DisableTextDecoration() => Lock(() => { Print($"{(char)27}[0m"); });
 
-        public static void BackupForeground() => Lock(()=>_foregroundBackup = sc.ForegroundColor);
+        public static void BackupForeground() => Lock(() => _foregroundBackup = sc.ForegroundColor);
         public static void BackupBackground() => Lock(() => _backgroundBackup = sc.BackgroundColor);
         public static void RestoreForeground() => Lock(() => sc.ForegroundColor = _foregroundBackup);
         public static void RestoreBackground() => Lock(() => sc.BackgroundColor = _backgroundBackup);
@@ -1011,12 +1010,6 @@ namespace DotNetConsoleAppToolkit
                     BackupForeground();
                 }
 
-                if (!preserveColors && EnableColors)
-                {
-                    sc.ForegroundColor = DefaultForeground;
-                    sc.BackgroundColor = DefaultBackground;
-                }
-
                 if (s == null)
                 {
                     if (DumpNullStringAsText != null)
@@ -1028,12 +1021,6 @@ namespace DotNetConsoleAppToolkit
                         ParseTextAndApplyCommands(s.ToString(), false);
                     else
                         ConsolePrint(s.ToString(), false);
-                }
-
-                if (!preserveColors && SaveColors)
-                {
-                    RestoreBackground();
-                    RestoreForeground();
                 }
 
                 if (lineBreak) LineBreak();

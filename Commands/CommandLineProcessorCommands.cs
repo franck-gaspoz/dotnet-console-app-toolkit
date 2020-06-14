@@ -82,13 +82,13 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             [Option("u","unload the module having this name ",true,true)] string unloadModuleName = null
             )
         {
-            var f = GetCmd(PrintDirectives.f + "", DefaultForeground.ToString().ToLower());
+            var f = ColorSettings.Default.ToString();
             if (loadModulePath==null && unloadModuleName==null)
             {
                 var col1length = CommandLineProcessor.Modules.Values.Select(x => x.Name.Length).Max() + 1;
                 foreach (var kvp in CommandLineProcessor.Modules)
                 {
-                    Println($"{kvp.Value.Name.PadRight(col1length,' ')}{kvp.Value.Description} [types count={Cyan}{kvp.Value.TypesCount}{f} commands count={Cyan}{kvp.Value.CommandsCount}{f}]");
+                    Println($"{Darkcyan}{kvp.Value.Name.PadRight(col1length,' ')}{f}{kvp.Value.Description} [types count={Cyan}{kvp.Value.TypesCount}{f} commands count={Cyan}{kvp.Value.CommandsCount}{f}]");
                     Println($"{"".PadRight(col1length, ' ')}{ColorSettings.Label}assembly:{ColorSettings.HalfDark}{kvp.Value.Assembly.FullName}");
                     Println($"{"".PadRight(col1length, ' ')}{ColorSettings.Label}path:    {ColorSettings.HalfDark}{kvp.Value.Assembly.Location}");
                 }
@@ -129,7 +129,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             var col = singleout? "": "".PadRight(maxcnamelength, ' ');
             var f = GetCmd(PrintDirectives.f + "", DefaultForeground.ToString().ToLower());
             if (list)
-                Println($"{Darkcyan}{com.ModuleName.PadRight(maxmodlength, ' ')}   {com.DeclaringTypeShortName.PadRight(maxcmdtypelength, ' ')}{Tab}{f}{com.Name.PadRight(maxcnamelength, ' ')}{Tab}{com.Description}");
+                Println($"{Darkcyan}{com.ModuleName.PadRight(maxmodlength, ' ')}   {com.DeclaringTypeShortName.PadRight(maxcmdtypelength, ' ')}{Tab}{f}{com.Name.PadRight(maxcnamelength, ' ')}{Tab}{com.Description}{ColorSettings.Default}");
             else
             {
                 if (singleout)
@@ -165,7 +165,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                     }
                 }
                 Println($"{col}{ColorSettings.Label}type  : {ColorSettings.DarkLabel}{com.DeclaringTypeShortName}");
-                Println($"{col}{ColorSettings.Label}module: {ColorSettings.DarkLabel}{com.ModuleName}");
+                Println($"{col}{ColorSettings.Label}module: {ColorSettings.DarkLabel}{com.ModuleName}{ColorSettings.Default}");
             }
 #pragma warning restore IDE0071WithoutSuggestion // Simplifier l’interpolation
 #pragma warning restore IDE0071 // Simplifier l’interpolation

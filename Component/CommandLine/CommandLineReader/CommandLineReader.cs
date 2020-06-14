@@ -44,7 +44,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
         {
             CommandLineProcessor = commandLineProcessor;
             if (CommandLineProcessor!=null && CommandLineProcessor!=null) CommandLineProcessor.CmdLineReader = this;
-            _defaultPrompt = prompt ?? $"{Green}> ";
+            _defaultPrompt = prompt ?? $"{Green}> {White}";
             Initialize(evalCommandDelegate);
         }
 
