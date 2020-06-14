@@ -597,14 +597,14 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                     decpos = 0;
                 }
 
-                if ((string)action == totop) { k = maxk; pos = 0; if (pos != oldpos) Clear(); }
-                if ((string)action == toend) { k = maxk; pos = Math.Max(0,nblines-maxk+1); if (pos != oldpos) Clear(); }
+                if ((string)action == totop) { k = maxk; pos = 0; if (pos != oldpos) ClearScreen(); }
+                if ((string)action == toend) { k = maxk; pos = Math.Max(0,nblines-maxk+1); if (pos != oldpos) ClearScreen(); }
 
                 if ((string)action == scrolllineup && !topReached) { 
-                    Clear(); k = maxk; pos = Math.Max(0, pos- 1); 
+                    ClearScreen(); k = maxk; pos = Math.Max(0, pos- 1); 
                 }
-                if ((string)action == pagedown && !endReached) { Clear(); k = maxk; pos+=k-1-preambleHeight; }
-                if ((string)action == pageup && !topReached) { Clear(); k = maxk; pos = Math.Max(0, pos - k+1); }
+                if ((string)action == pagedown && !endReached) { ClearScreen(); k = maxk; pos+=k-1-preambleHeight; }
+                if ((string)action == pageup && !topReached) { ClearScreen(); k = maxk; pos = Math.Max(0, pos - k+1); }
 
                 if ((string)action == help)
                 {

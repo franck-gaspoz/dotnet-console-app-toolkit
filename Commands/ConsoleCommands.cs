@@ -82,7 +82,7 @@ current print directives are:
             ) => DotNetConsole.Println(expr);
 
         [Command("clear console screen")]
-        public void Cls() => Clear();
+        public void Cls() => ClearScreen();
 
         [Command("hide cursor")]
         public void HideCursor() => HideCur();

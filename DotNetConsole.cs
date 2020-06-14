@@ -162,7 +162,7 @@ namespace DotNetConsoleAppToolkit
             { PrintDirectives.db+"="   , (x) => RelayCall(() => SetDefaultBackground( TextColor.ParseColor(x))) },
             { PrintDirectives.rdc+""   , (x) => RelayCall(RestoreDefaultColors)},
 
-            { PrintDirectives.cls+""   , (x) => RelayCall(() => Clear()) },
+            { PrintDirectives.cls+""   , (x) => RelayCall(() => ClearScreen()) },
             { PrintDirectives.br+""    , (x) => RelayCall(LineBreak) },
             { PrintDirectives.inf+""   , (x) => RelayCall(Infos) },
             { PrintDirectives.bkcr+""  , (x) => RelayCall(BackupCursorPos) },
@@ -234,7 +234,7 @@ namespace DotNetConsoleAppToolkit
         public static void SetDefaultForeground(ConsoleColor c) => Lock(() => DefaultForeground = c);
         public static void SetDefaultBackground(ConsoleColor c) => Lock(() => DefaultBackground = c);
         public static void RestoreDefaultColors() => Lock(() => { sc.ForegroundColor = DefaultForeground; sc.BackgroundColor = DefaultBackground; });
-        public static void Clear()
+        public static void ClearScreen()
         {
             Lock(() =>
             {
@@ -905,7 +905,7 @@ namespace DotNetConsoleAppToolkit
                         && viewSizeChanged)
                     {
                         if (ClearOnViewResized)
-                            Clear();
+                            ClearScreen();
                     }
 
                     foreach (var o in _uielements)
