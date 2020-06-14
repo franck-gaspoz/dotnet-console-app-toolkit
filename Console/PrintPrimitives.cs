@@ -30,7 +30,7 @@ namespace DotNetConsoleAppToolkit.Console
                 tablewidth += table.Columns[i].ColumnName.PadRight(colLengths[i], ' ').Length + colseplength;
             var line = noBorders ? "" : (ColorSettings.TableBorder + "".PadRight(tablewidth, '-'));
 
-            Println(line);
+            if (!noBorders) Println(line);
             for (int i=0;i<table.Columns.Count;i++)
             {
                 if (i == 0) cons.Print(colsep);
@@ -38,7 +38,8 @@ namespace DotNetConsoleAppToolkit.Console
                 var colName = col.ColumnName.PadRight(colLengths[i], ' ');
                 cons.Print(ColorSettings.TableColumnName + colName+colsep);
             }
-            Println(Br + line);
+            Println();
+            if (!noBorders) Println(line);
 
             foreach ( var rw in table.Rows )
             {
