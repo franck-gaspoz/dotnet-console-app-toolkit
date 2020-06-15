@@ -38,11 +38,19 @@ namespace DotNetConsoleAppToolkit.Component.UI
                 
                 if (y < 0) y = /*sc.WindowTop (fix 1) */ + sc.WindowHeight + y;
 
-                if (w < 0) w = sc.WindowWidth + ((AvoidConsoleAutoLineBreakAtEndOfLine) ? -1 : 0) + (w + 1)
-                        /*+ sc.WindowLeft*/;
+                if (fitToVisibleArea)
+                {
+                    if (w < 0) w = sc.WindowWidth + ((AvoidConsoleAutoLineBreakAtEndOfLine) ? -1 : 0) + (w + 1)     // 1 POS TOO MUCH !!
+                            /*+ sc.WindowLeft*/;
 
-                if (h < 0) h = sc.WindowHeight + h
-                        + sc.WindowTop; /* fix 1*/
+                    if (h < 0) h = sc.WindowHeight + h
+                            + sc.WindowTop; /* ?? */
+                } else
+                {
+                    if (w < 0) w = sc.BufferWidth + ((AvoidConsoleAutoLineBreakAtEndOfLine) ? -1 : 0) + (w + 1);
+
+                    if (h < 0) h = sc.WindowHeight + h + sc.WindowTop;
+                }
                 return (x, y, w, h);
             }
         }

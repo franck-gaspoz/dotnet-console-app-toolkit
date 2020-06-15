@@ -342,13 +342,13 @@ namespace DotNetConsoleAppToolkit
             _workArea = new WorkArea();
             EnableConstraintConsolePrintInsideWorkArea = false;
         }
-        public static ActualWorkArea ActualWorkArea(bool fitToVisiblePart=true)
+        public static ActualWorkArea ActualWorkArea(bool fitToVisibleArea=true)
         {
                 var x0 = _workArea.Rect.IsEmpty ? 0 : _workArea.Rect.X;
                 var y0 = _workArea.Rect.IsEmpty ? 0 : _workArea.Rect.Y;
                 var w0 = _workArea.Rect.IsEmpty ? -1 : _workArea.Rect.Width;
                 var h0 = _workArea.Rect.IsEmpty ? -1 : _workArea.Rect.Height;
-                var (x, y, w, h) = GetCoords(x0, y0, w0, h0, fitToVisiblePart);
+                var (x, y, w, h) = GetCoords(x0, y0, w0, h0, fitToVisibleArea);
                 return new ActualWorkArea(_workArea.Id,x,y,w,h);
         }       
         static void ApplyWorkArea(bool viewSizeChanged=false)
@@ -633,15 +633,15 @@ namespace DotNetConsoleAppToolkit
                 sc.Write(s);
         }
 
-        public static int GetIndexInWorkAreaConstraintedString(string s, Point origin, Point cursorPos,bool forceEnableConstraintInWorkArea=false)
-            => GetIndexInWorkAreaConstraintedString(s, origin, cursorPos.X, cursorPos.Y, forceEnableConstraintInWorkArea);
+        public static int GetIndexInWorkAreaConstraintedString(string s, Point origin, Point cursorPos,bool forceEnableConstraintInWorkArea=false,bool fitToVisibleArea=true)
+            => GetIndexInWorkAreaConstraintedString(s, origin, cursorPos.X, cursorPos.Y, forceEnableConstraintInWorkArea,fitToVisibleArea);
 
-        public static int GetIndexInWorkAreaConstraintedString(string s,Point origin,int cursorX,int cursorY,bool forceEnableConstraintInWorkArea=false)
+        public static int GetIndexInWorkAreaConstraintedString(string s,Point origin,int cursorX,int cursorY,bool forceEnableConstraintInWorkArea=false, bool fitToVisibleArea = true)
         {
             lock (ConsoleLock)
             {
                 int index = -1;
-                var (id,x, y, w, h) = ActualWorkArea();
+                var (id,x, y, w, h) = ActualWorkArea(fitToVisibleArea);
                 var x0 = origin.X;
                 var y0 = origin.Y;
 
@@ -672,7 +672,7 @@ namespace DotNetConsoleAppToolkit
                         }
                         x0 += line.Length;
                         index += line.Length;
-                        SetCursorPosConstraintedInWorkArea(ref x0, ref y0,false, forceEnableConstraintInWorkArea);
+                        SetCursorPosConstraintedInWorkArea(ref x0, ref y0,false, forceEnableConstraintInWorkArea,fitToVisibleArea);
                         lineIndex++;
                     }
                 }
@@ -682,13 +682,13 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        public static List<(string s,int x,int y,int l)> GetWorkAreaStringSplits(string s, Point origin, bool forceEnableConstraintInWorkArea=false)
+        public static List<(string s,int x,int y,int l)> GetWorkAreaStringSplits(string s, Point origin, bool forceEnableConstraintInWorkArea=false, bool fitToVisibleArea = true)
         {
             var r = new List<(string, int,int, int)>();
             lock (ConsoleLock)
             {
                 int index = -1;
-                var (id,x, y, w, h) = ActualWorkArea();
+                var (id,x, y, w, h) = ActualWorkArea(fitToVisibleArea);
                 var x0 = origin.X;
                 var y0 = origin.Y;
 
@@ -715,7 +715,7 @@ namespace DotNetConsoleAppToolkit
                         r.Add((line,x0,y0,line.Length));                        
                         x0 += line.Length;
                         index += line.Length;
-                        SetCursorPosConstraintedInWorkArea(ref x0, ref y0, false, forceEnableConstraintInWorkArea);
+                        SetCursorPosConstraintedInWorkArea(ref x0, ref y0, false, forceEnableConstraintInWorkArea,fitToVisibleArea);
                         lineIndex++;
                     }
                 }
@@ -725,17 +725,17 @@ namespace DotNetConsoleAppToolkit
             return r;
         }
 
-        public static void SetCursorPosConstraintedInWorkArea(Point pos, bool enableOutput = true,bool forceEnableConstraintInWorkArea = false)
+        public static void SetCursorPosConstraintedInWorkArea(Point pos, bool enableOutput = true,bool forceEnableConstraintInWorkArea = false, bool fitToVisibleArea = true)
         {
             var x = pos.X;
             var y = pos.Y;
-            SetCursorPosConstraintedInWorkArea(ref x, ref y, enableOutput, forceEnableConstraintInWorkArea);            
+            SetCursorPosConstraintedInWorkArea(ref x, ref y, enableOutput, forceEnableConstraintInWorkArea,fitToVisibleArea);            
         }
 
-        public static void SetCursorPosConstraintedInWorkArea(int cx,int cy, bool enableOutput = true,bool forceEnableConstraintInWorkArea=false)
-            => SetCursorPosConstraintedInWorkArea(ref cx, ref cy, enableOutput, forceEnableConstraintInWorkArea);
+        public static void SetCursorPosConstraintedInWorkArea(int cx,int cy, bool enableOutput = true,bool forceEnableConstraintInWorkArea=false, bool fitToVisibleArea = true)
+            => SetCursorPosConstraintedInWorkArea(ref cx, ref cy, enableOutput, forceEnableConstraintInWorkArea,fitToVisibleArea);
 
-        public static void SetCursorPosConstraintedInWorkArea(ref int cx,ref int cy,bool enableOutput=true,bool forceEnableConstraintInWorkArea=false)
+        public static void SetCursorPosConstraintedInWorkArea(ref int cx,ref int cy,bool enableOutput=true,bool forceEnableConstraintInWorkArea=false, bool fitToVisibleArea = true)
         {
             lock (ConsoleLock)
             {
@@ -744,7 +744,7 @@ namespace DotNetConsoleAppToolkit
 
                 if (EnableConstraintConsolePrintInsideWorkArea || forceEnableConstraintInWorkArea)
                 {
-                    var (id,left, top, right, bottom) = ActualWorkArea();
+                    var (id,left, top, right, bottom) = ActualWorkArea(fitToVisibleArea);
                     if (cx<left)
                     {
                         cx = right - 1;

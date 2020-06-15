@@ -112,7 +112,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             {
                 var c = sc.ReadKey(true);
                 _lastKeyInfo = c;
-                var (id, left, top, right, bottom) = cons.ActualWorkArea();
+                var (id, left, top, right, bottom) = cons.ActualWorkArea(false);
 
                 var printable = false;
                 bool printOnlyCursorInfo = true;
@@ -131,7 +131,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                             {
                                 var x = p.X - 1;
                                 if (x < left)
-                                    SetCursorPosConstraintedInWorkArea(right - 1, p.Y - 1,true,true);
+                                    SetCursorPosConstraintedInWorkArea(right - 1, p.Y - 1,true,true,false);
                                 else
                                     SetCursorLeft(x);
                             }
@@ -144,9 +144,9 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                         lock (ConsoleLock)
                         {
                             var line = _text[_currentLine];
-                            var index = GetIndexInWorkAreaConstraintedString(line, _beginOfLineCurPos, CursorPos,true);
-                            if (index < line.Length)                            
-                                SetCursorPosConstraintedInWorkArea(CursorLeft + 1, CursorTop,true,true);
+                            var index = GetIndexInWorkAreaConstraintedString(line, _beginOfLineCurPos, CursorPos,true,false);
+                            if (index < line.Length-1)                            
+                                SetCursorPosConstraintedInWorkArea(CursorLeft + 1, CursorTop,true,true,false);
                             _X = CursorLeft;
                             _Y = CursorTop;
                         }
