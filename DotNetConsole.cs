@@ -342,17 +342,14 @@ namespace DotNetConsoleAppToolkit
             _workArea = new WorkArea();
             EnableConstraintConsolePrintInsideWorkArea = false;
         }
-        public static ActualWorkArea ActualWorkArea
+        public static ActualWorkArea ActualWorkArea(bool fitToVisiblePart=true)
         {
-            get
-            {
                 var x0 = _workArea.Rect.IsEmpty ? 0 : _workArea.Rect.X;
                 var y0 = _workArea.Rect.IsEmpty ? 0 : _workArea.Rect.Y;
                 var w0 = _workArea.Rect.IsEmpty ? -1 : _workArea.Rect.Width;
                 var h0 = _workArea.Rect.IsEmpty ? -1 : _workArea.Rect.Height;
-                var (x, y, w, h) = GetCoords(x0, y0, w0, h0);
+                var (x, y, w, h) = GetCoords(x0, y0, w0, h0, fitToVisiblePart);
                 return new ActualWorkArea(_workArea.Id,x,y,w,h);
-            }
         }       
         static void ApplyWorkArea(bool viewSizeChanged=false)
         {
@@ -528,7 +525,7 @@ namespace DotNetConsoleAppToolkit
         {
             lock (ConsoleLock)
             {
-                var (id,x, y, w, h) = ActualWorkArea;
+                var (id,x, y, w, h) = ActualWorkArea();
                 var x0 = CursorLeft;
                 var y0 = CursorTop;
                 if (EnableConstraintConsolePrintInsideWorkArea)
@@ -609,7 +606,7 @@ namespace DotNetConsoleAppToolkit
                 if (!EnableFillLineFromCursor) return;
                 var f = sc.ForegroundColor;
                 var b = sc.BackgroundColor;
-                var aw = ActualWorkArea;
+                var aw = ActualWorkArea();
                 var nb = Math.Max(aw.Right, sc.BufferWidth - 1) - CursorLeft - 1;
                 var x = CursorLeft;
                 if (useDefaultColors)
@@ -644,7 +641,7 @@ namespace DotNetConsoleAppToolkit
             lock (ConsoleLock)
             {
                 int index = -1;
-                var (id,x, y, w, h) = ActualWorkArea;
+                var (id,x, y, w, h) = ActualWorkArea();
                 var x0 = origin.X;
                 var y0 = origin.Y;
 
@@ -691,7 +688,7 @@ namespace DotNetConsoleAppToolkit
             lock (ConsoleLock)
             {
                 int index = -1;
-                var (id,x, y, w, h) = ActualWorkArea;
+                var (id,x, y, w, h) = ActualWorkArea();
                 var x0 = origin.X;
                 var y0 = origin.Y;
 
@@ -747,7 +744,7 @@ namespace DotNetConsoleAppToolkit
 
                 if (EnableConstraintConsolePrintInsideWorkArea || forceEnableConstraintInWorkArea)
                 {
-                    var (id,left, top, right, bottom) = ActualWorkArea;
+                    var (id,left, top, right, bottom) = ActualWorkArea();
                     if (cx<left)
                     {
                         cx = right - 1;

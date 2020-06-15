@@ -170,7 +170,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                         maxitlength = Math.Max(item.Name.Length, maxitlength);
                     }
                     maxitlength += 4;
-                    var (id,left,top,right,bottom) = DotNetConsole.ActualWorkArea;
+                    var (id,left,top,right,bottom) = DotNetConsole.ActualWorkArea();
                     var nbcols = Math.Floor((double)(right - left+1)/(double)maxitlength);
 
                     int nocol = 0;
@@ -540,7 +540,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             var pos = 0;
             bool end = false;
             int y =0,x=0;
-            var actualWorkArea = DotNetConsole.ActualWorkArea;
+            var actualWorkArea = DotNetConsole.ActualWorkArea();
             int maxk = actualWorkArea.Bottom - actualWorkArea.Top + 1;
             int k = maxk;
             bool endReached = false;

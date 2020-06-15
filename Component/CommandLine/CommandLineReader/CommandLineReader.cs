@@ -78,7 +78,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                         _beginOfLineCurPos.X += e.DeltaX;
                         _beginOfLineCurPos.Y += e.DeltaY;
                         var p = CursorPos;
-                        var (id,left, top, width, height) = ActualWorkArea;
+                        var (id,left, top, width, height) = ActualWorkArea();
                         var txt = _inputReaderStringBuilder.ToString();
                         if (!string.IsNullOrWhiteSpace(txt))
                         {
@@ -250,7 +250,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                             ConsoleKeyInfo c;
                             var printed = false;
                             string printedStr = "";
-                            var (id, left, top, right, bottom) = ActualWorkArea;
+                            var (id, left, top, right, bottom) = ActualWorkArea();
 
                             if (sc.IsInputRedirected)
                             {
@@ -268,7 +268,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
 
                                 if (!_ignoreNextKey)
                                 {
-                                    (id, left, top, right, bottom) = ActualWorkArea;
+                                    (id, left, top, right, bottom) = ActualWorkArea();
 
                                     switch (c.Key)
                                     {
@@ -550,7 +550,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
             {
                 lock (ConsoleLock)
                 {
-                    var (id,left, top, right, bottom) = ActualWorkArea;
+                    var (id,left, top, right, bottom) = ActualWorkArea();
                     SetCursorPosConstraintedInWorkArea(_beginOfLineCurPos);
                     var txt = _inputReaderStringBuilder.ToString();
                     var slines = GetWorkAreaStringSplits(txt, _beginOfLineCurPos);

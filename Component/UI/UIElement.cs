@@ -26,7 +26,7 @@ namespace DotNetConsoleAppToolkit.Component.UI
             DrawStrategy = drawStrategy;
         }
 
-        public static (int x, int y, int w, int h) GetCoords(int x, int y, int w, int h)
+        public static (int x, int y, int w, int h) GetCoords(int x, int y, int w, int h,bool fitToVisibleArea=true)
         {
             // (1) dos console (eg. vs debug consolehep) set WindowTop as y scroll position. WSL console doesn't (still 0)
             // scroll -> native dos console set WindowTop and WindowLeft as base scroll coordinates

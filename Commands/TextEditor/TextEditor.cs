@@ -17,12 +17,14 @@ using cons = DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.Str;
 using sc = System.Console;
 
-namespace DotNetConsoleAppToolkit.Commands
+namespace DotNetConsoleAppToolkit.Commands.TextEditor
 {
     [Commands("Text Editor")]
     public class TextEditor : CommandsType
     {
         public TextEditor(CommandLineProcessor commandLineProcessor) : base(commandLineProcessor) { }
+
+        #region attributes
 
         int _width;
         int _height;
@@ -33,24 +35,26 @@ namespace DotNetConsoleAppToolkit.Commands
         int _X = 0;
         int _Y = 0;
         int _barY;
-        int _barHeight = 2;
+        int _barHeight;
         ConsoleKeyInfo _lastKeyInfo;
         List<string> _text;
         List<int> _linesHeight;
         Encoding _fileEncoding;
-        OSPlatform? _oSPlatform;
-        string _plateform
+        OSPlatform? _fileEOL;
+        string FileEOL
         {
             get
             {
-                return _oSPlatform == null ? "?" : _oSPlatform.Value.ToString();
+                return _fileEOL == null ? "?" : _fileEOL.Value.ToString();
             }
         }
         bool _cmdInput = false;
         string _statusText;
-        ConsoleKey _cmdKey = ConsoleKey.Escape;
-        string _cmdKeyStr = "Esc ";
+        ConsoleKey _cmdKey;
+        string _cmdKeyStr;
         Point _beginOfLineCurPos = new Point(0, 0);
+
+        #endregion
 
         [Command("text editor")]
         public void Edit(
@@ -71,7 +75,10 @@ namespace DotNetConsoleAppToolkit.Commands
             _firstLine = 0;
             _currentLine = 0;
             _X = 0;
-            _Y = 0;            
+            _Y = 0;
+            _cmdKey = ConsoleKey.Escape;
+            _barHeight = 2;
+            _cmdKeyStr = "Esc ";
         }
 
         void ShowEditor()
@@ -80,7 +87,6 @@ namespace DotNetConsoleAppToolkit.Commands
             {
                 HideCur();
                 ClearScreen();
-                //Print($"{(char)27}[?7l");
                 ShowCur();
                 _width = sc.WindowWidth;
                 _height = sc.WindowHeight;
@@ -91,14 +97,14 @@ namespace DotNetConsoleAppToolkit.Commands
                 ShowInfoBar(false);
                 SetCursorHome();
                 ShowCur();
-                WaitKeyboard();
+                WaitAndProcessKeyPress();
             } catch (Exception ex)
             {
                 Errorln(ex+"");
             }
         }
 
-        void WaitKeyboard()
+        void WaitAndProcessKeyPress()
         {
             var end = false;
             _beginOfLineCurPos = new Point(0, _Y);
@@ -106,9 +112,10 @@ namespace DotNetConsoleAppToolkit.Commands
             {
                 var c = sc.ReadKey(true);
                 _lastKeyInfo = c;
-                var (id, left, top, right, bottom) = cons.ActualWorkArea;
+                var (id, left, top, right, bottom) = cons.ActualWorkArea();
 
                 var printable = false;
+                bool printOnlyCursorInfo = true;
                 switch (c.Key)
                 {
                     case ConsoleKey.LeftArrow:
@@ -124,7 +131,7 @@ namespace DotNetConsoleAppToolkit.Commands
                             {
                                 var x = p.X - 1;
                                 if (x < left)
-                                    SetCursorPosConstraintedInWorkArea(right - 1, p.Y - 1,true/*,true*/);
+                                    SetCursorPosConstraintedInWorkArea(right - 1, p.Y - 1,true,true);
                                 else
                                     SetCursorLeft(x);
                             }
@@ -139,7 +146,7 @@ namespace DotNetConsoleAppToolkit.Commands
                             var line = _text[_currentLine];
                             var index = GetIndexInWorkAreaConstraintedString(line, _beginOfLineCurPos, CursorPos,true);
                             if (index < line.Length)                            
-                                SetCursorPosConstraintedInWorkArea(CursorLeft + 1, CursorTop,true/*,true*/);
+                                SetCursorPosConstraintedInWorkArea(CursorLeft + 1, CursorTop,true,true);
                             _X = CursorLeft;
                             _Y = CursorTop;
                         }
@@ -215,6 +222,7 @@ namespace DotNetConsoleAppToolkit.Commands
                 {
                     printable = false;
                     SetStatusText("press a command key...");
+                    printOnlyCursorInfo = false;
                     _cmdInput = true;
                 }
 
@@ -230,12 +238,14 @@ namespace DotNetConsoleAppToolkit.Commands
                             default:
                                 break;
                         }
+                        printOnlyCursorInfo = false;
                         _cmdInput = false;
                     }
                 }
 
                 BackupCursorPos();
-                ShowInfoBar();
+                ShowInfoBar(true, printOnlyCursorInfo);
+                printOnlyCursorInfo = true;
                 RestoreCursorPos();
             }
             Exit();
@@ -274,7 +284,7 @@ namespace DotNetConsoleAppToolkit.Commands
             _text = lines.ToList();
             _linesHeight = new List<int>(_text.Count);
             for (int i = 0; i < _text.Count; i++) _linesHeight.Add(0);
-            _oSPlatform = platform;
+            _fileEOL = platform;
         }
 
         void ShowFile()
@@ -313,22 +323,30 @@ namespace DotNetConsoleAppToolkit.Commands
             }
         }
 
-        void ShowInfoBar(bool showCursor=true)
+        void ShowInfoBar(bool showCursor=true,bool onlyCursorInfo=false)
         {
             lock (ConsoleLock)
             {
                 HideCur();
-                SetCursorPos(0, _barY);
-                if (!_cmdInput)
-                    Print($"{Invon}{GetFileInfo()}{Tdoff}");
-                else
-                    Print($"{Invon}{_statusText}{Tdoff}");
-                SetCursorPos(0, _barY + 1);
-                Print($"{Invon}{GetCmdsInfo()}{Tdoff}");
-                SetCursorPos(80, _barY + 1);
-                Print($"{Invon}{GetLastKeyInfo()} {GetPositionInfo()} | {GetCursorInfo()}    {Tdoff}");
+                if (!onlyCursorInfo)
+                {
+                    SetCursorPos(0, _barY);
+                    if (!_cmdInput)
+                        Print($"{Invon}{GetFileInfo()}{Tdoff}");
+                    else
+                        Print($"{Invon}{_statusText}{Tdoff}");
+                    SetCursorPos(0, _barY + 1);
+                    Print($"{Invon}{GetCmdsInfo()}{Tdoff}");
+                }
+                PrintCursorInfo();
                 if (showCursor) ShowCur();
             }
+        }
+
+        void PrintCursorInfo()
+        {
+            SetCursorPos(80, _barY + 1);
+            Print($"{Invon}{GetLastKeyInfo()} {GetPositionInfo()} | {GetCursorInfo()}    {Tdoff}");
         }
 
         string GetLastKeyInfo() => _lastKeyInfo.Key + ""; /*+$"({_lastKeyInfo.KeyChar})"*/
@@ -336,7 +354,7 @@ namespace DotNetConsoleAppToolkit.Commands
         string GetCursorInfo() => $"{_X},{_Y}";
         string GetFileInfo()
         {
-            return (_filePath == null) ? $"no file" : $"{_filePath.Name} | {Plur("line", _text.Count)} | size={HumanFormatOfSize(_filePath.FileInfo.Length,2)} | enc={_fileEncoding.EncodingName} | plateform={_plateform}";
+            return (_filePath == null) ? $"no file" : $"{_filePath.Name} | {Plur("line", _text.Count)} | size={HumanFormatOfSize(_filePath.FileInfo.Length,2)} | enc={_fileEncoding.EncodingName} | eol={FileEOL}";
         }
 
         string GetCmdsInfo()
