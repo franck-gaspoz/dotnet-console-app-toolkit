@@ -63,20 +63,26 @@ namespace DotNetConsoleAppToolkit.Commands
 
         void ShowEditor()
         {
-            HideCur();
-            ClearScreen();
-            Print($"{(char)27}[?7l");
-            ShowCur();
-            _width = sc.WindowWidth;
-            _height = sc.WindowHeight;
-            _barY = _height - _barHeight;
-            SetCursorHome();
-            ShowFile();
-            ClearInfoBar();
-            ShowInfoBar();
-            SetCursorHome();
-            ShowCur();
-            WaitKeyboard();            
+            try
+            {
+                HideCur();
+                ClearScreen();
+                Print($"{(char)27}[?7l");
+                ShowCur();
+                _width = sc.WindowWidth;
+                _height = sc.WindowHeight;
+                _barY = _height - _barHeight;
+                SetCursorHome();
+                ShowFile();
+                ClearInfoBar();
+                ShowInfoBar(false);
+                SetCursorHome();
+                ShowCur();
+                WaitKeyboard();
+            } catch (Exception ex)
+            {
+                Errorln(ex+"");
+            }
         }
 
         void WaitKeyboard()
@@ -224,11 +230,10 @@ namespace DotNetConsoleAppToolkit.Commands
             }
         }
 
-        void ShowInfoBar()
+        void ShowInfoBar(bool showCursor=true)
         {
             lock (ConsoleLock)
             {
-                var curVisible = sc.CursorVisible;
                 HideCur();
                 SetCursorPos(0, _barY);
                 if (!_cmdInput)
@@ -239,7 +244,7 @@ namespace DotNetConsoleAppToolkit.Commands
                 Print($"{Invon}{GetCmdsInfo()}{Tdoff}");
                 SetCursorPos(80, _barY + 1);
                 Print($"{Invon}{GetLastKeyInfo()} {GetPositionInfo()} | {GetCursorInfo()}    {Tdoff}");
-                if (curVisible) ShowCur();
+                if (showCursor) ShowCur();
             }
         }
 
