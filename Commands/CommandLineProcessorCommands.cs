@@ -218,7 +218,9 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
         [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
         public List<string> History(
             [Option("i", "invoke the command at the entry number in the history list", true, true)] int num,
-            [Option("c", "clear the history list")] bool clear,
+            [Option("c", "clear the loaded history list")] bool clear,
+            [Option("w", "write history lines to the history file (content of the file is replaced)")]
+            [OptionRequireParameter("file")]  bool writeToFile,
             [Option("a", "append history lines to the history file")]
             [OptionRequireParameter("file")]  bool appendToFile,
             [Option("r","read the history file and append the content to the history list")] 
@@ -247,17 +249,21 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 
             if (clear)
             {
-                CommandLineProcessor.CmdsHistory.ClearHistory();
-                File.Delete(CommandLineProcessor.CmdsHistory.UserCommandsHistoryFilePath.FullName);
-                File.Create(CommandLineProcessor.CmdsHistory.UserCommandsHistoryFilePath.FullName);
+                CommandLineProcessor.CmdsHistory.ClearHistory();                
                 return CommandLineProcessor.CmdsHistory.History;
             }
 
-            if (appendToFile || readFromFile || appendFromFile)
+            if (appendToFile || readFromFile || appendFromFile || writeToFile)
             {
                 file ??= CommandLineProcessor.CmdsHistory.UserCommandsHistoryFilePath;
                 if (file.CheckPathExists())
                 {
+                    if (writeToFile)
+                    {
+                        File.Delete(CommandLineProcessor.CmdsHistory.UserCommandsHistoryFilePath.FullName);
+                        var lines = File.ReadAllLines(file.FullName);
+                        foreach (var line in lines) CommandLineProcessor.CmdsHistory.HistoryAppend(line);
+                    }
                     if (appendToFile) File.AppendAllLines(file.FullName, hist);
                     if (readFromFile)
                     {
