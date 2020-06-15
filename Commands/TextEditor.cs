@@ -1,19 +1,18 @@
 ﻿using DotNetConsoleAppToolkit.Commands.FileSystem;
 using DotNetConsoleAppToolkit.Component.CommandLine;
 using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
-using DotNetConsoleAppToolkit.Lib;
-using System.Collections.Generic;
-using System.Reflection.Metadata;
-using static DotNetConsoleAppToolkit.DotNetConsole;
-using sc = System.Console;
-using static DotNetConsoleAppToolkit.Lib.Str;
-using System.Text;
-using System.Runtime.InteropServices;
-using System.Linq;
 using DotNetConsoleAppToolkit.Console;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using DotNetConsoleAppToolkit.Lib;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
+using System.Text;
+using static DotNetConsoleAppToolkit.DotNetConsole;
+using static DotNetConsoleAppToolkit.Lib.Str;
+using sc = System.Console;
 
 namespace DotNetConsoleAppToolkit.Commands
 {
@@ -43,6 +42,10 @@ namespace DotNetConsoleAppToolkit.Commands
                 return _oSPlatform == null ? "?" : _oSPlatform.Value.ToString();
             }
         }
+        bool _cmdInput = false;
+        string _statusText;
+        ConsoleKey _cmdKey = ConsoleKey.Escape;
+        string _cmdKeyStr = "Esc ";
 
         [Command("text editor")]
         public void Edit(
@@ -73,7 +76,7 @@ namespace DotNetConsoleAppToolkit.Commands
 
         void WaitKeyboard()
         {
-            var end = false;
+            var end = false;            
             while (!end)
             {
                 var c = sc.ReadKey(true);
@@ -82,20 +85,45 @@ namespace DotNetConsoleAppToolkit.Commands
                 var printable = false;
                 switch (c.Key)
                 {
+                    
                     default:
                         printable = true;
                         break;
                 }
+                //if (c.KeyChar==cmdKey)
+                if (c.Key==_cmdKey)
+                {
+                    printable = false;
+                    _statusText = "press a command key...";
+                    _cmdInput = true;
+                }
 
                 if (printable)
                 {
-
+                    if (_cmdInput)
+                    {
+                        switch (c.Key)
+                        {
+                            case ConsoleKey.Q:
+                                end = true;
+                                break;
+                            default:
+                                _cmdInput = false;
+                                break;
+                        }
+                    }
                 }
 
                 BackupCursorPos();
                 ShowInfoBar();
                 RestoreCursorPos();
             }
+            Exit();
+        }
+
+        void Exit()
+        {
+            ClearScreen();
         }
 
         void BackupCursorPos() => _bkCursorPos = CursorPos;
@@ -137,14 +165,17 @@ namespace DotNetConsoleAppToolkit.Commands
         void ShowInfoBar()
         {
             SetCursorPos(0, _barY);
-            Print($"{Invon}{GetFileInfo()}{Clright}{Tdoff}");
+            if (!_cmdInput)
+                Print($"{Invon}{GetFileInfo()}{Clright}{Tdoff}");
+            else
+                Print($"{Invon}{_statusText}{Clright}{Tdoff}");
             SetCursorPos(0, _barY+1);
             Print($"{Invon}{GetCmdsInfo()}{Clright}{Tdoff}");
             SetCursorPos(_width - 24, _barY + 1);
             Print($"{Invon}{GetLastKeyInfo()} {GetPositionInfo()} {GetCursorInfo()}{Clright}{Tdoff}");
         }
 
-        string GetLastKeyInfo() => _lastKeyInfo.Key+$"({_lastKeyInfo.KeyChar})";
+        string GetLastKeyInfo() => _lastKeyInfo.Key + ""; /*+$"({_lastKeyInfo.KeyChar})"*/
         string GetPositionInfo() => "line "+_currentLine+"";
         string GetCursorInfo() => $"{_X},{_Y}{Clright}";
         string GetFileInfo()
@@ -154,8 +185,8 @@ namespace DotNetConsoleAppToolkit.Commands
 
         string GetCmdsInfo()
         {
-            static string Opt(string shortCut) => $"{Bwhite}{Black}{shortCut}{ColorSettings.Default}";
-            return $"{Opt("^l")} Load | {Opt("^s")} Save | {Opt("^t")} Top | {Opt("^b")} Bottom | {Opt("^x")} Quit | ";
+            string Opt(string shortCut,bool addCmdKeyStr=true) => $"{Bwhite}{Black}{(addCmdKeyStr?_cmdKeyStr:"")}{shortCut}{ColorSettings.Default}";
+            return $"{Opt("l")} Load | {Opt("s")} Save | {Opt("t")} Top | {Opt("b")} Bottom | {Opt("F1",false)} Help | {Opt("q")} Quit | ";
         }
     }
 }
