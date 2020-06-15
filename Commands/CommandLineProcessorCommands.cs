@@ -310,7 +310,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
         {
             var h = CommandLineProcessor.CmdsHistory.History;
             string lastCmd = null;
-            var index = (n < 0) ? h.Count + n : n;
+            var index = (n < 0) ? h.Count + n : n-1;
             if (index < 0 || index >= h.Count)
                 Errorln($"line number out of bounds of commands history list (1..{h.Count})");
             else

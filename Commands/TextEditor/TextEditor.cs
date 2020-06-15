@@ -160,22 +160,25 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                             System.Diagnostics.Debug.WriteLine($"_pastLine={_currentLine} height={_linesHeight[_currentLine]}");
                             System.Diagnostics.Debug.WriteLine($"{line}");
 #endif
-                            if (CursorTop == _beginOfLineCurPos.Y+ _linesHeight[_currentLine]-1)
+                            if (_currentLine < _text.Count-1)
                             {
-                                if (_currentLine < _text.Count - 1)
+                                if (CursorTop == _beginOfLineCurPos.Y + _linesHeight[_currentLine] - 1)
                                 {
-                                    _currentLine++;
-                                    _X = 0;
+                                    if (_currentLine < _text.Count - 1)
+                                    {
+                                        _currentLine++;
+                                        _X = 0;
+                                        _Y++;
+                                        _beginOfLineCurPos.X = _X;
+                                        _beginOfLineCurPos.Y = _Y;
+                                        SetCursorPos(_X, _Y);
+                                    }
+                                }
+                                else
+                                {
                                     _Y++;
-                                    _beginOfLineCurPos.X = _X;
-                                    _beginOfLineCurPos.Y = _Y;
                                     SetCursorPos(_X, _Y);
                                 }
-                            }
-                            else
-                            {
-                                _Y++;
-                                SetCursorPos(_X, _Y);
                             }
 #if dbg
                             System.Diagnostics.Debug.WriteLine($"_currentLine={_currentLine} {_text[_currentLine]}");
