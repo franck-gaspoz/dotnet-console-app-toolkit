@@ -184,6 +184,7 @@ namespace DotNetConsoleAppToolkit
 
             { PrintDirectives.cl+"" , (x) => RelayCall(ClearLine) },
             { PrintDirectives.clright+"" , (x) => RelayCall(ClearLineFromCursorRight) },
+            { PrintDirectives.fillright+"" , (x) => RelayCall(() => FillFromCursorRight()) },
             { PrintDirectives.clleft+"" , (x) => RelayCall(ClearLineFromCursorLeft) },
 
             { PrintDirectives.cup+"" , (x) => RelayCall(() => MoveCursorTop(1)) },
@@ -211,6 +212,14 @@ namespace DotNetConsoleAppToolkit
         public static void ClearLineFromCursorRight() => Lock(() => { Print($"{(char)27}[K"); });
         public static void ClearLineFromCursorLeft() => Lock(() => { Print($"{(char)27}[1K"); });
         public static void ClearLine() => Lock(() => { Print($"{(char)27}[2K"); });
+
+        public static void FillFromCursorRight()
+        {
+            lock (ConsoleLock)
+            {
+                FillLineFromCursor(' ', false, false);
+            }
+        }
 
         //public static void EnableNoVisible() => Lock(() => { Print($"{(char)27}[8m"); });       // not available on windows
         public static void EnableInvert() => Lock(() => { Print($"{(char)27}[7m"); });
@@ -595,25 +604,28 @@ namespace DotNetConsoleAppToolkit
 
         static void FillLineFromCursor(char c=' ',bool resetCursorLeft=true,bool useDefaultColors=true)
         {
-            if (!EnableFillLineFromCursor) return;
-            var f = sc.ForegroundColor;
-            var b = sc.BackgroundColor;
-            var aw = ActualWorkArea;
-            var nb = Math.Max(aw.Right,sc.BufferWidth-1) - CursorLeft -1;
-            var x = CursorLeft;
-            if (useDefaultColors)
+            lock (ConsoleLock)
             {
-                sc.ForegroundColor = ColorSettings.Default.Foreground.Value;
-                sc.BackgroundColor = ColorSettings.Default.Background.Value;
+                if (!EnableFillLineFromCursor) return;
+                var f = sc.ForegroundColor;
+                var b = sc.BackgroundColor;
+                var aw = ActualWorkArea;
+                var nb = Math.Max(aw.Right, sc.BufferWidth - 1) - CursorLeft - 1;
+                var x = CursorLeft;
+                if (useDefaultColors)
+                {
+                    sc.ForegroundColor = ColorSettings.Default.Foreground.Value;
+                    sc.BackgroundColor = ColorSettings.Default.Background.Value;
+                }
+                Write("".PadLeft(nb, c));
+                if (useDefaultColors)
+                {
+                    sc.ForegroundColor = f;
+                    sc.BackgroundColor = b;
+                }
+                if (resetCursorLeft)
+                    sc.CursorLeft = x;
             }
-            Write("".PadLeft(nb, c));
-            if (useDefaultColors)
-            {
-                sc.ForegroundColor = f;
-                sc.BackgroundColor = b;
-            }
-            if (resetCursorLeft)
-                sc.CursorLeft = x;
         }
 
         static void Write(string s)
@@ -1190,6 +1202,7 @@ namespace DotNetConsoleAppToolkit
 
         public static string Clleft => GetCmd(PrintDirectives.clleft);
         public static string Clright => GetCmd(PrintDirectives.clright);
+        public static string Fillright => GetCmd(PrintDirectives.fillright);
         public static string Cl => GetCmd(PrintDirectives.cl);
         public static string Chome => GetCmd(PrintDirectives.chome);
 

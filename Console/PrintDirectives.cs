@@ -71,6 +71,7 @@
         //lion,
 
         tdoff,
+        fillright,
         clright,
         clleft,
         cl,
