@@ -171,13 +171,18 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                                         _Y++;
                                         _beginOfLineCurPos.X = _X;
                                         _beginOfLineCurPos.Y = _Y;
-                                        SetCursorPos(_X, _Y);
                                     }
                                 }
                                 else
                                 {
                                     _Y++;
+                                }
+                                if (_Y < _barY)
                                     SetCursorPos(_X, _Y);
+                                else
+                                {
+                                    _Y = _barY - 1;
+                                    Scroll(1);
                                 }
                             }
 #if dbg
@@ -252,6 +257,20 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 RestoreCursorPos();
             }
             Exit();
+        }
+
+        void Scroll(int dy)
+        {
+            if (cons.WorkArea.IsEmpty)
+            {
+                //SetCursorTop(sc.WindowHeight);
+                var esc = (char)27;
+                sc.Write(esc + "[1S");
+            }
+            else
+            {
+
+            }
         }
 
         void Exit()

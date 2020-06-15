@@ -20,5 +20,7 @@ namespace DotNetConsoleAppToolkit.Console
             Id = workArea.Id;
             Rect = new Rectangle(workArea.Rect.X, workArea.Rect.Y, workArea.Rect.Width, workArea.Rect.Height);
         }
+
+        public bool IsEmpty => Rect.IsEmpty;
     }
 }
