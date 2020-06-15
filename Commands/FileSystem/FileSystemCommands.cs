@@ -528,7 +528,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             var lines = rlines.ToArray();
             var nblines = lines.Length;
 
-            var infos = $"    ({Plur("line", nblines)},encoding={(fileEncoding!=null?fileEncoding.EncodingName:"?")},platform={filePlatform})";
+            var infos = $"    ({Plur("line", nblines)},encoding={(fileEncoding!=null?fileEncoding.EncodingName:"?")},eol={filePlatform})";
             var n = file.Name.Length + TabLength + infos.Length;
             var sep = "".PadRight(n+1, '-');
             Println($"{ColorSettings.TitleBar}{sep}");
