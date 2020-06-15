@@ -1,4 +1,6 @@
-﻿using DotNetConsoleAppToolkit.Commands.FileSystem;
+﻿#define dbg
+
+using DotNetConsoleAppToolkit.Commands.FileSystem;
 using DotNetConsoleAppToolkit.Component.CommandLine;
 using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 using DotNetConsoleAppToolkit.Console;
@@ -34,6 +36,7 @@ namespace DotNetConsoleAppToolkit.Commands
         int _barHeight = 2;
         ConsoleKeyInfo _lastKeyInfo;
         List<string> _text;
+        List<int> _linesHeight;
         Encoding _fileEncoding;
         OSPlatform? _oSPlatform;
         string _plateform
@@ -47,6 +50,7 @@ namespace DotNetConsoleAppToolkit.Commands
         string _statusText;
         ConsoleKey _cmdKey = ConsoleKey.Escape;
         string _cmdKeyStr = "Esc ";
+        Point _beginOfLineCurPos = new Point(0, 0);
 
         [Command("text editor")]
         public void Edit(
@@ -57,8 +61,17 @@ namespace DotNetConsoleAppToolkit.Commands
             {
                 _filePath = filePath;
                 LoadFile(filePath);
+                InitEditor();
                 ShowEditor();
             }
+        }
+
+        void InitEditor()
+        {
+            _firstLine = 0;
+            _currentLine = 0;
+            _X = 0;
+            _Y = 0;            
         }
 
         void ShowEditor()
@@ -67,7 +80,7 @@ namespace DotNetConsoleAppToolkit.Commands
             {
                 HideCur();
                 ClearScreen();
-                Print($"{(char)27}[?7l");
+                //Print($"{(char)27}[?7l");
                 ShowCur();
                 _width = sc.WindowWidth;
                 _height = sc.WindowHeight;
@@ -87,12 +100,12 @@ namespace DotNetConsoleAppToolkit.Commands
 
         void WaitKeyboard()
         {
-            var end = false;            
+            var end = false;
+            _beginOfLineCurPos = new Point(0, _Y);
             while (!end)
             {
                 var c = sc.ReadKey(true);
                 _lastKeyInfo = c;
-                Point _beginOfLineCurPos = new Point(0,_Y);
                 var (id, left, top, right, bottom) = cons.ActualWorkArea;
 
                 var printable = false;
@@ -105,26 +118,92 @@ namespace DotNetConsoleAppToolkit.Commands
                             if (p.Y == _beginOfLineCurPos.Y)
                             {
                                 if (p.X > _beginOfLineCurPos.X)
-                                    SetCursorLeft(p.X - 1);
+                                    SetCursorLeft(p.X - 1);                                
                             }
                             else
                             {
                                 var x = p.X - 1;
                                 if (x < left)
-                                    SetCursorPosConstraintedInWorkArea(right - 1, p.Y - 1);
+                                    SetCursorPosConstraintedInWorkArea(right - 1, p.Y - 1,true/*,true*/);
                                 else
                                     SetCursorLeft(x);
                             }
+                            _X = CursorLeft;
+                            _Y = CursorTop;
                         }
                         break;
 
                     case ConsoleKey.RightArrow:
                         lock (ConsoleLock)
                         {
-                            var txt = _text[_currentLine];
-                            var index = GetIndexInWorkAreaConstraintedString(txt, _beginOfLineCurPos, CursorPos);
-                            if (index < txt.Length)
-                                SetCursorPosConstraintedInWorkArea(CursorLeft + 1, CursorTop);
+                            var line = _text[_currentLine];
+                            var index = GetIndexInWorkAreaConstraintedString(line, _beginOfLineCurPos, CursorPos,true);
+                            if (index < line.Length)                            
+                                SetCursorPosConstraintedInWorkArea(CursorLeft + 1, CursorTop,true/*,true*/);
+                            _X = CursorLeft;
+                            _Y = CursorTop;
+                        }
+                        break;
+
+                    case ConsoleKey.DownArrow:
+                        lock (ConsoleLock)
+                        {
+#if dbg
+                            var line = _text[_currentLine];
+                            System.Diagnostics.Debug.WriteLine($"_pastLine={_currentLine} height={_linesHeight[_currentLine]}");
+                            System.Diagnostics.Debug.WriteLine($"{line}");
+#endif
+                            if (CursorTop == _beginOfLineCurPos.Y+ _linesHeight[_currentLine]-1)
+                            {
+                                if (_currentLine < _text.Count - 1)
+                                {
+                                    _currentLine++;
+                                    _X = 0;
+                                    _Y++;
+                                    _beginOfLineCurPos.X = _X;
+                                    _beginOfLineCurPos.Y = _Y;
+                                    SetCursorPos(_X, _Y);
+                                }
+                            }
+                            else
+                            {
+                                _Y++;
+                                SetCursorPos(_X, _Y);
+                            }
+#if dbg
+                            System.Diagnostics.Debug.WriteLine($"_currentLine={_currentLine} {_text[_currentLine]}");
+#endif
+                        }
+                        break;
+
+                    case ConsoleKey.UpArrow:
+                        lock (ConsoleLock)
+                        {
+#if dbg
+                            var line = _text[_currentLine];
+                            System.Diagnostics.Debug.WriteLine($"_pastLine={_currentLine} height={_linesHeight[_currentLine]}");
+                            System.Diagnostics.Debug.WriteLine($"{line}");
+#endif
+                            if (CursorTop == _beginOfLineCurPos.Y)
+                            {
+                                if (_currentLine > 0)
+                                {
+                                    _X = 0;
+                                    _Y--;
+                                    _currentLine--;
+                                    _beginOfLineCurPos.X = _X;
+                                    _beginOfLineCurPos.Y = _Y - (_linesHeight[_currentLine] - 1);
+                                    SetCursorPos(_X, _Y);
+                                }
+                            }
+                            else
+                            {
+                                _Y--;
+                                SetCursorPos(_X, _Y);
+                            }
+#if dbg
+                            System.Diagnostics.Debug.WriteLine($"_currentLine={_currentLine} {_text[_currentLine]}");
+#endif
                         }
                         break;
 
@@ -193,6 +272,8 @@ namespace DotNetConsoleAppToolkit.Commands
             _fileEncoding = filePath.GetEncoding(Encoding.Default);
             var (lines, platform) = FIleReader.ReadAllLines(filePath.FullName);
             _text = lines.ToList();
+            _linesHeight = new List<int>(_text.Count);
+            for (int i = 0; i < _text.Count; i++) _linesHeight.Add(0);
             _oSPlatform = platform;
         }
 
@@ -215,7 +296,9 @@ namespace DotNetConsoleAppToolkit.Commands
         {
             lock (ConsoleLock)
             {
+                var y = CursorTop;
                 Println(_text[index]);
+                _linesHeight[index] = CursorTop - y;
             }
         }
 

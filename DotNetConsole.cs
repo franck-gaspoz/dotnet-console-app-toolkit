@@ -636,10 +636,10 @@ namespace DotNetConsoleAppToolkit
                 sc.Write(s);
         }
 
-        public static int GetIndexInWorkAreaConstraintedString(string s, Point origin, Point cursorPos)
-            => GetIndexInWorkAreaConstraintedString(s, origin, cursorPos.X, cursorPos.Y);
+        public static int GetIndexInWorkAreaConstraintedString(string s, Point origin, Point cursorPos,bool forceEnableConstraintInWorkArea=false)
+            => GetIndexInWorkAreaConstraintedString(s, origin, cursorPos.X, cursorPos.Y, forceEnableConstraintInWorkArea);
 
-        public static int GetIndexInWorkAreaConstraintedString(string s,Point origin,int cursorX,int cursorY)
+        public static int GetIndexInWorkAreaConstraintedString(string s,Point origin,int cursorX,int cursorY,bool forceEnableConstraintInWorkArea=false)
         {
             lock (ConsoleLock)
             {
@@ -675,7 +675,7 @@ namespace DotNetConsoleAppToolkit
                         }
                         x0 += line.Length;
                         index += line.Length;
-                        SetCursorPosConstraintedInWorkArea(ref x0, ref y0,false);
+                        SetCursorPosConstraintedInWorkArea(ref x0, ref y0,false, forceEnableConstraintInWorkArea);
                         lineIndex++;
                     }
                 }
@@ -685,7 +685,7 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        public static List<(string s,int x,int y,int l)> GetWorkAreaStringSplits(string s, Point origin)
+        public static List<(string s,int x,int y,int l)> GetWorkAreaStringSplits(string s, Point origin, bool forceEnableConstraintInWorkArea=false)
         {
             var r = new List<(string, int,int, int)>();
             lock (ConsoleLock)
@@ -718,7 +718,7 @@ namespace DotNetConsoleAppToolkit
                         r.Add((line,x0,y0,line.Length));                        
                         x0 += line.Length;
                         index += line.Length;
-                        SetCursorPosConstraintedInWorkArea(ref x0, ref y0, false);
+                        SetCursorPosConstraintedInWorkArea(ref x0, ref y0, false, forceEnableConstraintInWorkArea);
                         lineIndex++;
                     }
                 }
@@ -728,24 +728,24 @@ namespace DotNetConsoleAppToolkit
             return r;
         }
 
-        public static void SetCursorPosConstraintedInWorkArea(Point pos, bool enableOutput = true)
+        public static void SetCursorPosConstraintedInWorkArea(Point pos, bool enableOutput = true,bool forceEnableConstraintInWorkArea = false)
         {
             var x = pos.X;
             var y = pos.Y;
-            SetCursorPosConstraintedInWorkArea(ref x, ref y, enableOutput);            
+            SetCursorPosConstraintedInWorkArea(ref x, ref y, enableOutput, forceEnableConstraintInWorkArea);            
         }
 
-        public static void SetCursorPosConstraintedInWorkArea(int cx,int cy, bool enableOutput = true)
-            => SetCursorPosConstraintedInWorkArea(ref cx, ref cy, enableOutput);
+        public static void SetCursorPosConstraintedInWorkArea(int cx,int cy, bool enableOutput = true,bool forceEnableConstraintInWorkArea=false)
+            => SetCursorPosConstraintedInWorkArea(ref cx, ref cy, enableOutput, forceEnableConstraintInWorkArea);
 
-        public static void SetCursorPosConstraintedInWorkArea(ref int cx,ref int cy,bool enableOutput=true)
+        public static void SetCursorPosConstraintedInWorkArea(ref int cx,ref int cy,bool enableOutput=true,bool forceEnableConstraintInWorkArea=false)
         {
             lock (ConsoleLock)
             {
                 int dx = 0;
                 int dy = 0;
 
-                if (EnableConstraintConsolePrintInsideWorkArea)
+                if (EnableConstraintConsolePrintInsideWorkArea || forceEnableConstraintInWorkArea)
                 {
                     var (id,left, top, right, bottom) = ActualWorkArea;
                     if (cx<left)
