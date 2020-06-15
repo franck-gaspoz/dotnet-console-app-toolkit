@@ -18,8 +18,6 @@ namespace DotNetConsoleAppToolkit.Lib
             var sep_osx = "\r";
             var sep_windows = "\r\n";
             var sep_qnx_pre_posix = "" + (char)30;
-            var sep_IBM_mainframe = "" + (char)21;
-            var sep_unicode_LF = "\u000D";
             var sep_unicode_VT = "\u000B";
             var sep_unicode_FF = "\u000C";
             var sep_unicode_NEL = "\u0085";
@@ -31,7 +29,6 @@ namespace DotNetConsoleAppToolkit.Lib
                 (sep_linux,OSPlatform.Linux),
                 (sep_osx,OSPlatform.OSX),
                 (sep_osx, OSPlatform.Create("QNX pre-POSIX")),
-                (sep_unicode_LF,OSPlatform.Create("Unicode LF")),
                 (sep_unicode_VT,OSPlatform.Create("Unicode VT")),
                 (sep_unicode_FF,OSPlatform.Create("Unicode FF")),
                 (sep_unicode_NEL,OSPlatform.Create("Unicode NEL")),
