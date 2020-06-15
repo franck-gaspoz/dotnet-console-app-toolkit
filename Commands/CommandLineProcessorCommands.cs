@@ -261,8 +261,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                     if (writeToFile)
                     {
                         File.Delete(CommandLineProcessor.CmdsHistory.UserCommandsHistoryFilePath.FullName);
-                        var lines = File.ReadAllLines(file.FullName);
-                        foreach (var line in lines) CommandLineProcessor.CmdsHistory.HistoryAppend(line);
+                        File.AppendAllLines(file.FullName, hist);
                     }
                     if (appendToFile) File.AppendAllLines(file.FullName, hist);
                     if (readFromFile)
