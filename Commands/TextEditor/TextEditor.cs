@@ -120,7 +120,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     ClearScreen();
                     _width = sc.WindowWidth;
                     _height = sc.WindowHeight;
-                    _barY = _height - (_barVisible ? _barHeight : 0);
+                    ComputeBarVisible();
                     SetCursorHome(); 
                     DisplayFile();
                     EmptyInfoBar();
@@ -396,6 +396,8 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     "TextEditor",
                     "edit-help.txt")));
                 _readOnly = true;
+                _barVisible = true;
+                ComputeBarVisible();
                 DisplayEditor();
             }
         }
@@ -436,6 +438,14 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             _beginOfLineCurPos = editorBackup.BeginOfLineCurPos;
             _lastVisibleLineIndex = editorBackup.LastVisibleLineIndex;
             _splitedLastVisibleLineIndex = editorBackup.SplitedLastVisibleLineIndex;
+            _barVisible = true;
+            ComputeBarVisible();
+        }
+
+        void ComputeBarVisible()
+        {
+            _barHeight = _barVisible ? _defaultBarHeight : 0;
+            _barY = _height - (_barVisible ? _barHeight : 0);
         }
 
         void ToggleBarVisibility()
@@ -503,8 +513,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 }
             }
             _barVisible = !_barVisible;
-            _barHeight = _barVisible ? _defaultBarHeight : 0;
-            _barY = _height - (_barVisible ? _barHeight : 0);
+            ComputeBarVisible();
             if (setVisible)
             {
                 lock (ConsoleLock)
