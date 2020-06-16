@@ -301,17 +301,37 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                                     {
                                         HideCur();
                                         EraseInfoBar();
-                                        var slines = GetWorkAreaStringSplits(_text[_lastVisibleLineIndex], new Point(_X, _Y), true, false);
-                                        var y = _barY;
-                                        var newBarY = _barY + _barHeight;
-                                        SetCursorPos(_X, _barY);
-                                        for (int i = 0; i < 2; i++)
+                                        if (_lastVisibleLineIndex < _text.Count)
                                         {
-                                            if (slines.Count == 1)
-                                                PrintLine(_lastVisibleLineIndex + 1,0,newBarY);
-                                            else
-                                                PrintLine(_lastVisibleLineIndex, _splitedLastVisibleLineIndex + 1,newBarY);
-                                            slines = GetWorkAreaStringSplits(_text[_lastVisibleLineIndex], new Point(_X, CursorTop), true, false);
+                                            var slines = GetWorkAreaStringSplits(_text[_lastVisibleLineIndex], new Point(_X, _Y), true, false);
+                                            var y = _barY;
+                                            var newBarY = _barY + _barHeight;
+                                            SetCursorPos(_X, _barY);
+                                            bool atBottom;
+                                            int splitedLineIndex;
+                                            for (int i = 0; i < 2; i++)
+                                            {
+                                                if (slines.Count == 1 || _splitedLastVisibleLineIndex == slines.Count - 1)
+                                                {
+                                                    if (i==0) _lastVisibleLineIndex++;
+                                                    if (_lastVisibleLineIndex < _text.Count)
+                                                    {
+                                                        (atBottom, splitedLineIndex) = PrintLine(_lastVisibleLineIndex, 0, newBarY);
+                                                        if (splitedLineIndex == _barHeight)
+                                                        {
+                                                            _splitedLastVisibleLineIndex = splitedLineIndex;
+                                                            break;
+                                                        }
+                                                        else
+                                                            _lastVisibleLineIndex++;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    PrintLine(_lastVisibleLineIndex, _splitedLastVisibleLineIndex + 1, newBarY);
+                                                }
+                                                slines = GetWorkAreaStringSplits(_text[_lastVisibleLineIndex], new Point(_X, CursorTop), true, false);
+                                            }
                                         }
                                         SetCursorPos(_X, _Y);
                                         ShowCur();
@@ -441,13 +461,15 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 while (y < _barY && index < _text.Count && !atBottom)
                 {
                     var pos = CursorPos;
-                    atBottom = PrintLine(index++);
+                    (atBottom,_splitedLineIndex) = PrintLine(index++);
+                    _lastVisibleLineIndex = index;
+                    _splitedLastVisibleLineIndex = _splitedLineIndex;
                     y = CursorTop;
                 }
             }
         }
 
-        bool PrintLine(int index,int subIndex=0,int maxY=-1)
+        (bool atBottom,int splitedLineIndex) PrintLine(int index,int subIndex=0,int maxY=-1)
         {
             if (maxY == -1)
                 maxY = _barY;
@@ -466,12 +488,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 if (y < maxY) SetCursorPos(0, y);
                 _linesHeight[index] = slines.Count; // CursorTop - y;
                 var atBottom = y >= maxY - 1;
-                if (atBottom)
-                {
-                    _lastVisibleLineIndex = index;
-                    _splitedLastVisibleLineIndex = i - 1;
-                }
-                return atBottom;
+                return (atBottom,i-1);
             }
         }
 
