@@ -58,6 +58,8 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         int _cmdBarIndex;
         readonly int _maxCmdBarIndex = 1;
         bool _barVisible;
+        int _lastVisibleLineIndex;
+        int _splitedLastVisibleLineIndex;
 
         #endregion
 
@@ -293,13 +295,37 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                         switch (c.Key)
                         {
                             case ConsoleKey.I:
+                                lock (ConsoleLock)
+                                {
+                                    if (_barVisible)
+                                    {
+                                        HideCur();
+                                        EraseInfoBar();
+                                        var slines = GetWorkAreaStringSplits(_text[_lastVisibleLineIndex], new Point(_X, _Y), true, false);
+                                        var y = _barY;
+                                        var newBarY = _barY + _barHeight;
+                                        SetCursorPos(_X, _barY);
+                                        for (int i = 0; i < 2; i++)
+                                        {
+                                            if (slines.Count == 1)
+                                                PrintLine(_lastVisibleLineIndex + 1,0,newBarY);
+                                            else
+                                                PrintLine(_lastVisibleLineIndex, _splitedLastVisibleLineIndex + 1,newBarY);
+                                            slines = GetWorkAreaStringSplits(_text[_lastVisibleLineIndex], new Point(_X, CursorTop), true, false);
+                                        }
+                                        SetCursorPos(_X, _Y);
+                                        ShowCur();
+                                    }
+                                }
                                 _barVisible = !_barVisible;
                                 _barHeight = _barVisible ? _defaultBarHeight : 0;
-                                DisplayEditor();
+                                _barY = _height - (_barVisible ? _barHeight : 0);
                                 break;
+
                             case ConsoleKey.Q:
                                 end = true;
                                 break;
+
                             default:
                                 break;
                         }
@@ -332,10 +358,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
                     if (_barVisible && dy < 0)
                     {
-                        SetCursorPos(0, _barY);
-                        FillFromCursorRight();
-                        SetCursorPos(0, _barY + 1);
-                        FillFromCursorRight();
+                        EraseInfoBar();
                     }
                     if (dy > 0)
                         ScrollWindowDown(dy);
@@ -352,10 +375,14 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     {
                         SetCursorPos(0, _barY - 1);
                         Print(slines[_splitedLineIndex].str);
+                        _lastVisibleLineIndex = _currentLine;
+                        _splitedLastVisibleLineIndex = _splitedLineIndex;
                     } else
                     {
                         SetCursorPos(0, 0);
                         Print(slines[_splitedLineIndex].str);
+                        _splitedLastVisibleLineIndex--;
+                        if (_splitedLastVisibleLineIndex == 0) _lastVisibleLineIndex--;
                     }
 
                     RestoreCursorPos();
@@ -420,23 +447,31 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             }
         }
 
-        bool PrintLine(int index)
+        bool PrintLine(int index,int subIndex=0,int maxY=-1)
         {
+            if (maxY == -1)
+                maxY = _barY;
             lock (ConsoleLock)
             {
                 var y = CursorTop;
                 var line = _text[index];
                 var slines = GetWorkAreaStringSplits(line, new Point(0, y), true, false);
-                int i = 0;
-                while (i<slines.Count && y < _barY)
+                int i = subIndex;
+                while (i<slines.Count && y < maxY)
                 {
                     SetCursorPos(0, y);
                     Print(slines[i++].str);
                     y++;
                 }
-                if (y < _barY) SetCursorPos(0, y);
+                if (y < maxY) SetCursorPos(0, y);
                 _linesHeight[index] = slines.Count; // CursorTop - y;
-                return y >= _barY-1;
+                var atBottom = y >= maxY - 1;
+                if (atBottom)
+                {
+                    _lastVisibleLineIndex = index;
+                    _splitedLastVisibleLineIndex = i - 1;
+                }
+                return atBottom;
             }
         }
 
@@ -444,6 +479,15 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             var slines = GetWorkAreaStringSplits(_text[lineIndex], new Point(x, y), true, false);
             return slines.Count;
+        }
+
+        void EraseInfoBar()
+        {
+            if (!_barVisible) return;
+            SetCursorPos(0, _barY);
+            FillFromCursorRight();
+            SetCursorPos(0, _barY + 1);
+            FillFromCursorRight();
         }
 
         void EmptyInfoBar()
