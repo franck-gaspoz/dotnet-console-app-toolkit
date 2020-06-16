@@ -61,6 +61,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         int _lastVisibleLineIndex;
         int _splitedLastVisibleLineIndex;
         string _pressCmdKeyText;
+        bool _barCmdMode;
 
         #endregion
 
@@ -71,7 +72,6 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             if (filePath==null || filePath.CheckPathExists())
             {
-                _filePath = filePath;
                 InitEditor();
                 LoadFile(filePath);
                 DisplayEditor();
@@ -80,6 +80,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
         void InitEditor()
         {
+            _barCmdMode = false;
             _splitedLineIndex = 0;
             _firstLine = 0;
             _currentLine = 0;
@@ -284,7 +285,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     if (_cmdInput)
                     {
                         printable = false;
-                        _statusText = _pressCmdKeyText;
+                        _statusText = _pressCmdKeyText + " " + GetBarIndex();
                         printOnlyCursorInfo = false;
                         _cmdInput = true;
                     }
@@ -298,6 +299,18 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                         switch (c.Key)
                         {
                             case ConsoleKey.I:
+                                hideBar = false;
+                                _statusText = null;                                
+                                _cmdInput = false;
+                                printOnlyCursorInfo = false;
+                                lock (ConsoleLock) {
+                                    BackupCursorPos();
+                                    EmptyInfoBar();
+                                    RestoreCursorPos();
+                                }
+                                break;
+
+                            case ConsoleKey.B:
                                 ToggleBarVisibility();
                                 break;
 
@@ -307,8 +320,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
                             default:
                                 hideBar = false;
-                                SetStatusText($"Invalid comand key. {_pressCmdKeyText}");
-                                _cmdInput = false;
+                                _statusText = $"Invalid comand key. {_pressCmdKeyText} " + GetBarIndex();
                                 printOnlyCursorInfo = false;
                                 break;
                         }
@@ -485,16 +497,6 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             ClearScreen();
         }
 
-        void SetStatusText(string text)
-        {
-            HideCur();
-            BackupCursorPos();
-            EmptyInfoBar();
-            _statusText = text;
-            RestoreCursorPos();
-            ShowCur();
-        }
-
         void SetCursorHome()
         {
             _X = 0;
@@ -505,6 +507,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         void LoadFile(FilePath filePath)
         {
             if (filePath == null) return;
+            _filePath = filePath;
             _fileEncoding = filePath.GetEncoding(Encoding.Default);
             var (lines, platform) = FIleReader.ReadAllLines(filePath.FullName);
             _text = lines.ToList();
@@ -607,6 +610,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
                     if (_statusText == null)
                     {                   // added { } has remove a bug of the print (disapear cmd line above when window less large than text on linux wsl ?!)
+                        SetCursorPos(1, _barY);
                         Print(GetFileInfo());
                     }
                     else
@@ -617,11 +621,14 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                         Print(_statusText);
                     }
 
-                    SetCursorPos(0, _barY + 1);
-                    Print(GetCmdsInfo());
+                    if (_cmdInput)
+                    {
+                        SetCursorPos(0, _barY + 1);
+                        Print(GetCmdsInfo());
+                    }
                 }
 
-                PrintCursorInfo();
+                if (!_cmdInput) PrintCursorInfo();
                 
                 CropX = -1;
                 
@@ -634,15 +641,14 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
         void PrintCursorInfo()
         {
-            SetCursorPos(0, _barY);
-            EnableInvert();
-            
-            SetCursorPos(80, _barY + 1);
-            Print($"{GetLastKeyInfo()} {GetPositionInfo()} | {_splitedLineIndex} | {GetCursorInfo()}    ");            
+            SetCursorPos(1, _barY+ 1 );
+            EnableInvert();            
+            Print($"{GetPositionInfo()} | {_splitedLineIndex} | {GetCursorInfo()} | [{GetLastKeyInfo()}]       ");            
         }
 
+        string GetBarIndex() => $"({_cmdBarIndex}/{_maxCmdBarIndex})";
         string GetLastKeyInfo() => _lastKeyInfo.Key + "";
-        string GetPositionInfo() => "line "+_currentLine+"";
+        string GetPositionInfo() => "line "+(_currentLine+1)+"";
         string GetCursorInfo() => $"{_X},{_Y}";
         string GetFileInfo()
         {
@@ -653,7 +659,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             string Opt(string shortCut,bool addCmdKeyStr=true) => $"{Bwhite}{Black}{(addCmdKeyStr?_cmdKeyStr:"")}{shortCut}{ColorSettings.Default}";
             return _cmdBarIndex switch
             {
-                1 => $" {Opt("i")} Toggle bar | {Opt("c")} Clear",
+                1 => $" {Opt("b")} Toggle bar | {Opt("i")} info bar | {Opt("c")} Clear",
                 _ => $" {Opt("q")} Quit | {Opt("l")} Load | {Opt("s")} Save | {Opt("t")} Top | {Opt("b")} Bottom | {Opt("F1", false)} Help",
             };
         }
