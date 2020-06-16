@@ -14,5 +14,10 @@
             Y = y;
             Length = length;
         }
+
+        public override string ToString()
+        {
+            return $"pos={X},{Y} l={Length} Text={Text}";
+        }
     }
 }
