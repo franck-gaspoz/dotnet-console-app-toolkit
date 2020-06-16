@@ -417,7 +417,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             lock (ConsoleLock)
             {
                 var r = ActualWorkArea(false);
-                CropX = r.Right-1;
+                CropX = r.Right-2;
                 HideCur();
 
                 if (!onlyCursorInfo)
@@ -426,7 +426,9 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     EnableInvert();
 
                     if (!_cmdInput)
+                    {                   // added { } has remove a bug of the print (disapear cmd line above when window less large than text on linux wsl ?!)
                         Print(GetFileInfo());
+                    }
                     else
                         Print(_statusText);
 
