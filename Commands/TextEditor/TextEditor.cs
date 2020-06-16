@@ -37,6 +37,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         int _Y = 0;
         int _barY;
         int _barHeight;
+        bool _readOnly;
         readonly int _defaultBarHeight = 2;
         ConsoleKeyInfo _lastKeyInfo;
         List<string> _text;
@@ -99,6 +100,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             _statusText = null;
             if (forgetCurrentFile)
             {
+                _readOnly = false;
                 _fileSize = 0;
                 _fileEOL = null;
                 _fileEncoding = null;
@@ -357,7 +359,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
                             default:
                                 hideBar = false;
-                                _statusText = $"Invalid comand key. {_pressCmdKeyText} " + GetBarIndex();
+                                _statusText = $"{Bred}Invalid comand key.{ColorSettings.Default} {_pressCmdKeyText} " + GetBarIndex();
                                 printOnlyCursorInfo = false;
                                 break;
                         }
@@ -393,6 +395,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     "Commands", 
                     "TextEditor",
                     "edit-help.txt")));
+                _readOnly = true;
                 DisplayEditor();
             }
         }
@@ -422,6 +425,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             _filePath = editorBackup.FilePath;
             _firstLine = editorBackup.FirstLine;
             _fileSize = editorBackup.FileSize;
+            _readOnly = editorBackup.ReadOnly;
             _currentLine = editorBackup.CurrentLine;
             _X = editorBackup.X;
             _Y = editorBackup.Y;
@@ -633,6 +637,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             return new EditorBackup(
                 _filePath,
+                _readOnly,
                 _fileSize,
                 _firstLine,
                 _currentLine,
@@ -765,11 +770,12 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         }
         string GetCmdsInfo()
         {
-            string Opt(string shortCut,bool addCmdKeyStr=true) => $"{Bwhite}{Black}{(addCmdKeyStr?_cmdKeyStr:"")}{shortCut}{ColorSettings.Default}";
+            string ShcutOpt(string shortCut,bool ifNotReadOnly=false,bool addCmdKeyStr=true) => $"{((ifNotReadOnly && _readOnly) ? Bwhite:Bwhite)}{( (ifNotReadOnly&&_readOnly) ?Gray:Black)}{(addCmdKeyStr?_cmdKeyStr:"")}{shortCut}{ColorSettings.Default}";
+            string Opt(string shortCut,string label, bool ifNotReadOnly = false, bool addCmdKeyStr = true) => $"{ShcutOpt(shortCut, ifNotReadOnly, addCmdKeyStr)} {((ifNotReadOnly&&_readOnly)?$"{Bgray}":"")}{label}{ColorSettings.Default}";
             return _cmdBarIndex switch
             {
-                1 => $" {Opt("v")} Toggle bar | {Opt("i")} Info bar | {Opt("c")} Clear | {Opt("n")} New",
-                _ => $" {Opt("q")} Quit | {Opt("l")} Load | {Opt("s")} Save | {Opt("t")} Top | {Opt("b")} Bottom | {Opt("F1", false)} Help",
+                1 => $" {Opt("t", "Top")} | {Opt("b", "Bottom")} | {Opt("c", "Clear",true)} | {Opt("n", "New")}",
+                _ => $" {Opt("q", "Quit")} | {Opt("l", "Load")} | {Opt("s", "Save",true)} | {Opt("v", "Toggle bar")} | {Opt("i", "Info bar")} | {Opt("F1", "Help",false,false)}",
             };
         }
         void BackupCursorPos() => _bkCursorPos = CursorPos;
