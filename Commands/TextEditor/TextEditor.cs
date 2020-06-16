@@ -36,6 +36,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         int _Y = 0;
         int _barY;
         int _barHeight;
+        int _defaultBarHeight = 2;
         ConsoleKeyInfo _lastKeyInfo;
         List<string> _text;
         List<int> _linesHeight;
@@ -54,6 +55,9 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         string _cmdKeyStr;
         Point _beginOfLineCurPos = new Point(0, 0);
         int _splitedLineIndex;
+        int _cmdBarIndex;
+        readonly int _maxCmdBarIndex = 1;
+        bool _barVisible;
 
         #endregion
 
@@ -79,25 +83,31 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             _X = 0;
             _Y = 0;
             _cmdKey = ConsoleKey.Escape;
-            _barHeight = 2;
+            _barHeight = _defaultBarHeight;
             _cmdKeyStr = "Esc ";
+            _cmdBarIndex=0;
+            _barVisible = true;
         }
 
         void DisplayEditor()
         {
             try
             {
-                HideCur();
-                ClearScreen();
-                _width = sc.WindowWidth;
-                _height = sc.WindowHeight;
-                _barY = _height - _barHeight;
-                SetCursorHome();
-                DisplayFile();
-                EmptyInfoBar();
-                DisplayInfoBar(false);
-                SetCursorHome();
-                ShowCur();
+                lock (ConsoleLock)
+                {
+                    HideCur();
+                    ClearScreen();
+                    _width = sc.WindowWidth;
+                    _height = sc.WindowHeight;
+                    _barY = _height - (_barVisible ? _barHeight : 0);
+                    //_X = _Y = _currentLine = _splitedLineIndex = 0;
+                    SetCursorHome(); 
+                    DisplayFile();
+                    EmptyInfoBar();
+                    DisplayInfoBar(false);
+                    SetCursorPos(_X, _Y);
+                    ShowCur();
+                }
                 WaitAndProcessKeyPress();
             } catch (Exception ex)
             {
@@ -168,6 +178,11 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 #endif
                             if (_currentLine < _text.Count-1)
                             {
+                                if (_linesHeight[_currentLine]==0)
+                                {
+                                    _linesHeight[_currentLine] = GetLineHeight(_currentLine, 0, _Y);
+                                }
+
                                 if (_splitedLineIndex == _linesHeight[_currentLine] - 1)
                                 {
                                     _splitedLineIndex = 0;
@@ -246,10 +261,29 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 }
                 if (c.Key==_cmdKey)
                 {
-                    printable = false;
-                    SetStatusText("press a command key...");
-                    printOnlyCursorInfo = false;
-                    _cmdInput = true;
+                    if (_cmdInput)
+                    {
+                        if (_cmdBarIndex == _maxCmdBarIndex)
+                        {
+                            _cmdInput = false;
+                            printable = false;
+                            _statusText = null;
+                            printOnlyCursorInfo = false;
+                            _cmdInput = false;
+                            _cmdBarIndex = 0;
+                        } else
+                        {
+                            _cmdBarIndex++;
+                        }
+                    }
+                    else _cmdInput = true;
+                    if (_cmdInput)
+                    {
+                        printable = false;
+                        SetStatusText($"press a command key (press {_cmdKeyStr.Trim()} for more commands ...");
+                        printOnlyCursorInfo = false;
+                        _cmdInput = true;
+                    }
                 }
 
                 if (printable)
@@ -258,6 +292,11 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     {
                         switch (c.Key)
                         {
+                            case ConsoleKey.I:
+                                _barVisible = !_barVisible;
+                                _barHeight = _barVisible ? _defaultBarHeight : 0;
+                                DisplayEditor();
+                                break;
                             case ConsoleKey.Q:
                                 end = true;
                                 break;
@@ -291,7 +330,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     BackupCursorPos();
                     HideCur();
 
-                    if (dy < 0)
+                    if (_barVisible && dy < 0)
                     {
                         SetCursorPos(0, _barY);
                         FillFromCursorRight();
@@ -325,7 +364,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             }
             else
             {
-
+                // TODO: workarea enabled mode
             }
         }
 
@@ -371,27 +410,45 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             {
                 int index = _firstLine;
                 int y = 0;
-                while (y < _height - _barHeight && index < _text.Count)
+                var atBottom = false;
+                while (y < _barY && index < _text.Count && !atBottom)
                 {
                     var pos = CursorPos;
-                    PrintLine(index++);
+                    atBottom = PrintLine(index++);
                     y = CursorTop;
                 }
             }
         }
 
-        void PrintLine(int index)
+        bool PrintLine(int index)
         {
             lock (ConsoleLock)
             {
                 var y = CursorTop;
-                Println(_text[index]);
-                _linesHeight[index] = CursorTop - y;
+                var line = _text[index];
+                var slines = GetWorkAreaStringSplits(line, new Point(0, y), true, false);
+                int i = 0;
+                while (i<slines.Count && y < _barY)
+                {
+                    SetCursorPos(0, y);
+                    Print(slines[i++].str);
+                    y++;
+                }
+                if (y < _barY) SetCursorPos(0, y);
+                _linesHeight[index] = slines.Count; // CursorTop - y;
+                return y >= _barY-1;
             }
+        }
+
+        int GetLineHeight(int lineIndex, int x,int y)
+        {
+            var slines = GetWorkAreaStringSplits(_text[lineIndex], new Point(x, y), true, false);
+            return slines.Count;
         }
 
         void EmptyInfoBar()
         {
+            if (!_barVisible) return;
             lock (ConsoleLock)
             {
                 // all these remarks for 'auto line break' console mode
@@ -399,13 +456,11 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 // conclusion: invert mode switched is system bugged on windows -- avoid it
                 SetCursorPos(0, _barY);
                 EnableInvert();
-                //Print($"{Fillright}{Tdoff}");    // TODO: this one does it on windows, but invert remains ?
                 FillFromCursorRight();
 
                 SetCursorPos(0, _barY + 1);
-                //Print($"{Invon} {Fillright}{Tdoff}"); // TODO: fix this sentence do not print the last character line
-                //Print($"{Invon}{Fillright}{Tdoff}");  // these on is ok
                 FillFromCursorRight();
+                //Print($"{Invon} {Fillright}{Tdoff}"); // TODO: fix this sentence do not print the last character line whereas this one does: Print($"{Invon}{Fillright}{Tdoff}");
 
                 SetCursorPos(0, _barY + 1);
                 DisableTextDecoration();
@@ -414,6 +469,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
         void DisplayInfoBar(bool showCursor=true,bool onlyCursorInfo=false)
         {
+            if (!_barVisible) return;
             lock (ConsoleLock)
             {
                 var r = ActualWorkArea(false);
@@ -456,7 +512,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             Print($"{GetLastKeyInfo()} {GetPositionInfo()} | {_splitedLineIndex} | {GetCursorInfo()}    ");            
         }
 
-        string GetLastKeyInfo() => _lastKeyInfo.Key + ""; /*+$"({_lastKeyInfo.KeyChar})"*/
+        string GetLastKeyInfo() => _lastKeyInfo.Key + "";
         string GetPositionInfo() => "line "+_currentLine+"";
         string GetCursorInfo() => $"{_X},{_Y}";
         string GetFileInfo()
@@ -467,7 +523,11 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         string GetCmdsInfo()
         {
             string Opt(string shortCut,bool addCmdKeyStr=true) => $"{Bwhite}{Black}{(addCmdKeyStr?_cmdKeyStr:"")}{shortCut}{ColorSettings.Default}";
-            return $"{Opt("l")} Load | {Opt("s")} Save | {Opt("t")} Top | {Opt("b")} Bottom | {Opt("F1",false)} Help | {Opt("q")} Quit | ";
+            return _cmdBarIndex switch
+            {
+                1 => $" {Opt("i")} Toggle bar | {Opt("c")} Clear",
+                _ => $" {Opt("q")} Quit | {Opt("l")} Load | {Opt("s")} Save | {Opt("t")} Top | {Opt("b")} Bottom | {Opt("F1", false)} Help",
+            };
         }
     }
 }
