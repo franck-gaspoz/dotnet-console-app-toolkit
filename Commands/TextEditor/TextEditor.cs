@@ -72,8 +72,8 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             if (filePath==null || filePath.CheckPathExists())
             {
                 _filePath = filePath;
-                LoadFile(filePath);
                 InitEditor();
+                LoadFile(filePath);
                 DisplayEditor();
             }
         }
@@ -88,10 +88,13 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             _cmdKey = ConsoleKey.Escape;
             _barHeight = _defaultBarHeight;
             _cmdKeyStr = "Esc ";
-            _cmdBarIndex=0;
+            _cmdBarIndex = 0;
             _barVisible = true;
             _pressCmdKeyText = $"press a command key - press {_cmdKeyStr.Trim()} for more commands ...";
             _statusText = null;
+            _filePath = null;
+            _text = new List<string> { "" };
+            _linesSplits = new List<List<LineSplit>> { new List<LineSplit> { new LineSplit("", 0, 0, 0) } };
         }
 
         void DisplayEditor()
@@ -342,7 +345,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 {
                     HideCur();
                     EraseInfoBar();
-                    if (_lastVisibleLineIndex < _text.Count)
+                    if (_lastVisibleLineIndex < _text.Count-1)
                     {
                         var slines = GetWorkAreaStringSplits(_text[_lastVisibleLineIndex], new Point(_X, _Y), true, false);
                         var y = _barY;
@@ -355,7 +358,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                             if (slines.Count == 1 || _splitedLastVisibleLineIndex == slines.Count - 1)
                             {
                                 if (i == 0) _lastVisibleLineIndex++;
-                                if (_lastVisibleLineIndex < _text.Count)
+                                if (_lastVisibleLineIndex < _text.Count-1)
                                 {
                                     (atBottom, splitedLineIndex, slines) = PrintLine(_lastVisibleLineIndex, 0, newBarY);
                                     if (i == 1) break;
@@ -415,13 +418,16 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         void DecrementLineYPosition(int count=1)
         {
             for (int i=0;i<count;i++)
-            {
+            {                
                 if (_splitedLastVisibleLineIndex > 0)
                     _splitedLastVisibleLineIndex--;
                 else
                 {
-                    _lastVisibleLineIndex--;
-                    _splitedLastVisibleLineIndex = _linesSplits[_lastVisibleLineIndex].Count - 1;
+                    if (_lastVisibleLineIndex > 0)
+                    {
+                        _lastVisibleLineIndex--;
+                        _splitedLastVisibleLineIndex = _linesSplits[_lastVisibleLineIndex].Count - 1;
+                    }
                 }
             }
         }
@@ -488,9 +494,6 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             RestoreCursorPos();
             ShowCur();
         }
-
-        void BackupCursorPos() => _bkCursorPos = CursorPos;
-        void RestoreCursorPos() => SetCursorPos(_bkCursorPos);
 
         void SetCursorHome()
         {
@@ -645,7 +648,6 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             return (_filePath == null) ? $"no file" : $"{_filePath.Name} | {Plur("line", _text.Count)} | size={HumanFormatOfSize(_filePath.FileInfo.Length,2)} | enc={_fileEncoding.EncodingName} | eol={FileEOL}";
         }
-
         string GetCmdsInfo()
         {
             string Opt(string shortCut,bool addCmdKeyStr=true) => $"{Bwhite}{Black}{(addCmdKeyStr?_cmdKeyStr:"")}{shortCut}{ColorSettings.Default}";
@@ -655,5 +657,8 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 _ => $" {Opt("q")} Quit | {Opt("l")} Load | {Opt("s")} Save | {Opt("t")} Top | {Opt("b")} Bottom | {Opt("F1", false)} Help",
             };
         }
+        void BackupCursorPos() => _bkCursorPos = CursorPos;
+        void RestoreCursorPos() => SetCursorPos(_bkCursorPos);
+
     }
 }
