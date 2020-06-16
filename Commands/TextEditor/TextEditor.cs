@@ -602,7 +602,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             if (filePath == null) return;
             _filePath = filePath;
             _fileSize = filePath.FileInfo.Length;
-            _readOnly = filePath.FileInfo.Attributes.HasFlag(FileAttributes.ReadOnly));
+            _readOnly = filePath.FileInfo.Attributes.HasFlag(FileAttributes.ReadOnly);
             _fileEncoding = filePath.GetEncoding(Encoding.Default);
             var (lines, platform) = FIleReader.ReadAllLines(filePath.FullName);
             _text = lines.ToList();
