@@ -36,7 +36,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         int _Y = 0;
         int _barY;
         int _barHeight;
-        int _defaultBarHeight = 2;
+        readonly int _defaultBarHeight = 2;
         ConsoleKeyInfo _lastKeyInfo;
         List<string> _text;
         List<int> _linesHeight;
@@ -295,6 +295,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                         switch (c.Key)
                         {
                             case ConsoleKey.I:
+                                var setVisible = false;
                                 lock (ConsoleLock)
                                 {
                                     if (_barVisible)
@@ -316,30 +317,52 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                                                     if (i==0) _lastVisibleLineIndex++;
                                                     if (_lastVisibleLineIndex < _text.Count)
                                                     {
-                                                        (atBottom, splitedLineIndex) = PrintLine(_lastVisibleLineIndex, 0, newBarY);
+                                                        (atBottom, splitedLineIndex,slines) = PrintLine(_lastVisibleLineIndex, 0, newBarY);
                                                         if (splitedLineIndex == _barHeight)
                                                         {
                                                             _splitedLastVisibleLineIndex = splitedLineIndex;
                                                             break;
                                                         }
                                                         else
+                                                        {
                                                             _lastVisibleLineIndex++;
+                                                            _splitedLastVisibleLineIndex = 0;
+                                                        }
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    PrintLine(_lastVisibleLineIndex, _splitedLastVisibleLineIndex + 1, newBarY);
+                                                    if (i == 0) _splitedLastVisibleLineIndex++;
+                                                    (atBottom, splitedLineIndex,slines) = PrintLine(_lastVisibleLineIndex, _splitedLastVisibleLineIndex, newBarY);
+                                                    if (splitedLineIndex == slines.Count - 1)
+                                                    {
+                                                        splitedLineIndex = 0;
+                                                        _lastVisibleLineIndex++;
+                                                    }
+                                                    else
+                                                        splitedLineIndex = 0;
                                                 }
-                                                slines = GetWorkAreaStringSplits(_text[_lastVisibleLineIndex], new Point(_X, CursorTop), true, false);
                                             }
                                         }
                                         SetCursorPos(_X, _Y);
                                         ShowCur();
+                                    } else
+                                    {
+                                        setVisible = true;
                                     }
                                 }
                                 _barVisible = !_barVisible;
                                 _barHeight = _barVisible ? _defaultBarHeight : 0;
                                 _barY = _height - (_barVisible ? _barHeight : 0);
+                                if (setVisible)
+                                {
+                                    lock (ConsoleLock)
+                                    {
+                                        BackupCursorPos();
+                                        DisplayInfoBar();
+                                        RestoreCursorPos();
+                                    }
+                                }
                                 break;
 
                             case ConsoleKey.Q:
@@ -394,13 +417,13 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     if (dy < 0)
                     {
                         SetCursorPos(0, _barY - 1);
-                        Print(slines[_splitedLineIndex].str);
+                        Print(slines[_splitedLineIndex].Text);
                         _lastVisibleLineIndex = _currentLine;
                         _splitedLastVisibleLineIndex = _splitedLineIndex;
                     } else
                     {
                         SetCursorPos(0, 0);
-                        Print(slines[_splitedLineIndex].str);
+                        Print(slines[_splitedLineIndex].Text);
                         _splitedLastVisibleLineIndex--;
                         if (_splitedLastVisibleLineIndex == 0) _lastVisibleLineIndex--;
                     }
@@ -461,15 +484,17 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 while (y < _barY && index < _text.Count && !atBottom)
                 {
                     var pos = CursorPos;
-                    (atBottom,_splitedLineIndex) = PrintLine(index++);
-                    _lastVisibleLineIndex = index;
-                    _splitedLastVisibleLineIndex = _splitedLineIndex;
+                    var r = PrintLine(index++);
+                    atBottom = r.atBottom;
+                    var splitedLastLineIndex = r.splitedLineIndex;
+                    _lastVisibleLineIndex = index-1;
+                    _splitedLastVisibleLineIndex = splitedLastLineIndex;
                     y = CursorTop;
                 }
             }
         }
 
-        (bool atBottom,int splitedLineIndex) PrintLine(int index,int subIndex=0,int maxY=-1)
+        (bool atBottom,int splitedLineIndex, List<LineSplit> slines) PrintLine(int index,int subIndex=0,int maxY=-1)
         {
             if (maxY == -1)
                 maxY = _barY;
@@ -482,13 +507,13 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 while (i<slines.Count && y < maxY)
                 {
                     SetCursorPos(0, y);
-                    Print(slines[i++].str);
+                    Print(slines[i++].Text);
                     y++;
                 }
                 if (y < maxY) SetCursorPos(0, y);
                 _linesHeight[index] = slines.Count; // CursorTop - y;
-                var atBottom = y >= maxY - 1;
-                return (atBottom,i-1);
+                var atBottom = y >= maxY;
+                return (atBottom,i-1,slines);
             }
         }
 
@@ -553,7 +578,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     Print(GetCmdsInfo());
                 }
 
-                PrintCursorInfo(onlyCursorInfo);
+                PrintCursorInfo();
                 
                 CropX = -1;
                 
@@ -564,7 +589,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             }
         }
 
-        void PrintCursorInfo(bool enableInvert=true)
+        void PrintCursorInfo()
         {
             SetCursorPos(0, _barY);
             EnableInvert();

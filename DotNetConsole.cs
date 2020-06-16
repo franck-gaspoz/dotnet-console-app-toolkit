@@ -687,9 +687,9 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        public static List<(string str,int x,int y,int length)> GetWorkAreaStringSplits(string s, Point origin, bool forceEnableConstraintInWorkArea=false, bool fitToVisibleArea = true)
+        public static List<LineSplit> GetWorkAreaStringSplits(string s, Point origin, bool forceEnableConstraintInWorkArea=false, bool fitToVisibleArea = true)
         {
-            var r = new List<(string, int,int, int)>();
+            var r = new List<LineSplit>();
             lock (ConsoleLock)
             {
                 int index = -1;
@@ -717,7 +717,7 @@ namespace DotNetConsoleAppToolkit
                     index = 0;
                     foreach (var line in croppedLines)
                     {
-                        r.Add((line,x0,y0,line.Length));                        
+                        r.Add(new LineSplit(line,x0,y0,line.Length));                        
                         x0 += line.Length;
                         index += line.Length;
                         SetCursorPosConstraintedInWorkArea(ref x0, ref y0, false, forceEnableConstraintInWorkArea,fitToVisibleArea);
@@ -725,7 +725,7 @@ namespace DotNetConsoleAppToolkit
                     }
                 }
                 else
-                    r.Add((s,x0,y0,s.Length));
+                    r.Add(new LineSplit(s,x0,y0,s.Length));
             }
             return r;
         }

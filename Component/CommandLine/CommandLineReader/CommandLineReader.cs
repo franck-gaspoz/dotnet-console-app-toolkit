@@ -85,20 +85,20 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                             var index = GetIndexInWorkAreaConstraintedString(txt, _beginOfLineCurPos, p);
                             var slines = GetWorkAreaStringSplits(txt, _beginOfLineCurPos);
 
-                            if (CursorTop == slines.Min(o => o.y))
+                            if (CursorTop == slines.Min(o => o.Y))
                             {
                                 SetCursorLeft(left);
                                 Print(_prompt);
                             }
                             var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
                             EnableConstraintConsolePrintInsideWorkArea = false;
-                            foreach (var (s, x, y, l) in slines)
-                                if (y >= top && y <= height)
+                            foreach (var sline in slines)
+                                if (sline.Y >= top && sline.Y <= height)
                                 {
-                                    SetCursorPos(x, y);
-                                    ConsolePrint("".PadLeft(width - x, ' '));
-                                    SetCursorPos(x, y);
-                                    ConsolePrint(s);
+                                    SetCursorPos(sline.X, sline.Y);
+                                    ConsolePrint("".PadLeft(width - sline.X, ' '));
+                                    SetCursorPos(sline.X, sline.Y);
+                                    ConsolePrint(sline.Text);
                                 }
                             EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
                             SetCursorPos(p);
@@ -290,8 +290,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                                             lock (ConsoleLock)
                                             {
                                                 var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
-                                                var (txt, nx, ny, l) = slines.Last();
-                                                SetCursorPosConstraintedInWorkArea(nx + l, ny);
+                                                var sline = slines.Last();
+                                                SetCursorPosConstraintedInWorkArea(sline.X + sline.Length, sline.Y);
                                             }
                                             break;
                                         case ConsoleKey.Tab:
@@ -345,13 +345,13 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                                                     var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
                                                     var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
                                                     EnableConstraintConsolePrintInsideWorkArea = false;
-                                                    foreach (var (line, lx, ly, l) in slines)
-                                                        if (ly >= top && ly <= bottom)
+                                                    foreach (var sline in slines)
+                                                        if (sline.Y >= top && sline.Y <= bottom)
                                                         {
-                                                            SetCursorPos(lx, ly);
-                                                            ConsolePrint("".PadLeft(right - lx, ' '));
-                                                            SetCursorPos(lx, ly);
-                                                            ConsolePrint(line);
+                                                            SetCursorPos(sline.X, sline.Y);
+                                                            ConsolePrint("".PadLeft(right - sline.X, ' '));
+                                                            SetCursorPos(sline.X, sline.Y);
+                                                            ConsolePrint(sline.Text);
                                                         }
                                                     _inputReaderStringBuilder.Remove(_inputReaderStringBuilder.Length - 1, 1);
                                                     EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
@@ -376,13 +376,13 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                                                     var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
                                                     var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
                                                     EnableConstraintConsolePrintInsideWorkArea = false;
-                                                    foreach (var (line, lx, ly, l) in slines)
-                                                        if (ly >= top && ly <= bottom)
+                                                    foreach (var sline in slines)
+                                                        if (sline.Y >= top && sline.Y <= bottom)
                                                         {
-                                                            SetCursorPos(lx, ly);
-                                                            ConsolePrint("".PadLeft(right - lx, ' '));
-                                                            SetCursorPos(lx, ly);
-                                                            ConsolePrint(line);
+                                                            SetCursorPos(sline.X, sline.Y);
+                                                            ConsolePrint("".PadLeft(right - sline.X, ' '));
+                                                            SetCursorPos(sline.X, sline.Y);
+                                                            ConsolePrint(sline.Text);
                                                         }
                                                     _inputReaderStringBuilder.Remove(_inputReaderStringBuilder.Length - 1, 1);
                                                     EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
@@ -419,7 +419,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                                             lock (ConsoleLock)
                                             {
                                                 var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
-                                                if (CursorTop == slines.Max(o => o.y))
+                                                if (CursorTop == slines.Max(o => o.Y))
                                                 {
                                                     var fh = CommandLineProcessor.CmdsHistory.GetForwardHistory();
                                                     if (fh != null)
@@ -433,9 +433,9 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                                                 }
                                                 else
                                                 {
-                                                    var (txt, nx, ny, l) = slines.Where(o => o.y == CursorTop + 1).FirstOrDefault();
-                                                    if (txt!=null)
-                                                        SetCursorPosConstraintedInWorkArea(Math.Min(CursorLeft, nx + l), CursorTop + 1);
+                                                    var sline = slines.Where(o => o.Y == CursorTop + 1).FirstOrDefault();
+                                                    if (sline.Text!=null)
+                                                        SetCursorPosConstraintedInWorkArea(Math.Min(CursorLeft, sline.X + sline.Length), CursorTop + 1);
                                                 }
                                             }
                                             break;
@@ -481,11 +481,11 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                                         var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
                                         var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
                                         EnableConstraintConsolePrintInsideWorkArea = false;
-                                        foreach (var (line, lx, ly, l) in slines)
-                                            if (ly >= top && ly <= bottom)
+                                        foreach (var sline in slines)
+                                            if (sline.Y >= top && sline.Y <= bottom)
                                             {
-                                                SetCursorPos(lx, ly);
-                                                ConsolePrint(line);
+                                                SetCursorPos(sline.X, sline.Y);
+                                                ConsolePrint(sline.Text);
                                             }
                                         EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
                                         x += printedStr.Length;
@@ -557,11 +557,11 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                     var slines = GetWorkAreaStringSplits(txt, _beginOfLineCurPos);
                     var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
                     EnableConstraintConsolePrintInsideWorkArea = false;
-                    foreach (var (line, x, y, l) in slines)
-                        if (y>=top && y<= bottom)
+                    foreach (var sline in slines)
+                        if (sline.Y>=top && sline.Y<= bottom)
                         {
-                            SetCursorPos(x, y);
-                            ConsolePrint("".PadLeft(right - x, ' '));
+                            SetCursorPos(sline.X, sline.Y);
+                            ConsolePrint("".PadLeft(right - sline.X, ' '));
                         }
                     EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
                     SetCursorPosConstraintedInWorkArea(_beginOfLineCurPos);

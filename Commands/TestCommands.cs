@@ -21,8 +21,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
         {
             if (file.CheckExists())
             {
-                var eols = GetEOLCounts(File.ReadAllText(file.FullName));
-                foreach (var eol in eols.eolCounts)
+                var (_, eolCounts, _) = GetEOLCounts(File.ReadAllText(file.FullName));
+                foreach (var eol in eolCounts)
                     Println($"{eol.eol}={eol.count}");
             }
         }
