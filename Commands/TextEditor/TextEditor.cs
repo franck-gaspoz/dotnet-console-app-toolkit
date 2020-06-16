@@ -612,8 +612,8 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     else
                     {
                         EmptyInfoBar();
-                        EnableInvert();
                         SetCursorPos(0, _barY);
+                        EnableInvert();
                         Print(_statusText);
                     }
 
