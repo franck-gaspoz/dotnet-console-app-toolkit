@@ -10,6 +10,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
     public class EditorBackup
     {
         public readonly FilePath FilePath;
+        public readonly long FileSize = 0;
         public readonly int FirstLine = 0;
         public readonly int CurrentLine = 0;
         public readonly int X = 0;
@@ -24,6 +25,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
         public EditorBackup(
             FilePath filePath,
+            long fileSize,
             int firstLine,
             int currentLine,
             int x,
@@ -37,6 +39,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             int splitedLastVisibleLineIndex)
         {
             FilePath = filePath;
+            FileSize = fileSize;
             FirstLine = firstLine;
             CurrentLine = currentLine;
             X = x;

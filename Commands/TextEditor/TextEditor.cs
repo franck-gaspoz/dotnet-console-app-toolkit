@@ -61,6 +61,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         bool _barVisible;
         int _lastVisibleLineIndex;
         int _splitedLastVisibleLineIndex;
+        long _fileSize;
         string _pressCmdKeyText;
         Stack<EditorBackup> _editorBackups;
 
@@ -98,6 +99,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             _statusText = null;
             if (forgetCurrentFile)
             {
+                _fileSize = 0;
                 _fileEOL = null;
                 _fileEncoding = null;
                 _filePath = null;
@@ -117,7 +119,6 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     _width = sc.WindowWidth;
                     _height = sc.WindowHeight;
                     _barY = _height - (_barVisible ? _barHeight : 0);
-                    //_X = _Y = _currentLine = _splitedLineIndex = 0;
                     SetCursorHome(); 
                     DisplayFile();
                     EmptyInfoBar();
@@ -398,11 +399,12 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             DisplayEditor();
         }
 
-        void ClearCurrentEditor()
+        void ClearCurrentEditor(bool newFile=false)
         {
             lock (ConsoleLock)
             {
-                InitEditor(false,false);
+                InitEditor(false,newFile);
+                _fileSize = 0;
                 DisplayEditor();
             }
         }
@@ -413,6 +415,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             _linesSplits.Clear();
             _filePath = editorBackup.FilePath;
             _firstLine = editorBackup.FirstLine;
+            _fileSize = editorBackup.FileSize;
             _currentLine = editorBackup.CurrentLine;
             _X = editorBackup.X;
             _Y = editorBackup.Y;
@@ -588,6 +591,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             if (filePath == null) return;
             _filePath = filePath;
+            _fileSize = filePath.FileInfo.Length;
             _fileEncoding = filePath.GetEncoding(Encoding.Default);
             var (lines, platform) = FIleReader.ReadAllLines(filePath.FullName);
             _text = lines.ToList();
@@ -623,6 +627,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             return new EditorBackup(
                 _filePath,
+                _fileSize,
                 _firstLine,
                 _currentLine,
                 _X,
@@ -750,7 +755,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         string GetCursorInfo() => $"{_X},{_Y}";
         string GetFileInfo()
         {
-            return (_filePath == null) ? $"no file" : $"{_filePath.Name} | {Plur("line", _text.Count)} | size={HumanFormatOfSize(_filePath.FileInfo.Length,2)} | enc={_fileEncoding.EncodingName} | eol={FileEOL}";
+            return (_filePath == null) ? $"no file" : $"{_filePath.Name} | {Plur("line", _text.Count)} | size={HumanFormatOfSize(_fileSize,2)} | enc={_fileEncoding.EncodingName} | eol={FileEOL}";
         }
         string GetCmdsInfo()
         {
