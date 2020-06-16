@@ -16,6 +16,7 @@ using static DotNetConsoleAppToolkit.DotNetConsole;
 using cons = DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.Str;
 using sc = System.Console;
+using System.IO;
 
 namespace DotNetConsoleAppToolkit.Commands.TextEditor
 {
@@ -61,7 +62,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         int _lastVisibleLineIndex;
         int _splitedLastVisibleLineIndex;
         string _pressCmdKeyText;
-        bool _barCmdMode;
+        Stack<EditorBackup> _editorBackups;
 
         #endregion
 
@@ -75,25 +76,32 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 InitEditor();
                 LoadFile(filePath);
                 DisplayEditor();
+                WaitAndProcessKeyPress();
             }
         }
 
-        void InitEditor()
+        void InitEditor(bool clearEditorBackups=true,bool forgetCurrentFile=true)
         {
-            _barCmdMode = false;
+            if (clearEditorBackups) _editorBackups = new Stack<EditorBackup>();
             _splitedLineIndex = 0;
             _firstLine = 0;
             _currentLine = 0;
             _X = 0;
             _Y = 0;
             _cmdKey = ConsoleKey.Escape;
+            _cmdInput = false;
             _barHeight = _defaultBarHeight;
             _cmdKeyStr = "Esc ";
             _cmdBarIndex = 0;
             _barVisible = true;
             _pressCmdKeyText = $"press a command key - press {_cmdKeyStr.Trim()} for more commands ...";
             _statusText = null;
-            _filePath = null;
+            if (forgetCurrentFile)
+            {
+                _fileEOL = null;
+                _fileEncoding = null;
+                _filePath = null;
+            }
             _text = new List<string> { "" };
             _linesSplits = new List<List<LineSplit>> { new List<LineSplit> { new LineSplit("", 0, 0, 0) } };
         }
@@ -116,8 +124,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     DisplayInfoBar(false);
                     SetCursorPos(_X, _Y);
                     ShowCur();
-                }
-                WaitAndProcessKeyPress();
+                }                
             } catch (Exception ex)
             {
                 Errorln(ex+"");
@@ -254,6 +261,10 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                         }
                         break;
 
+                    case ConsoleKey.F1:
+                        OpenHelp();
+                        break;
+
                     default:
                         printable = true;
                         break;
@@ -310,12 +321,31 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                                 }
                                 break;
 
-                            case ConsoleKey.B:
+                            case ConsoleKey.V:
                                 ToggleBarVisibility();
                                 break;
 
+                            case ConsoleKey.T:
+                                break;
+
+                            case ConsoleKey.B:
+                                break;
+
+                            case ConsoleKey.C:
+                                ClearCurrentEditor();
+                                hideBar = false;
+                                printOnlyCursorInfo = false;
+                                break;
+
                             case ConsoleKey.Q:
-                                end = true;
+                                if (_editorBackups.Count == 0)
+                                    end = true;
+                                else
+                                {
+                                    hideBar = false;
+                                    printOnlyCursorInfo = false;
+                                    RestorePreviousFile();
+                                }
                                 break;
 
                             default:
@@ -343,6 +373,56 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 }
             }
             Exit();
+        }
+
+        void OpenHelp()
+        {
+            _editorBackups.Push(GetCurrentEditorBackup());
+            lock (ConsoleLock)
+            {
+                InitEditor(false);
+                LoadFile(new FilePath(Path.Combine(
+                    Environment.CurrentDirectory,
+                    "Commands", 
+                    "TextEditor",
+                    "edit-help.txt")));
+                DisplayEditor();
+            }
+        }
+
+        void RestorePreviousFile()
+        {
+            var editorBackup = _editorBackups.Pop();
+            InitEditor(false);
+            RestoreEditorBackup(editorBackup);
+            DisplayEditor();
+        }
+
+        void ClearCurrentEditor()
+        {
+            lock (ConsoleLock)
+            {
+                InitEditor(false,false);
+                DisplayEditor();
+            }
+        }
+
+        void RestoreEditorBackup(EditorBackup editorBackup)
+        {
+            _text.Clear();
+            _linesSplits.Clear();
+            _filePath = editorBackup.FilePath;
+            _firstLine = editorBackup.FirstLine;
+            _currentLine = editorBackup.CurrentLine;
+            _X = editorBackup.X;
+            _Y = editorBackup.Y;
+            _text.AddRange(editorBackup.Text);
+            _linesSplits.AddRange(editorBackup.LinesSplits);
+            _fileEncoding = editorBackup.FileEncoding;
+            _fileEOL = editorBackup.FileEOL;
+            _beginOfLineCurPos = editorBackup.BeginOfLineCurPos;
+            _lastVisibleLineIndex = editorBackup.LastVisibleLineIndex;
+            _splitedLastVisibleLineIndex = editorBackup.SplitedLastVisibleLineIndex;
         }
 
         void ToggleBarVisibility()
@@ -537,6 +617,24 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 #if dbg
             System.Diagnostics.Debug.WriteLine($"INIT: _lastVisibleLineIndex={_lastVisibleLineIndex} _splitedLastVisibleLineIndex={_splitedLastVisibleLineIndex} line={_text[_lastVisibleLineIndex]}");
 #endif
+        }
+
+        EditorBackup GetCurrentEditorBackup()
+        {
+            return new EditorBackup(
+                _filePath,
+                _firstLine,
+                _currentLine,
+                _X,
+                _Y,
+                _text,
+                _linesSplits,
+                _fileEncoding,
+                _fileEOL,
+                _beginOfLineCurPos,
+                _lastVisibleLineIndex,
+                _splitedLastVisibleLineIndex
+                );
         }
 
         (bool atBottom,int splitedLineIndex, List<LineSplit> slines) PrintLine(int index,int subIndex=0,int maxY=-1)

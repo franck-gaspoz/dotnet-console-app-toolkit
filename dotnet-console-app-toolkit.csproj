@@ -13,6 +13,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Commands\TextEditor\edit-help.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Commands\TextEditor\edit-help.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.7.0-1.final" />
   </ItemGroup>
 
