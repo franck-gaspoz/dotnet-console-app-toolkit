@@ -53,6 +53,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         ConsoleKey _cmdKey;
         string _cmdKeyStr;
         Point _beginOfLineCurPos = new Point(0, 0);
+        int _splitedLineIndex;
 
         #endregion
 
@@ -66,12 +67,13 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 _filePath = filePath;
                 LoadFile(filePath);
                 InitEditor();
-                ShowEditor();
+                DisplayEditor();
             }
         }
 
         void InitEditor()
         {
+            _splitedLineIndex = 0;
             _firstLine = 0;
             _currentLine = 0;
             _X = 0;
@@ -81,20 +83,19 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             _cmdKeyStr = "Esc ";
         }
 
-        void ShowEditor()
+        void DisplayEditor()
         {
             try
             {
                 HideCur();
                 ClearScreen();
-                ShowCur();
                 _width = sc.WindowWidth;
                 _height = sc.WindowHeight;
                 _barY = _height - _barHeight;
                 SetCursorHome();
-                ShowFile();
-                ClearInfoBar();
-                ShowInfoBar(false);
+                DisplayFile();
+                EmptyInfoBar();
+                DisplayInfoBar(false);
                 SetCursorHome();
                 ShowCur();
                 WaitAndProcessKeyPress();
@@ -122,16 +123,19 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                         lock (ConsoleLock)
                         {
                             var p = CursorPos;
-                            if (p.Y == _beginOfLineCurPos.Y)
+                            if (_splitedLineIndex == 0)
                             {
-                                if (p.X > _beginOfLineCurPos.X)
+                                if (p.X > 0)
                                     SetCursorLeft(p.X - 1);                                
                             }
                             else
                             {
                                 var x = p.X - 1;
                                 if (x < left)
-                                    SetCursorPosConstraintedInWorkArea(right - 1, p.Y - 1,true,true,false);
+                                {
+                                    SetCursorPosConstraintedInWorkArea(right - 1, p.Y - 1, true, true, false);
+                                    _splitedLineIndex--;
+                                }
                                 else
                                     SetCursorLeft(x);
                             }
@@ -145,10 +149,12 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                         {
                             var line = _text[_currentLine];
                             var index = GetIndexInWorkAreaConstraintedString(line, _beginOfLineCurPos, CursorPos,true,false);
+                            var curY = CursorTop;
                             if (index < line.Length-1)                            
                                 SetCursorPosConstraintedInWorkArea(CursorLeft + 1, CursorTop,true,true,false);
                             _X = CursorLeft;
                             _Y = CursorTop;
+                            if (CursorTop > curY) _splitedLineIndex++;
                         }
                         break;
 
@@ -162,27 +168,29 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 #endif
                             if (_currentLine < _text.Count-1)
                             {
-                                if (CursorTop == _beginOfLineCurPos.Y + _linesHeight[_currentLine] - 1)
+                                if (_splitedLineIndex == _linesHeight[_currentLine] - 1)
                                 {
-                                    if (_currentLine < _text.Count - 1)
-                                    {
-                                        _currentLine++;
-                                        _X = 0;
-                                        _Y++;
-                                        _beginOfLineCurPos.X = _X;
-                                        _beginOfLineCurPos.Y = _Y;
-                                    }
+                                    _splitedLineIndex = 0;
+                                    _currentLine++;
+                                    _X = 0;
+                                    _Y++;
+                                    _beginOfLineCurPos.X = _X;
+                                    _beginOfLineCurPos.Y = _Y;
                                 }
                                 else
                                 {
                                     _Y++;
+                                    _splitedLineIndex++;
                                 }
                                 if (_Y < _barY)
                                     SetCursorPos(_X, _Y);
                                 else
                                 {
                                     _Y = _barY - 1;
-                                    Scroll(1);
+                                    if (_splitedLineIndex==0)
+                                        _beginOfLineCurPos.Y = _Y;
+                                    Scroll(-1);
+                                    SetCursorPos(_X, _Y);
                                 }
                             }
 #if dbg
@@ -199,22 +207,32 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                             System.Diagnostics.Debug.WriteLine($"_pastLine={_currentLine} height={_linesHeight[_currentLine]}");
                             System.Diagnostics.Debug.WriteLine($"{line}");
 #endif
-                            if (CursorTop == _beginOfLineCurPos.Y)
+                            if (_currentLine > 0 || _splitedLineIndex>0 )
                             {
-                                if (_currentLine > 0)
+                                if (_splitedLineIndex == 0)
                                 {
                                     _X = 0;
                                     _Y--;
                                     _currentLine--;
                                     _beginOfLineCurPos.X = _X;
                                     _beginOfLineCurPos.Y = _Y - (_linesHeight[_currentLine] - 1);
+                                    _splitedLineIndex = _linesHeight[_currentLine]-1;
+                                }
+                                else
+                                {
+                                    _splitedLineIndex--;
+                                    _Y--;                                  
+                                }
+                                if (_Y >= 0)
+                                {
+                                    SetCursorPos(_X, _Y);
+                                } else
+                                {
+                                    _Y = 0;
+                                    _beginOfLineCurPos.Y = _Y - (_linesHeight[_currentLine] - 1);
+                                    Scroll(1);
                                     SetCursorPos(_X, _Y);
                                 }
-                            }
-                            else
-                            {
-                                _Y--;
-                                SetCursorPos(_X, _Y);
                             }
 #if dbg
                             System.Diagnostics.Debug.WriteLine($"_currentLine={_currentLine} {_text[_currentLine]}");
@@ -251,21 +269,59 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     }
                 }
 
-                BackupCursorPos();
-                ShowInfoBar(true, printOnlyCursorInfo);
-                printOnlyCursorInfo = true;
-                RestoreCursorPos();
+                lock (ConsoleLock)
+                {
+                    BackupCursorPos();
+                    DisplayInfoBar(false, printOnlyCursorInfo);
+                    RestoreCursorPos();
+                    ShowCur();
+                    printOnlyCursorInfo = true;
+                }
             }
             Exit();
         }
 
         void Scroll(int dy)
         {
+            if (dy == 0) return;
             if (cons.WorkArea.IsEmpty)
             {
-                //SetCursorTop(sc.WindowHeight);
-                var esc = (char)27;
-                sc.Write(esc + "[1S");
+                lock (ConsoleLock)
+                {
+                    BackupCursorPos();
+                    HideCur();
+
+                    if (dy < 0)
+                    {
+                        SetCursorPos(0, _barY);
+                        FillFromCursorRight();
+                        SetCursorPos(0, _barY + 1);
+                        FillFromCursorRight();
+                    }
+                    if (dy > 0)
+                        ScrollWindowDown(dy);
+                    else
+                        ScrollWindowUp(-dy);
+
+                    EmptyInfoBar();
+                    DisplayInfoBar(false);
+
+                    var line = _text[_currentLine];
+                    var slines = GetWorkAreaStringSplits(line, _beginOfLineCurPos, true, false);
+                    _linesHeight[_currentLine] = slines.Count;
+                    if (dy < 0)
+                    {
+                        SetCursorPos(0, _barY - 1);
+                        Print(slines[_splitedLineIndex].str);
+                    } else
+                    {
+                        SetCursorPos(0, 0);
+                        Print(slines[_splitedLineIndex].str);
+                    }
+
+                    RestoreCursorPos();
+                    ShowCur();
+                }
             }
             else
             {
@@ -282,7 +338,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             HideCur();
             BackupCursorPos();
-            ClearInfoBar();
+            EmptyInfoBar();
             _statusText = text;
             RestoreCursorPos();
             ShowCur();
@@ -309,7 +365,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             _fileEOL = platform;
         }
 
-        void ShowFile()
+        void DisplayFile()
         {
             lock (ConsoleLock)
             {
@@ -334,41 +390,68 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             }
         }
 
-        void ClearInfoBar()
+        void EmptyInfoBar()
         {
             lock (ConsoleLock)
             {
+                // all these remarks for 'auto line break' console mode
+                // /!\ cursor visible leads to erase some characters (blank) in inverted mode and force ignore Tdoff !!
+                // conclusion: invert mode switched is system bugged on windows -- avoid it
                 SetCursorPos(0, _barY);
-                Print($"{Invon} {Fillright}{Tdoff}");
+                EnableInvert();
+                //Print($"{Fillright}{Tdoff}");    // TODO: this one does it on windows, but invert remains ?
+                FillFromCursorRight();
+
                 SetCursorPos(0, _barY + 1);
-                Print($"{Invon} {Fillright}{Tdoff}");
+                //Print($"{Invon} {Fillright}{Tdoff}"); // TODO: fix this sentence do not print the last character line
+                //Print($"{Invon}{Fillright}{Tdoff}");  // these on is ok
+                FillFromCursorRight();
+
+                SetCursorPos(0, _barY + 1);
+                DisableTextDecoration();
             }
         }
 
-        void ShowInfoBar(bool showCursor=true,bool onlyCursorInfo=false)
+        void DisplayInfoBar(bool showCursor=true,bool onlyCursorInfo=false)
         {
             lock (ConsoleLock)
             {
+                var r = ActualWorkArea(false);
+                CropX = r.Right-1;
                 HideCur();
+
                 if (!onlyCursorInfo)
                 {
                     SetCursorPos(0, _barY);
+                    EnableInvert();
+
                     if (!_cmdInput)
-                        Print($"{Invon}{GetFileInfo()}{Tdoff}");
+                        Print(GetFileInfo());
                     else
-                        Print($"{Invon}{_statusText}{Tdoff}");
+                        Print(_statusText);
+
                     SetCursorPos(0, _barY + 1);
-                    Print($"{Invon}{GetCmdsInfo()}{Tdoff}");
+                    Print(GetCmdsInfo());
                 }
-                PrintCursorInfo();
+
+                PrintCursorInfo(onlyCursorInfo);
+                
+                CropX = -1;
+                
+                SetCursorPos(0, _barY);
+                DisableTextDecoration();
+                
                 if (showCursor) ShowCur();
             }
         }
 
-        void PrintCursorInfo()
+        void PrintCursorInfo(bool enableInvert=true)
         {
+            SetCursorPos(0, _barY);
+            EnableInvert();
+            
             SetCursorPos(80, _barY + 1);
-            Print($"{Invon}{GetLastKeyInfo()} {GetPositionInfo()} | {GetCursorInfo()}    {Tdoff}");
+            Print($"{GetLastKeyInfo()} {GetPositionInfo()} | {_splitedLineIndex} | {GetCursorInfo()}    ");            
         }
 
         string GetLastKeyInfo() => _lastKeyInfo.Key + ""; /*+$"({_lastKeyInfo.KeyChar})"*/

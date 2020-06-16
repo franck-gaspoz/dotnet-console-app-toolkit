@@ -221,18 +221,21 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        //public static void EnableNoVisible() => Lock(() => { Print($"{(char)27}[8m"); });       // not available on windows
+        //public static void EnableNoVisible() => Lock(() => { Print($"{(char)27}[8m"); });       // not available
         public static void EnableInvert() => Lock(() => { Print($"{(char)27}[7m"); });
-        //public static void EnableBlink() => Lock(() => { Print($"{(char)27}[5m"); });           // not available on windows
-        //public static void EnableLowIntensity() => Lock(() => { Print($"{(char)27}[2m"); });    // not available on windows
+        //public static void EnableBlink() => Lock(() => { Print($"{(char)27}[5m"); });           // not available
+        //public static void EnableLowIntensity() => Lock(() => { Print($"{(char)27}[2m"); });    // not available
         public static void EnableUnderline() => Lock(() => { Print($"{(char)27}[4m"); });
-        //public static void EnableBold() => Lock(() => { Print($"{(char)27}[1m"); });            // not available on windows
+        //public static void EnableBold() => Lock(() => { Print($"{(char)27}[1m"); });            // not available
         public static void DisableTextDecoration() => Lock(() => { Print($"{(char)27}[0m"); RestoreDefaultColors(); });
 
         public static void MoveCursorDown(int n=1) => Lock(() => { Print($"{(char)27}[{n}B"); });
         public static void MoveCursorTop(int n = 1) => Lock(() => { Print($"{(char)27}[{n}A"); });
         public static void MoveCursorLeft(int n = 1) => Lock(() => {  Print($"{(char)27}[{n}D"); });
         public static void MoveCursorRight(int n = 1) => Lock(() => { Print($"{(char)27}[{n}C"); });
+
+        public static void ScrollWindowDown(int n=1) { sc.Write(((char)27) + $"[{n}T"); }
+        public static void ScrollWindowUp(int n=1) { sc.Write(((char)27) + $"[{n}S"); }
 
         public static void BackupForeground() => Lock(() => _foregroundBackup = sc.ForegroundColor);
         public static void BackupBackground() => Lock(() => _backgroundBackup = sc.BackgroundColor);
@@ -607,14 +610,16 @@ namespace DotNetConsoleAppToolkit
                 var f = sc.ForegroundColor;
                 var b = sc.BackgroundColor;
                 var aw = ActualWorkArea();
-                var nb = Math.Max(aw.Right, sc.BufferWidth - 1) - CursorLeft - 1;
+                var nb = Math.Max(0, Math.Max(aw.Right, sc.BufferWidth - 1) - CursorLeft - 1);
                 var x = CursorLeft;
                 if (useDefaultColors)
                 {
                     sc.ForegroundColor = ColorSettings.Default.Foreground.Value;
                     sc.BackgroundColor = ColorSettings.Default.Background.Value;
                 }
-                Write("".PadLeft(nb, c));
+                Write("".PadLeft(nb, c));   // BUG: WINDOWS: do not print the last character
+                SetCursorPos(nb, CursorTop);
+                Write(" ");
                 if (useDefaultColors)
                 {
                     sc.ForegroundColor = f;
@@ -682,7 +687,7 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        public static List<(string s,int x,int y,int l)> GetWorkAreaStringSplits(string s, Point origin, bool forceEnableConstraintInWorkArea=false, bool fitToVisibleArea = true)
+        public static List<(string str,int x,int y,int length)> GetWorkAreaStringSplits(string s, Point origin, bool forceEnableConstraintInWorkArea=false, bool fitToVisibleArea = true)
         {
             var r = new List<(string, int,int, int)>();
             lock (ConsoleLock)

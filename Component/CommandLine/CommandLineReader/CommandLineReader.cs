@@ -433,8 +433,9 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                                                 }
                                                 else
                                                 {
-                                                    var (txt, nx, ny, l) = slines.Where(o => o.y == CursorTop + 1).First();
-                                                    SetCursorPosConstraintedInWorkArea(Math.Min(CursorLeft, nx + l), CursorTop + 1);
+                                                    var (txt, nx, ny, l) = slines.Where(o => o.y == CursorTop + 1).FirstOrDefault();
+                                                    if (txt!=null)
+                                                        SetCursorPosConstraintedInWorkArea(Math.Min(CursorLeft, nx + l), CursorTop + 1);
                                                 }
                                             }
                                             break;
