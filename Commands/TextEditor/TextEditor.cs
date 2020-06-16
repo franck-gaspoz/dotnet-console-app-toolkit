@@ -338,6 +338,12 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                                 printOnlyCursorInfo = false;
                                 break;
 
+                            case ConsoleKey.N:
+                                ClearCurrentEditor(true);
+                                hideBar = false;
+                                printOnlyCursorInfo = false;
+                                break;
+
                             case ConsoleKey.Q:
                                 if (_editorBackups.Count == 0)
                                     end = true;
@@ -762,7 +768,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             string Opt(string shortCut,bool addCmdKeyStr=true) => $"{Bwhite}{Black}{(addCmdKeyStr?_cmdKeyStr:"")}{shortCut}{ColorSettings.Default}";
             return _cmdBarIndex switch
             {
-                1 => $" {Opt("b")} Toggle bar | {Opt("i")} info bar | {Opt("c")} Clear",
+                1 => $" {Opt("v")} Toggle bar | {Opt("i")} Info bar | {Opt("c")} Clear | {Opt("n")} New",
                 _ => $" {Opt("q")} Quit | {Opt("l")} Load | {Opt("s")} Save | {Opt("t")} Top | {Opt("b")} Bottom | {Opt("F1", false)} Help",
             };
         }
