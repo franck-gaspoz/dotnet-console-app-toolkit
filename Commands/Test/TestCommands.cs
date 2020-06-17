@@ -1,11 +1,12 @@
-﻿using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
-using static DotNetConsoleAppToolkit.DotNetConsole;
-using sc = System.Console;
-using static DotNetConsoleAppToolkit.Lib.FIleReader;
-using DotNetConsoleAppToolkit.Commands.FileSystem;
+﻿using DotNetConsoleAppToolkit.Commands.FileSystem;
+using DotNetConsoleAppToolkit.Component.CommandLine;
+using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 using System.IO;
+using static DotNetConsoleAppToolkit.DotNetConsole;
+using static DotNetConsoleAppToolkit.Lib.FIleReader;
+using sc = System.Console;
 
-namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
+namespace DotNetConsoleAppToolkit.Commands.Test
 {
     [Commands("tests commands")]
     public class TestCommands : CommandsType

@@ -1,0 +1,10 @@
+﻿(f=cyan,b=darkblue)test: list of directives(f=white,b=black)
+begin text(f=cyan,b=darkblue)test: begin with a text and having directives(f=white,b=black)
+(fr=cyanure)test: bad directive name(f=white,b=black)
+(f=cyanure)test: bad directive value(f=white,b=black)
+(f=red,f=cyanure)test 1: bad directive name at pos>0 in list(f=white,b=black)
+(f=red,fr=cyanure)test 1: bad directive value at pos>0 in list(f=white,b=black)
+(f=cyan)unique directive(f=white)
+
+(f=cyan)set foreground(f=white)
+(b=darkblue)set background(f=white)
