@@ -381,12 +381,12 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        public static void Println(IEnumerable<string> ls) { foreach (var s in ls) Println(s); }
-        public static void Print(IEnumerable<string> ls) { foreach (var s in ls) Print(s); }
-        public static void Println(string s="") => Print(s, true);
-        public static void Print(string s="") => Print(s, false);
-        public static void Println(char s) => Print(s+"", true);
-        public static void Print(char s) => Print(s+"", false);
+        public static void Println(IEnumerable<string> ls, bool ignorePrintDirectives = false) { foreach (var s in ls) Println(s, ignorePrintDirectives); }
+        public static void Print(IEnumerable<string> ls, bool ignorePrintDirectives = false) { foreach (var s in ls) Print(s, ignorePrintDirectives); }
+        public static void Println(string s="", bool ignorePrintDirectives = false) => Print(s, true,false, !ignorePrintDirectives);
+        public static void Print(string s="",bool ignorePrintDirectives=false) => Print(s, false,false, !ignorePrintDirectives);
+        public static void Println(char s, bool ignorePrintDirectives = false) => Print(s+"", true,false, !ignorePrintDirectives);
+        public static void Print(char s, bool ignorePrintDirectives = false) => Print(s+"", false, !ignorePrintDirectives);
 
         public static void Error(string s="") => Error(s, false);
         public static void Errorln(string s="") => Error(s, true);
@@ -414,7 +414,7 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        public static string GetPrint(string s, bool lineBreak = false, PrintSequences printSequences = null )
+        public static string GetPrint(string s, bool lineBreak = false,bool doNotEvaluatePrintDirectives=false,bool ignorePrintDirectives=false, PrintSequences printSequences = null )
         {
             lock (ConsoleLock)
             {
@@ -426,7 +426,7 @@ namespace DotNetConsoleAppToolkit
                     RedirectOutputTo(sw);
                     var e = EnableConstraintConsolePrintInsideWorkArea;
                     EnableConstraintConsolePrintInsideWorkArea = false;
-                    Print(s, lineBreak,false,true, true,printSequences);
+                    Print(s, lineBreak,false, !ignorePrintDirectives, true,printSequences);
                     EnableConstraintConsolePrintInsideWorkArea = e;
                     sw.Flush();
                     ms.Position = 0;
@@ -715,7 +715,7 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        public static List<LineSplit> GetWorkAreaStringSplits(string s, Point origin, bool forceEnableConstraintInWorkArea=false, bool fitToVisibleArea = true, bool textHasPrintDirectives = false)
+        public static List<LineSplit> GetWorkAreaStringSplits(string s, Point origin, bool forceEnableConstraintInWorkArea=false, bool fitToVisibleArea = true, bool doNotEvaluatePrintDirectives = false,bool ignorePrintDirectives=false )
         {
             var r = new List<LineSplit>();
             lock (ConsoleLock)
@@ -729,11 +729,11 @@ namespace DotNetConsoleAppToolkit
                 string pds = null;
                 var length = s.Length;
                 PrintSequences ps = null;
-                if (textHasPrintDirectives)
+                if (doNotEvaluatePrintDirectives)
                 {
                     pds = s;
                     ps = new PrintSequences();
-                    s = GetPrint(s,false,ps);
+                    s = GetPrint(s, false, doNotEvaluatePrintDirectives, ignorePrintDirectives, ps);
                 }
                 var xr = x0 + s.Length - 1;
                 var xm = x + w - 1;

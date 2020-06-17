@@ -820,12 +820,12 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 var line = _text[index];
                 var slinesrw = GetWorkAreaStringSplits(line, new Point(0, y), true, false,true);
                 var slines = GetWorkAreaStringSplits(line, new Point(0, y), true, false);
-                if (_rawMode) slines = slinesrw;
+                //if (_rawMode) slines = slinesrw;
                 int i = subIndex;
                 while (i<slines.Count && y < maxY)
                 {
                     SetCursorPos(0, y);
-                    Print(slines[i++].Text);
+                    Print(slines[i++].Text,_rawMode);
                     y++;
                 }
                 if (y < maxY) SetCursorPos(0, y);
