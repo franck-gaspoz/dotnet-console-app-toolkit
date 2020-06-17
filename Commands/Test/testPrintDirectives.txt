@@ -12,6 +12,9 @@ begin text|(f=cyan,b=darkblue)test: begin with a text and having directives(f=wh
 
 ------------------------------------
 
+(invon)inverted(tdoff)
+(uon)underline(tdoff)
+
 (f=darkblue)darkblue
 (f=darkgreen)darkgreen
 (f=darkcyan)darkcyan
@@ -27,6 +30,22 @@ begin text|(f=cyan,b=darkblue)test: begin with a text and having directives(f=wh
 (f=magenta)magenta
 (f=yellow)yellow
 (f=white)white
+
+(b=darkblue)darkblue
+(b=darkgreen)darkgreen
+(b=darkcyan)darkcyan
+(b=darkred)darkred
+(b=darkmagenta)darkmagenta
+(b=darkyellow)darkyellow
+(b=gray)gray
+(b=darkgray)darkgray
+(b=blue)blue
+(b=green)green
+(b=cyan)cyan
+(b=red)red
+(b=magenta)magenta
+(b=yellow)yellow
+(b=white,f=black)white
 
 ------------------------------------
 

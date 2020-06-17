@@ -812,20 +812,19 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
         (bool atBottom,int splitedLineIndex, List<LineSplit> slines) PrintLine(int index,int subIndex=0,int maxY=-1)
         {
-            if (maxY == -1)
-                maxY = _barY;
+            if (maxY == -1) maxY = _barY;
             lock (ConsoleLock)
             {
                 var y = CursorTop;
                 var line = _text[index];
                 var slinesrw = GetWorkAreaStringSplits(line, new Point(0, y), true, false,true);
                 var slines = GetWorkAreaStringSplits(line, new Point(0, y), true, false);
-                //if (_rawMode) slines = slinesrw;
                 int i = subIndex;
                 while (i<slines.Count && y < maxY)
                 {
                     SetCursorPos(0, y);
-                    Print(slines[i++].Text,_rawMode);
+                    Print(slines[i++].Text, _rawMode);
+                    if (!_rawMode) Print(ColorSettings.Default.ToString());
                     y++;
                 }
                 if (y < maxY) SetCursorPos(0, y);
