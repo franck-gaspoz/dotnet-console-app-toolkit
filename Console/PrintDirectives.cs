@@ -22,7 +22,7 @@
     *      restore foreground: rsf
     *      restore background: rsb
     *      set colors to defaults: rdc
-    *      consoleColor (ignoreCase) := Black | DarkBlue | DarkGreen | DarkCyan | DarkRed  | DarkMagenta | DarkYellow | Gray | DarkGray  | Blue | Green | Cyan  | Red  | Magenta  | Yellow  | White
+    *      consoleColor (ignoreCase) := black | darkblue | darkgreen | darkcyan | darkred  | darkmagenta | darkyellow | gray | darkgray  | blue | green | cyan  | red  | magenta  | yellow  | white     (case insensitive)
     * print flow control:
     *      clear console: cl
     *      line break: br

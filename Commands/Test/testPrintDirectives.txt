@@ -12,6 +12,24 @@ begin text|(f=cyan,b=darkblue)test: begin with a text and having directives(f=wh
 
 ------------------------------------
 
+(f=darkblue)darkblue
+(f=darkgreen)darkgreen
+(f=darkcyan)darkcyan
+(f=darkred)darkred
+(f=darkmagenta)darkmagenta
+(f=darkyellow)darkyellow
+(f=gray)gray
+(f=darkgray)darkgray
+(f=blue)blue
+(f=green)green
+(f=cyan)cyan
+(f=red)red
+(f=magenta)magenta
+(f=yellow)yellow
+(f=white)white
+
+------------------------------------
+
 ERROR 2: 
 - is: 
 test: bad directive value
