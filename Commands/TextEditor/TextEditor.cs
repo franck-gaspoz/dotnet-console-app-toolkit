@@ -317,6 +317,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                         switch (c.Key)
                         {
                             case ConsoleKey.I:
+                                // show file info bar
                                 hideBar = false;
                                 _statusText = null;                                
                                 _cmdInput = false;
@@ -329,35 +330,45 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                                 break;
 
                             case ConsoleKey.V:
+                                // toggle bar vis
                                 ToggleBarVisibility();
                                 break;
 
                             case ConsoleKey.T:
+                                // file top
                                 break;
 
                             case ConsoleKey.B:
+                                // file bottom
                                 break;
 
                             case ConsoleKey.C:
+                                // clear editor
+                                if (_readOnly) { hideBar = false; break; }
                                 ClearCurrentEditor();
                                 hideBar = false;
                                 printOnlyCursorInfo = false;
                                 break;
 
                             case ConsoleKey.N:
+                                // new file
                                 ClearCurrentEditor(true);
                                 hideBar = false;
                                 printOnlyCursorInfo = false;
                                 break;
 
                             case ConsoleKey.S:
+                                // save file
+                                if (_readOnly) { hideBar = false; break; }
                                 SaveFile();
                                 break;
 
                             case ConsoleKey.L:
+                                // load file
                                 break;
 
                             case ConsoleKey.Q:
+                                // quit current editor - unstack to previous file if any, else exit
                                 if (_fileModified && Confirm($"file '{_filePath.Name}' has unsaved changes. Do you want to save it"))
                                     SaveFile();
                                 if (_editorBackups.Count == 0)
@@ -371,6 +382,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                                 break;
 
                             default:
+                                // invalid
                                 hideBar = false;
                                 _statusText = $"{Bred}Invalid comand key.{ColorSettings.Default} {_pressCmdKeyText} " + GetBarIndex();
                                 printOnlyCursorInfo = false;
