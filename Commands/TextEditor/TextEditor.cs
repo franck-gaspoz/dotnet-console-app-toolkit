@@ -709,13 +709,13 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     if (dy < 0)
                     {
                         SetCursorPos(0, _barY - 1);
-                        Print(slines[_splitedLineIndex].Text);
+                        PrintLineSplit(slines[_splitedLineIndex].Text);
                         _lastVisibleLineIndex = _currentLine;
                         _splitedLastVisibleLineIndex = _splitedLineIndex;
                     } else
                     {
                         SetCursorPos(0, 0);
-                        Print(slines[_splitedLineIndex].Text);
+                        PrintLineSplit(slines[_splitedLineIndex].Text);
                         DecrementLineYPosition();
                     }
 
@@ -822,9 +822,8 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 int i = subIndex;
                 while (i<slines.Count && y < maxY)
                 {
-                    SetCursorPos(0, y);
-                    Print(slines[i++].Text, _rawMode);
-                    if (!_rawMode) Print(ColorSettings.Default.ToString());
+                    SetCursorPos(0, y);                    
+                    PrintLineSplit(slines[i++].Text);
                     y++;
                 }
                 if (y < maxY) SetCursorPos(0, y);
@@ -832,6 +831,12 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 var atBottom = y >= maxY;
                 return (atBottom,i-1,slines);
             }
+        }
+
+        void PrintLineSplit(string s)
+        {
+            Print(s, _rawMode);
+            if (!_rawMode) Print(ColorSettings.Default.ToString());
         }
 
         List<LineSplit> GetLineSplits(int lineIndex, int x,int y) => GetWorkAreaStringSplits(_text[lineIndex], new Point(x, y), true, false);
