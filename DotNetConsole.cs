@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using static DotNetConsoleAppToolkit.Component.UI.UIElement;
 using static DotNetConsoleAppToolkit.Lib.Str;
@@ -413,7 +414,32 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        public static string GetPrint(string s,bool lineBreak=false)
+        public static string GetPrint(string s, bool lineBreak = false )
+        {
+            lock (ConsoleLock)
+            {
+                lock (ConsoleLock)
+                {
+                    if (string.IsNullOrWhiteSpace(s)) return s;
+                    var ms = new MemoryStream(s.Length * 4);
+                    var sw = new StreamWriter(ms);
+                    RedirectOutputTo(sw);
+                    var e = EnableConstraintConsolePrintInsideWorkArea;
+                    EnableConstraintConsolePrintInsideWorkArea = false;
+                    Print(s, lineBreak,false,true, true);
+                    EnableConstraintConsolePrintInsideWorkArea = e;
+                    sw.Flush();
+                    ms.Position = 0;
+                    var rw = new StreamReader(ms);
+                    var txt = rw.ReadToEnd();
+                    rw.Close();
+                    RedirectOutputTo(null);
+                    return txt;
+                }
+            } 
+        }
+        
+        public static string GetPrintWithEscapeSequences(string s,bool lineBreak=false)
         {
             lock (ConsoleLock)
             {
@@ -689,7 +715,7 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        public static List<LineSplit> GetWorkAreaStringSplits(string s, Point origin, bool forceEnableConstraintInWorkArea=false, bool fitToVisibleArea = true)
+        public static List<LineSplit> GetWorkAreaStringSplits(string s, Point origin, bool forceEnableConstraintInWorkArea=false, bool fitToVisibleArea = true, bool textHasPrintDirectives = false)
         {
             var r = new List<LineSplit>();
             lock (ConsoleLock)
@@ -700,6 +726,13 @@ namespace DotNetConsoleAppToolkit
                 var y0 = origin.Y;
 
                 var croppedLines = new List<string>();
+                string pds = null;
+                var length = s.Length;
+                if (textHasPrintDirectives)
+                {
+                    pds = s;
+                    s = GetPrint(s);
+                }
                 var xr = x0 + s.Length - 1;
                 var xm = x + w - 1;
                 if (xr >= xm)
@@ -800,9 +833,9 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        #endregion
+#endregion
 
-        #region UI operations
+#region UI operations
 
         static void RunUIElementWatcher()
         {
@@ -955,9 +988,9 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        #endregion
+#endregion
         
-        #region stream methods
+#region stream methods
 
         public static void RedirectOutputTo(StreamWriter sw)
         {
@@ -990,15 +1023,15 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        #endregion
+#endregion
 
-        #region folders
+#region folders
 
         public static string TempPath => Path.Combine( Environment.CurrentDirectory , "Temp" );
 
-        #endregion
+#endregion
 
-        #region implementation methods
+#region implementation methods
 
         public static string GetCmd(string cmd, string value = null)
         {
@@ -1039,7 +1072,7 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        static void Print(object s, bool lineBreak = false, bool preserveColors = false, bool parseCommands = true)
+        static void Print(object s, bool lineBreak = false, bool preserveColors = false, bool parseCommands = true, bool doNotEvalutatePrintDirectives = false)
         {
             lock (ConsoleLock)
             {
@@ -1058,7 +1091,7 @@ namespace DotNetConsoleAppToolkit
                 else
                 {
                     if (parseCommands)
-                        ParseTextAndApplyCommands(s.ToString(), false);
+                        ParseTextAndApplyCommands(s.ToString(), false, "", doNotEvalutatePrintDirectives);
                     else
                         ConsolePrint(s.ToString(), false);
                 }
@@ -1069,7 +1102,7 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        static void ParseTextAndApplyCommands(string s, bool lineBreak = false, string tmps = "")
+        static void ParseTextAndApplyCommands(string s, bool lineBreak = false, string tmps = "", bool doNotEvalutatePrintDirectives = false)
         {
             lock (ConsoleLock)
             {
@@ -1172,13 +1205,13 @@ namespace DotNetConsoleAppToolkit
                         var t = cmdtxt.Split(CommandValueAssignationChar);
                         value = t[1];
                     }
-                    result = cmd.Value.Value(value);
+                    if (!doNotEvalutatePrintDirectives) result = cmd.Value.Value(value);
                     if (FileEchoEnabled && FileEchoCommands)
                         Echo(CommandBlockBeginChar + cmd.Value.Key + value + CommandBlockEndChar);
                 }
                 else
                 {
-                    result = cmd.Value.Value(null);
+                    if (!doNotEvalutatePrintDirectives) result = cmd.Value.Value(null);
                     if (FileEchoEnabled && FileEchoCommands)
                         Echo(CommandBlockBeginChar + cmd.Value.Key + CommandBlockEndChar);
                 }
@@ -1195,14 +1228,13 @@ namespace DotNetConsoleAppToolkit
                         s = string.Empty;
                 }
 
-                if (!string.IsNullOrEmpty(s))
-                    ParseTextAndApplyCommands(s, lineBreak);
+                if (!string.IsNullOrEmpty(s)) ParseTextAndApplyCommands(s, lineBreak,"",doNotEvalutatePrintDirectives);
             }
         }
 
-        #endregion
+#endregion
 
-        #region commands shortcuts
+#region commands shortcuts
 
         public static string Clleft => GetCmd(PrintDirectives.clleft);
         public static string Clright => GetCmd(PrintDirectives.clright);
@@ -1286,7 +1318,7 @@ namespace DotNetConsoleAppToolkit
 
         public static string Tab => "".PadLeft(TabLength, ' ');
 
-        #endregion
+#endregion
 
     }
 }

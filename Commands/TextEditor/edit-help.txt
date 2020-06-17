@@ -20,5 +20,7 @@ The list of available commands is:
 
 (f=cyan)[Esc]T|t (f=white) :   go to top of the file
 (f=cyan)[Esc]B|b (f=white) :   go to bottom of the file
+(f=cyan)[Esc]Q|q (f=white) :   go to previous page if any
+(f=cyan)[Esc]W|w (f=white) :   go to next page if any
 (f=cyan)[Esc]B|c (f=white) :   clear the file
 (f=cyan)[Esc]N|n (f=white) :   leave current file and begin the edition of a new file

@@ -797,7 +797,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             {
                 var y = CursorTop;
                 var line = _text[index];
-                var slines = GetWorkAreaStringSplits(line, new Point(0, y), true, false);
+                var slines = GetWorkAreaStringSplits(line, new Point(0, y), true, false,true);
                 int i = subIndex;
                 while (i<slines.Count && y < maxY)
                 {
