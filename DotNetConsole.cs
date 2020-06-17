@@ -414,7 +414,7 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        public static string GetPrint(string s, bool lineBreak = false )
+        public static string GetPrint(string s, bool lineBreak = false, PrintSequences printSequences = null )
         {
             lock (ConsoleLock)
             {
@@ -426,7 +426,7 @@ namespace DotNetConsoleAppToolkit
                     RedirectOutputTo(sw);
                     var e = EnableConstraintConsolePrintInsideWorkArea;
                     EnableConstraintConsolePrintInsideWorkArea = false;
-                    Print(s, lineBreak,false,true, true);
+                    Print(s, lineBreak,false,true, true,printSequences);
                     EnableConstraintConsolePrintInsideWorkArea = e;
                     sw.Flush();
                     ms.Position = 0;
@@ -728,10 +728,12 @@ namespace DotNetConsoleAppToolkit
                 var croppedLines = new List<string>();
                 string pds = null;
                 var length = s.Length;
+                PrintSequences ps = null;
                 if (textHasPrintDirectives)
                 {
                     pds = s;
-                    s = GetPrint(s);
+                    ps = new PrintSequences();
+                    s = GetPrint(s,false,ps);
                 }
                 var xr = x0 + s.Length - 1;
                 var xm = x + w - 1;
@@ -1072,7 +1074,7 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        static void Print(object s, bool lineBreak = false, bool preserveColors = false, bool parseCommands = true, bool doNotEvalutatePrintDirectives = false)
+        static void Print(object s, bool lineBreak = false, bool preserveColors = false, bool parseCommands = true, bool doNotEvalutatePrintDirectives = false, PrintSequences printSequences = null)
         {
             lock (ConsoleLock)
             {
@@ -1091,7 +1093,7 @@ namespace DotNetConsoleAppToolkit
                 else
                 {
                     if (parseCommands)
-                        ParseTextAndApplyCommands(s.ToString(), false, "", doNotEvalutatePrintDirectives);
+                        ParseTextAndApplyCommands(s.ToString(), false, "", doNotEvalutatePrintDirectives, printSequences);
                     else
                         ConsolePrint(s.ToString(), false);
                 }
@@ -1102,7 +1104,13 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        static void ParseTextAndApplyCommands(string s, bool lineBreak = false, string tmps = "", bool doNotEvalutatePrintDirectives = false)
+        static void ParseTextAndApplyCommands(
+            string s,
+            bool lineBreak = false,
+            string tmps = "",
+            bool doNotEvalutatePrintDirectives = false,
+            PrintSequences printSequences = null,
+            int startIndex = 0)
         {
             lock (ConsoleLock)
             {
@@ -1129,12 +1137,16 @@ namespace DotNetConsoleAppToolkit
                 if (cmd == null)
                 {
                     ConsolePrint(tmps, false);
+                    printSequences?.Add(new PrintSequence((string)null, 0, i-1, null, tmps, startIndex));
                     return;
                 }
                 else i = cmdindex;
 
                 if (!string.IsNullOrEmpty(tmps))
+                {
                     ConsolePrint(tmps);
+                    printSequences?.Add(new PrintSequence((string)null, 0, i-1, null, tmps, startIndex));
+                }
 
                 int firstCommandEndIndex = 0;
                 int k = -1;
@@ -1160,6 +1172,7 @@ namespace DotNetConsoleAppToolkit
                             else
                             {
                                 ConsolePrint(s);
+                                printSequences?.Add(new PrintSequence((string)null, i, s.Length-1, null, s, startIndex));
                                 return;
                             }
                         }
@@ -1190,6 +1203,7 @@ namespace DotNetConsoleAppToolkit
                 if (j == s.Length)
                 {
                     ConsolePrint(s);
+                    printSequences?.Add(new PrintSequence((string)null,i,j,null,s,startIndex));
                     return;
                 }
 
@@ -1208,27 +1222,35 @@ namespace DotNetConsoleAppToolkit
                     if (!doNotEvalutatePrintDirectives) result = cmd.Value.Value(value);
                     if (FileEchoEnabled && FileEchoCommands)
                         Echo(CommandBlockBeginChar + cmd.Value.Key + value + CommandBlockEndChar);
+                    printSequences?.Add(new PrintSequence(cmd.Value.Key.Substring(0, cmd.Value.Key.Length-1), i, j, value, null,startIndex));
                 }
                 else
                 {
                     if (!doNotEvalutatePrintDirectives) result = cmd.Value.Value(null);
                     if (FileEchoEnabled && FileEchoCommands)
                         Echo(CommandBlockBeginChar + cmd.Value.Key + CommandBlockEndChar);
+                    printSequences?.Add(new PrintSequence(cmd.Value.Key, i, j, value, null,startIndex));
                 }
                 if (result != null)
                     Print(result, false);
 
                 if (firstCommandSeparatorCharIndex > -1)
+                {
                     s = CommandBlockBeginChar + s.Substring(firstCommandSeparatorCharIndex + 1 /*+ i*/ );
+                    startIndex += firstCommandSeparatorCharIndex + 1;
+                }
                 else
                 {
                     if (j + 1 < s.Length)
+                    {
                         s = s.Substring(j + 1);
+                        startIndex += j + 1;
+                    }
                     else
                         s = string.Empty;
                 }
 
-                if (!string.IsNullOrEmpty(s)) ParseTextAndApplyCommands(s, lineBreak,"",doNotEvalutatePrintDirectives);
+                if (!string.IsNullOrEmpty(s)) ParseTextAndApplyCommands(s, lineBreak,"",doNotEvalutatePrintDirectives, printSequences, startIndex);
             }
         }
 
