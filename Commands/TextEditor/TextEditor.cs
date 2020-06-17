@@ -17,6 +17,7 @@ using cons = DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.Str;
 using sc = System.Console;
 using System.IO;
+using System.Reflection;
 
 namespace DotNetConsoleAppToolkit.Commands.TextEditor
 {
@@ -482,7 +483,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             {
                 InitEditor(false);
                 if (LoadFile(new FilePath(Path.Combine(
-                    Environment.CurrentDirectory,
+                    Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
                     "Commands",
                     "TextEditor",
                     "edit-help.txt")))) {
