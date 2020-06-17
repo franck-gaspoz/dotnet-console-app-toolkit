@@ -525,7 +525,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
 
             var fileEncoding = file.GetEncoding(Encoding.Default);
             //var lines = fileEncoding == null ? File.ReadAllLines(file.FullName, fileEncoding).ToArray() : File.ReadAllLines(file.FullName).ToArray();
-            var (rlines, filePlatform) = ReadAllLines(file.FullName);
+            var (rlines, filePlatform,_) = ReadAllLines(file.FullName);
             var lines = rlines.ToArray();
             var nblines = lines.Length;
 

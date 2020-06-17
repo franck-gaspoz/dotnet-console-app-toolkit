@@ -1,4 +1,4 @@
-﻿#define dbg
+﻿//#define dbg
 
 using DotNetConsoleAppToolkit.Commands.FileSystem;
 using DotNetConsoleAppToolkit.Component.CommandLine;
@@ -45,6 +45,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         List<List<LineSplit>> _linesSplits;
         Encoding _fileEncoding;
         OSPlatform? _fileEOL;
+        string _eolSeparator;
         string FileEOL
         {
             get
@@ -101,6 +102,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             _statusText = null;
             if (forgetCurrentFile)
             {
+                _eolSeparator = null;
                 _fileModified = false;
                 _readOnly = false;
                 _fileSize = 0;
@@ -348,6 +350,13 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                                 printOnlyCursorInfo = false;
                                 break;
 
+                            case ConsoleKey.S:
+                                SaveFile();
+                                break;
+
+                            case ConsoleKey.L:
+                                break;
+
                             case ConsoleKey.Q:
                                 if (_fileModified && Confirm($"file '{_filePath.Name}' has unsaved changes. Do you want to save it"))
                                     SaveFile();
@@ -390,7 +399,22 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
         void SaveFile()
         {
+            string text = string.Join((_eolSeparator == null) ? "" : _eolSeparator, _text);
+            File.WriteAllText(_filePath.FullName, text);
+            _fileModified = false;
+            UpdateFileInfoBar();
+        }
 
+        void UpdateFileInfoBar()
+        {
+            if (_barVisible && _cmdInput && _statusText == null)
+            {
+                lock (ConsoleLock) {
+                    BackupCursorPos();
+                    DisplayInfoBar();
+                    RestoreCursorPos();
+                }
+            }
         }
 
         bool Confirm(string text)
@@ -454,6 +478,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             _text.Clear();
             _linesSplits.Clear();
+            _eolSeparator = editorBackup.EOLSeparator;
             _filePath = editorBackup.FilePath;
             _firstLine = editorBackup.FirstLine;
             _fileSize = editorBackup.FileSize;
@@ -644,8 +669,9 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             _fileSize = filePath.FileInfo.Length;
             _readOnly = filePath.FileInfo.Attributes.HasFlag(FileAttributes.ReadOnly);
             _fileEncoding = filePath.GetEncoding(Encoding.Default);
-            var (lines, platform) = FIleReader.ReadAllLines(filePath.FullName);
+            var (lines, platform,eolSeparator) = FIleReader.ReadAllLines(filePath.FullName);
             _text = lines.ToList();
+            _eolSeparator = eolSeparator;
             _linesSplits = new List<List<LineSplit>>(_text.Count);
             for (int i = 0; i < _text.Count; i++) _linesSplits.Add(null);
             _fileEOL = platform;
@@ -678,6 +704,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             return new EditorBackup(
                 _filePath,
+                _eolSeparator,
                 _readOnly,
                 _fileModified,
                 _fileSize,
@@ -692,7 +719,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 _beginOfLineCurPos,
                 _lastVisibleLineIndex,
                 _splitedLastVisibleLineIndex
-                );;
+                );
         }
 
         (bool atBottom,int splitedLineIndex, List<LineSplit> slines) PrintLine(int index,int subIndex=0,int maxY=-1)

@@ -85,11 +85,11 @@ namespace DotNetConsoleAppToolkit.Lib
             return (matchEOL.Value,counts,r);
         }
 
-        public static (string[] lines,OSPlatform eol) ReadAllLines(string path)
+        public static (string[] lines,OSPlatform eol,string separator) ReadAllLines(string path)
         {
             var txt = File.ReadAllText(path);
-            var (detectedEOL, _, lines) = GetEOLCounts(txt);
-            return (lines, detectedEOL.eol);
+            var (detectedEOL,_, lines) = GetEOLCounts(txt);
+            return (lines, detectedEOL.eol,detectedEOL.separator);
         }
     }
 }

@@ -10,6 +10,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
     public class EditorBackup
     {
         public readonly FilePath FilePath;
+        public readonly string EOLSeparator;
         public readonly bool ReadOnly;
         public readonly bool FileModified;
         public readonly long FileSize = 0;
@@ -27,6 +28,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
         public EditorBackup(
             FilePath filePath,
+            string eolSeparator,
             bool readOnly,
             bool fileModified,
             long fileSize,
@@ -43,6 +45,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             int splitedLastVisibleLineIndex)
         {
             FilePath = filePath;
+            EOLSeparator = eolSeparator;
             ReadOnly = readOnly;
             FileModified = fileModified;
             FileSize = fileSize;
