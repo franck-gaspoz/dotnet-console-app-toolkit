@@ -9,6 +9,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 {
     public class EditorBackup
     {
+        public readonly bool RawMode;
         public readonly FilePath FilePath;
         public readonly string EOLSeparator;
         public readonly bool ReadOnly;
@@ -27,6 +28,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         public readonly int SplitedLastVisibleLineIndex;
 
         public EditorBackup(
+            bool rawMode,
             FilePath filePath,
             string eolSeparator,
             bool readOnly,
@@ -44,6 +46,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             int lastVisibleLineIndex,
             int splitedLastVisibleLineIndex)
         {
+            RawMode = false;
             FilePath = filePath;
             EOLSeparator = eolSeparator;
             ReadOnly = readOnly;

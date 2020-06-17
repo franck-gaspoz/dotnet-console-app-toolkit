@@ -69,6 +69,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         long _fileSize;
         string _pressCmdKeyText;
         Stack<EditorBackup> _editorBackups;
+        bool _rawMode;
 
         #endregion
 
@@ -369,6 +370,14 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                                 // load file
                                 break;
 
+                            case ConsoleKey.R:
+                                _rawMode = !_rawMode;
+                                _statusText = "raw mode is " + (_rawMode?"enabled":"disabled");
+                                hideBar = false;
+                                printOnlyCursorInfo = false;
+                                RefreshEditor();
+                                break;
+
                             case ConsoleKey.Q:
                                 // quit current editor - unstack to previous file if any, else exit
                                 if (_fileModified && Confirm($"file '{_filePath.Name}' has unsaved changes. Do you want to save it"))
@@ -409,6 +418,16 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 }
             }
             Exit();
+        }
+
+        void RefreshEditor()
+        {
+            lock (ConsoleLock)
+            {
+                BackupCursorPos();
+                DisplayEditor();
+                RestoreCursorPos();
+            }
         }
 
         bool SaveFile()
@@ -537,6 +556,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             _text.Clear();
             _linesSplits.Clear();
+            _rawMode = editorBackup.RawMode;
             _eolSeparator = editorBackup.EOLSeparator;
             _filePath = editorBackup.FilePath;
             _firstLine = editorBackup.FirstLine;
@@ -770,6 +790,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         EditorBackup GetCurrentEditorBackup()
         {
             return new EditorBackup(
+                _rawMode,
                 _filePath,
                 _eolSeparator,
                 _readOnly,
@@ -797,7 +818,9 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             {
                 var y = CursorTop;
                 var line = _text[index];
-                var slines = GetWorkAreaStringSplits(line, new Point(0, y), true, false,true);
+                var slinesrw = GetWorkAreaStringSplits(line, new Point(0, y), true, false,true);
+                var slines = GetWorkAreaStringSplits(line, new Point(0, y), true, false);
+                if (_rawMode) slines = slinesrw;
                 int i = subIndex;
                 while (i<slines.Count && y < maxY)
                 {
@@ -910,7 +933,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             string Opt(string shortCut,string label, bool ifNotReadOnly = false, bool addCmdKeyStr = true) => $"{ShcutOpt(shortCut, ifNotReadOnly, addCmdKeyStr)} {((ifNotReadOnly&&_readOnly)?$"{Bgray}":"")}{label}{ColorSettings.Default}";
             return _cmdBarIndex switch
             {
-                1 => $" {Opt("t", "Top")} | {Opt("b", "Bottom")} | {Opt("c", "Clear",true)} | {Opt("n", "New")}",
+                1 => $" {Opt("t", "Top")} | {Opt("b", "Bottom")} | {Opt("c", "Clear",true)} | {Opt("n", "New")} | {Opt("r", "Toggle raw mode")}",
                 _ => $" {Opt("q", "Quit")} | {Opt("l", "Load")} | {Opt("s", "Save",true)} | {Opt("v", "Toggle bar")} | {Opt("i", "Info bar")} | {Opt("F1", "Help",false,false)}",
             };
         }
