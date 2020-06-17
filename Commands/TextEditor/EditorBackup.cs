@@ -11,6 +11,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
     {
         public readonly FilePath FilePath;
         public readonly bool ReadOnly;
+        public readonly bool FileModified;
         public readonly long FileSize = 0;
         public readonly int FirstLine = 0;
         public readonly int CurrentLine = 0;
@@ -27,6 +28,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         public EditorBackup(
             FilePath filePath,
             bool readOnly,
+            bool fileModified,
             long fileSize,
             int firstLine,
             int currentLine,
@@ -42,6 +44,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             FilePath = filePath;
             ReadOnly = readOnly;
+            FileModified = fileModified;
             FileSize = fileSize;
             FirstLine = firstLine;
             CurrentLine = currentLine;

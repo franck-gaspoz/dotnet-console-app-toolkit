@@ -38,6 +38,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         int _barY;
         int _barHeight;
         bool _readOnly;
+        bool _fileModified;
         readonly int _defaultBarHeight = 2;
         ConsoleKeyInfo _lastKeyInfo;
         List<string> _text;
@@ -100,6 +101,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             _statusText = null;
             if (forgetCurrentFile)
             {
+                _fileModified = false;
                 _readOnly = false;
                 _fileSize = 0;
                 _fileEOL = null;
@@ -415,6 +417,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             lock (ConsoleLock)
             {
                 InitEditor(false,newFile);
+                _fileModified = !newFile;
                 _fileSize = 0;
                 DisplayEditor();
             }
@@ -428,6 +431,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             _firstLine = editorBackup.FirstLine;
             _fileSize = editorBackup.FileSize;
             _readOnly = editorBackup.ReadOnly;
+            _fileModified = editorBackup.FileModified;
             _currentLine = editorBackup.CurrentLine;
             _X = editorBackup.X;
             _Y = editorBackup.Y;
@@ -648,6 +652,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             return new EditorBackup(
                 _filePath,
                 _readOnly,
+                _fileModified,
                 _fileSize,
                 _firstLine,
                 _currentLine,
@@ -660,7 +665,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 _beginOfLineCurPos,
                 _lastVisibleLineIndex,
                 _splitedLastVisibleLineIndex
-                );
+                );;
         }
 
         (bool atBottom,int splitedLineIndex, List<LineSplit> slines) PrintLine(int index,int subIndex=0,int maxY=-1)
@@ -776,7 +781,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         string GetCursorInfo() => $"{_X},{_Y}";
         string GetFileInfo()
         {
-            return (_filePath == null) ? $"no file" : $"{_filePath.Name} | {Plur("line", _text.Count)} | size={HumanFormatOfSize(_fileSize,2)} | enc={_fileEncoding.EncodingName} | eol={FileEOL}";
+            return (_filePath == null) ? $"no file" : $"{_filePath.Name}{(_fileModified?"*":"")} | {Plur("line", _text.Count)} | size={HumanFormatOfSize(_fileSize,2)} | enc={_fileEncoding.EncodingName} | eol={FileEOL}";
         }
         string GetCmdsInfo()
         {
