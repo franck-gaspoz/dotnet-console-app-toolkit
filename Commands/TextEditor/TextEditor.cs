@@ -429,24 +429,50 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             }
         }
 
+        void Error(string text)
+        {
+            lock (ConsoleLock)
+            {
+                var bVis = ShowEmptyBar();
+                PrintBarMessage(Bred + text + ". Press a key to continue..."+ColorSettings.Default);
+                var c = sc.ReadKey(true);
+                if (bVis) ToggleBarVisibility();
+            }
+        }
+
         bool Confirm(string text)
         {
             lock (ConsoleLock)
             {
-                var bVis = _barVisible;
-                if (!_barVisible) ToggleBarVisibility();
-                EmptyInfoBar();
-                SetCursorPos(1, _barY);
-                EnableInvert();
-                Print(text + " ? [Y|y|N|n]: ");
+                var bVis = ShowEmptyBar();
+                PrintBarMessage(text + " ? [Y|y|N|n]: ");
                 var c = sc.ReadKey();
                 if (Char.IsLetterOrDigit(c.KeyChar))
-                    Print(c+"");
+                {
+                    EnableInvert();
+                    Print(c + "");
+                }
                 DisableTextDecoration();
                 var s = c.KeyChar.ToString().ToLower();
                 if (!bVis) ToggleBarVisibility();
                 return s=="y";
             }
+        }
+
+        void PrintBarMessage(string text)
+        {
+            SetCursorPos(1, _barY);
+            EnableInvert();
+            Print(text);
+            DisableTextDecoration();
+        }
+
+        bool ShowEmptyBar()
+        {
+            var bVis = _barVisible;
+            if (!_barVisible) ToggleBarVisibility();
+            EmptyInfoBar();
+            return bVis;
         }
 
         void OpenHelp()
@@ -455,15 +481,19 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             lock (ConsoleLock)
             {
                 InitEditor(false);
-                LoadFile(new FilePath(Path.Combine(
+                if (LoadFile(new FilePath(Path.Combine(
                     Environment.CurrentDirectory,
-                    "Commands", 
+                    "Commands",
                     "TextEditor",
-                    "edit-help.txt")));
-                _readOnly = true;
-                _barVisible = true;
-                ComputeBarVisible();
-                DisplayEditor();
+                    "edit-help.txt")))) {
+                    _readOnly = true;
+                    _barVisible = true;
+                    ComputeBarVisible();
+                    DisplayEditor();
+                } else
+                {
+                    RestorePreviousFile();
+                }
             }
         }
 
@@ -674,19 +704,27 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             CursorHome();
         }
 
-        void LoadFile(FilePath filePath)
+        bool LoadFile(FilePath filePath)
         {
-            if (filePath == null) return;
-            _filePath = filePath;
-            _fileSize = filePath.FileInfo.Length;
-            _readOnly = filePath.FileInfo.Attributes.HasFlag(FileAttributes.ReadOnly);
-            _fileEncoding = filePath.GetEncoding(Encoding.Default);
-            var (lines, platform,eolSeparator) = FIleReader.ReadAllLines(filePath.FullName);
-            _text = lines.ToList();
-            _eolSeparator = eolSeparator;
-            _linesSplits = new List<List<LineSplit>>(_text.Count);
-            for (int i = 0; i < _text.Count; i++) _linesSplits.Add(null);
-            _fileEOL = platform;
+            if (filePath == null) return true;
+            try
+            {
+                _filePath = filePath;
+                _fileSize = filePath.FileInfo.Length;
+                _readOnly = filePath.FileInfo.Attributes.HasFlag(FileAttributes.ReadOnly);
+                _fileEncoding = filePath.GetEncoding(Encoding.Default);
+                var (lines, platform, eolSeparator) = FIleReader.ReadAllLines(filePath.FullName);
+                _text = lines.ToList();
+                _eolSeparator = eolSeparator;
+                _linesSplits = new List<List<LineSplit>>(_text.Count);
+                for (int i = 0; i < _text.Count; i++) _linesSplits.Add(null);
+                _fileEOL = platform;
+                return true;
+            } catch (Exception ex)
+            {
+                Error(ex.Message);
+                return false;
+            }
         }
 
         void DisplayFile()
