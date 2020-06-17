@@ -397,7 +397,7 @@ namespace DotNetConsoleAppToolkit
             lock (ConsoleLock)
             {
                 RedirectOutToError = true;
-                Print($"{ColorSettings.Error}{s}", lineBreak);
+                Print($"{ColorSettings.Error}{s}{ColorSettings.Default}", lineBreak);
                 RedirectOutToError = false;
             }
         }
@@ -410,7 +410,7 @@ namespace DotNetConsoleAppToolkit
         {
             lock (ConsoleLock)
             {
-                Print($"{ColorSettings.Warning}{s}", lineBreak);
+                Print($"{ColorSettings.Warning}{s}{ColorSettings.Default}", lineBreak);
             }
         }
 
