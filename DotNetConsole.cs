@@ -384,6 +384,8 @@ namespace DotNetConsoleAppToolkit
         public static void Print(IEnumerable<string> ls) { foreach (var s in ls) Print(s); }
         public static void Println(string s="") => Print(s, true);
         public static void Print(string s="") => Print(s, false);
+        public static void Println(char s) => Print(s+"", true);
+        public static void Print(char s) => Print(s+"", false);
 
         public static void Error(string s="") => Error(s, false);
         public static void Errorln(string s="") => Error(s, true);

@@ -349,6 +349,8 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                                 break;
 
                             case ConsoleKey.Q:
+                                if (_fileModified && Confirm($"file '{_filePath.Name}' has unsaved changes. Do you want to save it"))
+                                    SaveFile();
                                 if (_editorBackups.Count == 0)
                                     end = true;
                                 else
@@ -384,6 +386,31 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 }
             }
             Exit();
+        }
+
+        void SaveFile()
+        {
+
+        }
+
+        bool Confirm(string text)
+        {
+            lock (ConsoleLock)
+            {
+                var bVis = _barVisible;
+                if (!_barVisible) ToggleBarVisibility();
+                EmptyInfoBar();
+                SetCursorPos(1, _barY);
+                EnableInvert();
+                Print(text + " ? [Y|y|N|n]: ");
+                var c = sc.ReadKey();
+                if (Char.IsLetterOrDigit(c.KeyChar))
+                    Print(c+"");
+                DisableTextDecoration();
+                var s = c.KeyChar.ToString().ToLower();
+                if (!bVis) ToggleBarVisibility();
+                return s=="y";
+            }
         }
 
         void OpenHelp()
@@ -745,7 +772,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     else
                     {
                         EmptyInfoBar();
-                        SetCursorPos(0, _barY);
+                        SetCursorPos(1, _barY);
                         EnableInvert();
                         Print(_statusText);
                     }
