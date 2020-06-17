@@ -18,6 +18,7 @@ using static DotNetConsoleAppToolkit.Lib.Str;
 using sc = System.Console;
 using System.IO;
 using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
 
 namespace DotNetConsoleAppToolkit.Commands.TextEditor
 {
@@ -410,12 +411,27 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             Exit();
         }
 
-        void SaveFile()
+        bool SaveFile()
         {
-            string text = string.Join((_eolSeparator == null) ? "" : _eolSeparator, _text);
-            File.WriteAllText(_filePath.FullName, text);
-            _fileModified = false;
-            UpdateFileInfoBar();
+            lock (ConsoleLock)
+            {
+                BackupCursorPos();
+                try
+                {
+                    string text = string.Join((_eolSeparator == null) ? "" : _eolSeparator, _text);
+                    File.WriteAllText(_filePath.FullName, text);
+                    _fileModified = false;
+                    UpdateFileInfoBar();
+                } catch (Exception ex) {
+                    Error(ex.Message);
+                    return false;
+                }
+                finally
+                {
+                    RestoreCursorPos();
+                }
+                return true;
+            }
         }
 
         void UpdateFileInfoBar()
