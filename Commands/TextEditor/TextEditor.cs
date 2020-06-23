@@ -931,7 +931,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         string GetCursorInfo() => $"{_X},{_Y}";
         string GetFileInfo()
         {
-            return (_filePath == null) ? $"no file" : $"{_filePath.Name}{(_readOnly?"(ro)":"")}{(_fileModified?"*":"")} | {Plur("line", _text.Count)} | size={HumanFormatOfSize(_fileSize,2)} | enc={_fileEncoding.EncodingName} | eol={FileEOL}";
+            return (_filePath == null) ? $"no file" : $"{_filePath.Name}{(_readOnly?"(ro)":"")}{(_fileModified?"*":"")} | {Plur("line", _text.Count)} | size={HumanFormatOfSize(_fileSize,2)} | enc={((_fileEncoding==null)?"?":_fileEncoding.EncodingName)} | eol={FileEOL}";
         }
         string GetCmdsInfo()
         {

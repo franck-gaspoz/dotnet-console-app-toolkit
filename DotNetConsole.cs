@@ -772,13 +772,14 @@ namespace DotNetConsoleAppToolkit
                 {
                     if (pds != null)
                     {
-                        var croppedPrintDirectives = new StringBuilder();
+                        var lineSegments = new List<string>();
                         var currentLine = string.Empty;
+                        int lastIndex = 0;
 
                         foreach ( var ps in printSequences )
                         {
                             if (!ps.IsText)
-                                croppedPrintDirectives.Append(ps.ToText());
+                                lineSegments.Add(ps.ToText());
                             else
                             {
                                 currentLine += ps.Text;
@@ -789,39 +790,56 @@ namespace DotNetConsoleAppToolkit
                                     {
                                         var left = currentLine.Substring(0, currentLine.Length - (xr - xm));
                                         currentLine = currentLine.Substring(currentLine.Length - (xr - xm), xr - xm);
-                                        var sPrintDirective = croppedPrintDirectives.ToString();
-                                        croppedPrintDirectives.Clear();
-                                        if (!string.IsNullOrEmpty(sPrintDirective))
-                                            croppedLines.Add(new StringSegment(sPrintDirective + left,0,0,left.Length));
-                                        else
-                                            croppedLines.Add(new StringSegment(left,0,0,left.Length));
+
+                                        var truncLeft = left.Substring(lastIndex);
+                                        lineSegments.Add(truncLeft);
+                                        croppedLines.Add(new StringSegment(string.Join("", lineSegments), 0, 0, lastIndex + truncLeft.Length));
+                                        lineSegments.Clear();
+                                        lastIndex = 0;
+
                                         xr = x + currentLine.Length - 1;
                                     }
                                     if (currentLine.Length > 0)
                                     {
-                                        croppedLines.Add(new StringSegment(currentLine,0,0,currentLine.Length));
-                                        currentLine = "";
+                                        //croppedLines.Add(new StringSegment(currentLine, 0, 0, currentLine.Length));
+                                        //currentLine = "";
+                                        lineSegments.Add(currentLine);
+                                        lastIndex = currentLine.Length;
                                     }
+                                }
+                                else
+                                {
+                                    lineSegments.Add(currentLine.Substring(lastIndex));
+                                    lastIndex = currentLine.Length;
                                 }
                             }
                         }
 
-                        var srPrintDirective = croppedPrintDirectives.ToString();
-                        croppedPrintDirectives.Clear();
-                        if (!string.IsNullOrEmpty(srPrintDirective))
+                        if (lineSegments.Count > 0)
                         {
-                            if (croppedLines.Count == 0)
-                                croppedLines.Add(new StringSegment(srPrintDirective,0,0,0));
-                            else
-                            {
-                                var lastLine = croppedLines.Last();
-                                croppedLines.RemoveAt(croppedLines.Count - 1);
-                                croppedLines.Add(new StringSegment(lastLine.Text+srPrintDirective,0,0,lastLine.Length));
-                            }
+                            var truncLeft = currentLine.Substring(lastIndex);
+                            lineSegments.Add(truncLeft);
+                            croppedLines.Add(new StringSegment(string.Join("", lineSegments), 0, 0, lastIndex + truncLeft.Length));
+                            lineSegments.Clear();
+                            lastIndex = 0;
                         }
 
-                        if (currentLine.Length > 0)
-                            croppedLines.Add(new StringSegment(currentLine,0,0,currentLine.Length));
+                        //var srPrintDirective = croppedPrintDirectives.ToString();
+                        //croppedPrintDirectives.Clear();
+                        //if (!string.IsNullOrEmpty(srPrintDirective))
+                        //{
+                        //    if (croppedLines.Count == 0)
+                        //        croppedLines.Add(new StringSegment(srPrintDirective,0,0,0));
+                        //    else
+                        //    {
+                        //        var lastLine = croppedLines.Last();
+                        //        croppedLines.RemoveAt(croppedLines.Count - 1);
+                        //        croppedLines.Add(new StringSegment(lastLine.Text+srPrintDirective,0,0,lastLine.Length));
+                        //    }
+                        //}
+
+                        //if (currentLine.Length > 0)
+                        //    croppedLines.Add(new StringSegment(currentLine,0,0,currentLine.Length));
 
                     } else
                     { 
