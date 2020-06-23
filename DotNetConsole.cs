@@ -666,11 +666,35 @@ namespace DotNetConsoleAppToolkit
                 sc.Write(s);
         }
 
-        public static int GetIndexInWorkAreaConstraintedString(string s, Point origin, Point cursorPos,bool forceEnableConstraintInWorkArea=false,bool fitToVisibleArea=true)
-            => GetIndexInWorkAreaConstraintedString(s, origin, cursorPos.X, cursorPos.Y, forceEnableConstraintInWorkArea,fitToVisibleArea);
+        public static int GetIndexInWorkAreaConstraintedString(
+            string s,
+            Point origin,
+            Point cursorPos,
+            bool forceEnableConstraintInWorkArea = false,
+            bool fitToVisibleArea = true,
+            bool doNotEvaluatePrintDirectives = false,
+            bool ignorePrintDirectives = false)
+            => GetIndexInWorkAreaConstraintedString(
+                s,
+                origin,
+                cursorPos.X,
+                cursorPos.Y,
+                forceEnableConstraintInWorkArea,
+                fitToVisibleArea,
+                doNotEvaluatePrintDirectives,
+                ignorePrintDirectives);
 
-        public static int GetIndexInWorkAreaConstraintedString(string s,Point origin,int cursorX,int cursorY,bool forceEnableConstraintInWorkArea=false, bool fitToVisibleArea = true)
+        public static int GetIndexInWorkAreaConstraintedString(
+            string s,
+            Point origin,
+            int cursorX,
+            int cursorY,
+            bool forceEnableConstraintInWorkArea = false,
+            bool fitToVisibleArea = true,
+            bool doNotEvaluatePrintDirectives = false,
+            bool ignorePrintDirectives = false)
         {
+#if NO
             lock (ConsoleLock)
             {
                 int index = -1;
@@ -713,12 +737,36 @@ namespace DotNetConsoleAppToolkit
                     return cursorX - x0;
                 return index;
             }
+#endif
+            var r = GetWorkAreaStringSplits(
+                s,
+                origin,
+                forceEnableConstraintInWorkArea,
+                fitToVisibleArea,
+                doNotEvaluatePrintDirectives,
+                ignorePrintDirectives,
+                cursorX,
+                cursorY
+                );
+            return r.CursorIndex;
         }
 
-        public static LineSplits GetWorkAreaStringSplits(string s, Point origin, bool forceEnableConstraintInWorkArea=false, bool fitToVisibleArea = true, bool doNotEvaluatePrintDirectives = false,bool ignorePrintDirectives=false )
+        public static LineSplits GetWorkAreaStringSplits(
+            string s,
+            Point origin,
+            bool forceEnableConstraintInWorkArea = false,
+            bool fitToVisibleArea = true,
+            bool doNotEvaluatePrintDirectives = false,
+            bool ignorePrintDirectives = false,
+            int cursorX = -1,
+            int cursorY = -1)
         {
             var r = new List<StringSegment>();
             PrintSequences printSequences = null;
+            if (cursorX == -1) cursorX = origin.X;
+            if (cursorY == -1) cursorY = origin.Y;
+            int cursorLineIndex = -1;
+            int cursorIndex = -1;
 
             lock (ConsoleLock)
             {
@@ -810,9 +858,17 @@ namespace DotNetConsoleAppToolkit
                     var curx = x0;
                     int lineIndex = 0;
                     index = 0;
+                    bool indexFounds = false;
                     foreach (var line in croppedLines)
                     {
                         r.Add(new StringSegment(line.Text, x0, y0, line.Length));
+                        if (!indexFounds && cursorY == y0)
+                        {
+                            index += cursorX - x0;
+                            cursorIndex = index;
+                            cursorLineIndex = lineIndex;
+                            indexFounds = true;
+                        }
                         x0 += line.Length;
                         index += line.Length;
                         SetCursorPosConstraintedInWorkArea(ref x0, ref y0, false, forceEnableConstraintInWorkArea, fitToVisibleArea);
@@ -821,15 +877,15 @@ namespace DotNetConsoleAppToolkit
                 }
                 else
                 {
+                    cursorIndex = cursorX - x0;
+                    cursorLineIndex = 0;
                     if (pds!=null)
-                    {
                         r.Add(new StringSegment(pds, x0, y0, pds.Length));
-                    }
                     else
                         r.Add(new StringSegment(s, x0, y0, s.Length));
                 }
             }
-            return new LineSplits(r,printSequences);
+            return new LineSplits(r, printSequences,cursorIndex,cursorLineIndex);
         }
 
         public static void SetCursorPosConstraintedInWorkArea(Point pos, bool enableOutput = true,bool forceEnableConstraintInWorkArea = false, bool fitToVisibleArea = true)
@@ -902,7 +958,7 @@ namespace DotNetConsoleAppToolkit
 
 #endregion
 
-        #region UI operations
+#region UI operations
 
         static void RunUIElementWatcher()
         {
@@ -1057,7 +1113,7 @@ namespace DotNetConsoleAppToolkit
 
 #endregion
         
-        #region stream methods
+#region stream methods
 
         public static void RedirectOutputTo(StreamWriter sw)
         {
@@ -1092,13 +1148,13 @@ namespace DotNetConsoleAppToolkit
 
 #endregion
 
-        #region folders
+#region folders
 
         public static string TempPath => Path.Combine( Environment.CurrentDirectory , "Temp" );
 
-        #endregion
+#endregion
 
-        #region implementation methods
+#region implementation methods
 
         public static string GetCmd(string cmd, string value = null)
         {
@@ -1325,9 +1381,9 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        #endregion
+#endregion
 
-        #region commands shortcuts
+#region commands shortcuts
 
         public static string Clleft => GetCmd(PrintDirectives.clleft);
         public static string Clright => GetCmd(PrintDirectives.clright);
@@ -1411,7 +1467,7 @@ namespace DotNetConsoleAppToolkit
 
         public static string Tab => "".PadLeft(TabLength, ' ');
 
-        #endregion
+#endregion
 
     }
 }

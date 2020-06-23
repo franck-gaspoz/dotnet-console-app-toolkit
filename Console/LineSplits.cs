@@ -8,10 +8,20 @@ namespace DotNetConsoleAppToolkit.Console
 
         public readonly PrintSequences PrintSequences;
 
-        public LineSplits(List<StringSegment> splits,PrintSequences printSequences)
+        public readonly int CursorIndex;
+
+        public readonly int CursorLineIndex;
+
+        public LineSplits(
+            List<StringSegment> splits,
+            PrintSequences printSequences,
+            int cursorIndex=-1,
+            int cursorLineIndex=-1)
         {
             Splits = splits;
             PrintSequences = printSequences;
+            CursorIndex = cursorIndex;
+            CursorLineIndex = cursorLineIndex;
         }
 
     }

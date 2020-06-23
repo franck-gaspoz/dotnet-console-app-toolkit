@@ -184,7 +184,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                         lock (ConsoleLock)
                         {
                             var line = _text[_currentLine];
-                            var index = GetIndexInWorkAreaConstraintedString(line, _beginOfLineCurPos, CursorPos,true,false);
+                            var index = GetIndexInWorkAreaConstraintedString(line, _beginOfLineCurPos, CursorPos,true,false, !_rawMode);
                             var curY = CursorTop;
                             if (index < line.Length-1)                            
                                 SetCursorPosConstraintedInWorkArea(CursorLeft + 1, CursorTop,true,true,false);
@@ -597,7 +597,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     EraseInfoBar();
                     if (_lastVisibleLineIndex < _text.Count-1)
                     {
-                        var slines = GetWorkAreaStringSplits(_text[_lastVisibleLineIndex], new Point(_X, _Y), true, false).Splits;
+                        var slines = GetWorkAreaStringSplits(_text[_lastVisibleLineIndex], new Point(_X, _Y), true, false,!_rawMode).Splits;
                         var y = _barY;
                         var newBarY = _barY + _barHeight;
                         SetCursorPos(_X, _barY);
@@ -704,7 +704,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     DisplayInfoBar(false);
 
                     var line = _text[_currentLine];
-                    var slines = GetWorkAreaStringSplits(line, _beginOfLineCurPos, true, false).Splits;
+                    var slines = GetWorkAreaStringSplits(line, _beginOfLineCurPos, true, false, !_rawMode).Splits;
                     _linesSplits[_currentLine] = slines;
                     if (dy < 0)
                     {
@@ -825,8 +825,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 {
                     SetCursorPos(0, y);                    
                     PrintLineSplit(slines[i].Text,i== slines.Count-1);
-                    y++;
-                    i++;
+                    y++; i++;
                 }
                 if (y < maxY) SetCursorPos(0, y);
                 _linesSplits[index] = slines;
@@ -841,7 +840,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             if (!_rawMode && eol) Print(ColorSettings.Default.ToString());
         }
 
-        List<StringSegment> GetLineSplits(int lineIndex, int x,int y) => GetWorkAreaStringSplits(_text[lineIndex], new Point(x, y), true, false).Splits;
+        List<StringSegment> GetLineSplits(int lineIndex, int x,int y) => GetWorkAreaStringSplits(_text[lineIndex], new Point(x, y), true, false, !_rawMode).Splits;
 
         void EraseInfoBar()
         {

@@ -1,6 +1,4 @@
-﻿begin text|(f=cyan,b=darkblue)test: begin with a text and having directives 123456789123456789123456789123456789123456789123456789123456789(f=white,b=black)
-(b=black)
-(f=cyan,b=darkcyan)test: list of directives(f=white,b=black)
+﻿(f=cyan,b=darkcyan)test: list of directives -- HJKLDJSLJDLSJLJCKLN89738290789032703928JKSHJDH93878409830498ABCDEFGHIJKLMNOP(f=white,b=black)
 begin text|(f=cyan,b=darkblue)test: begin with a text and having directives(f=white,b=black)
 (b=black)
 (fr=cyanure)test: unknown directive name(f=white,b=black)
