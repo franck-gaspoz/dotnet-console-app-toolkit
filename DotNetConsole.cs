@@ -30,6 +30,7 @@ namespace DotNetConsoleAppToolkit
     {
         #region attributes
 
+        public static bool IsOutputRedirected = false;
         public static bool EnableFillLineFromCursor = true;
         public static bool RedirectOutToError = false;
         public static bool FileEchoDumpDebugInfo = true;
@@ -414,7 +415,12 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        public static string GetPrint(string s, bool lineBreak = false,bool doNotEvaluatePrintDirectives=false,bool ignorePrintDirectives=false, PrintSequences printSequences = null )
+        public static string GetPrint(
+            string s,
+            bool lineBreak = false,
+            bool doNotEvaluatePrintDirectives = false,      // TODO: remove this parameter
+            bool ignorePrintDirectives = false,
+            PrintSequences printSequences = null)
         {
             lock (ConsoleLock)
             {
@@ -610,7 +616,7 @@ namespace DotNetConsoleAppToolkit
                     if (dep)
                     {                                         
                         Write(s);
-                        FillLineFromCursor(' ');
+                        if (!IsOutputRedirected) FillLineFromCursor(' ');
                     }
                     else
                         Write(s);
@@ -619,12 +625,18 @@ namespace DotNetConsoleAppToolkit
                     {
                         var f = sc.ForegroundColor;
                         var b = sc.BackgroundColor;
-                        sc.ForegroundColor = ColorSettings.Default.Foreground.Value;
-                        sc.BackgroundColor = ColorSettings.Default.Background.Value;
-                        sc.WriteLine(string.Empty);
+                        if (!IsOutputRedirected)
+                        {
+                            sc.ForegroundColor = ColorSettings.Default.Foreground.Value;
+                            sc.BackgroundColor = ColorSettings.Default.Background.Value;
+                            sc.WriteLine(string.Empty);
+                        }
                         Echo(string.Empty,true);
-                        sc.ForegroundColor = f;
-                        sc.BackgroundColor = b;
+                        if (!IsOutputRedirected)
+                        {
+                            sc.ForegroundColor = f;
+                            sc.BackgroundColor = b;
+                        }
                     }
                 }
             }
@@ -1133,11 +1145,13 @@ namespace DotNetConsoleAppToolkit
                 _outputWriter = sc.Out;
                 _outputStreamWriter = sw;
                 sc.SetOut(_outputStreamWriter);
+                IsOutputRedirected = true;
             } else
             {
                 _outputStreamWriter.Flush();
                 _outputStreamWriter.Close();
                 sc.SetOut(_outputWriter);
+                IsOutputRedirected = false;
             }
         }
 
