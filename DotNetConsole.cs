@@ -673,7 +673,8 @@ namespace DotNetConsoleAppToolkit
             bool forceEnableConstraintInWorkArea = false,
             bool fitToVisibleArea = true,
             bool doNotEvaluatePrintDirectives = false,
-            bool ignorePrintDirectives = false)
+            bool ignorePrintDirectives = false
+            )
             => GetIndexInWorkAreaConstraintedString(
                 s,
                 origin,
@@ -694,50 +695,6 @@ namespace DotNetConsoleAppToolkit
             bool doNotEvaluatePrintDirectives = false,
             bool ignorePrintDirectives = false)
         {
-#if NO
-            lock (ConsoleLock)
-            {
-                int index = -1;
-                var (id,x, y, w, h) = ActualWorkArea(fitToVisibleArea);
-                var x0 = origin.X;
-                var y0 = origin.Y;
-
-                var croppedLines = new List<string>();
-                var xr = x0 + s.Length - 1;
-                var xm = x + w - 1;
-                if (xr >= xm)
-                {
-                    while (xr > xm && s.Length > 0)
-                    {
-                        var left = s.Substring(0, s.Length - (xr - xm));
-                        s = s.Substring(s.Length - (xr - xm), xr - xm);
-                        croppedLines.Add(left);
-                        xr = x + s.Length - 1;
-                    }
-                    if (s.Length > 0)
-                        croppedLines.Add(s);
-
-                    var curx = x0;
-                    int lineIndex = 0;
-                    index = 0;
-                    foreach (var line in croppedLines)
-                    {
-                        if (cursorY == y0)
-                        {
-                            index += cursorX - x0;
-                            break;
-                        }
-                        x0 += line.Length;
-                        index += line.Length;
-                        SetCursorPosConstraintedInWorkArea(ref x0, ref y0,false, forceEnableConstraintInWorkArea,fitToVisibleArea);
-                        lineIndex++;
-                    }
-                }
-                else
-                    return cursorX - x0;
-                return index;
-            }
-#endif
             var r = GetWorkAreaStringSplits(
                 s,
                 origin,
@@ -751,6 +708,29 @@ namespace DotNetConsoleAppToolkit
             return r.CursorIndex;
         }
 
+        public static LineSplits GetIndexLineSplitsInWorkAreaConstraintedString(
+            string s,
+            Point origin,
+            int cursorX,
+            int cursorY,
+            bool forceEnableConstraintInWorkArea = false,
+            bool fitToVisibleArea = true,
+            bool doNotEvaluatePrintDirectives = false,
+            bool ignorePrintDirectives = false)
+        {
+            var r = GetWorkAreaStringSplits(
+                s,
+                origin,
+                forceEnableConstraintInWorkArea,
+                fitToVisibleArea,
+                doNotEvaluatePrintDirectives,
+                ignorePrintDirectives,
+                cursorX,
+                cursorY
+                );
+            return r;
+        }
+
         public static LineSplits GetWorkAreaStringSplits(
             string s,
             Point origin,
@@ -761,6 +741,7 @@ namespace DotNetConsoleAppToolkit
             int cursorX = -1,
             int cursorY = -1)
         {
+            var originalString = s;
             var r = new List<StringSegment>();
             PrintSequences printSequences = null;
             if (cursorX == -1) cursorX = origin.X;
@@ -885,6 +866,13 @@ namespace DotNetConsoleAppToolkit
                         r.Add(new StringSegment(s, x0, y0, s.Length));
                 }
             }
+
+            if (!doNotEvaluatePrintDirectives)
+            {
+                printSequences = new PrintSequences();
+                printSequences.Add(new PrintSequence((string)null, 0, originalString.Length - 1, null, originalString));
+            }
+
             return new LineSplits(r, printSequences,cursorIndex,cursorLineIndex);
         }
 

@@ -184,9 +184,10 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                         lock (ConsoleLock)
                         {
                             var line = _text[_currentLine];
-                            var index = GetIndexInWorkAreaConstraintedString(line, _beginOfLineCurPos, CursorPos,true,false, !_rawMode);
+                            var spl = GetIndexLineSplitsInWorkAreaConstraintedString(line, _beginOfLineCurPos, CursorPos.X,CursorPos.Y, true,false, !_rawMode);
+                            var index = spl.CursorIndex;
                             var curY = CursorTop;
-                            if (index < line.Length-1)                            
+                            if (index < spl.PrintSequences.TextLength)                            
                                 SetCursorPosConstraintedInWorkArea(CursorLeft + 1, CursorTop,true,true,false);
                             _X = CursorLeft;
                             _Y = CursorTop;
