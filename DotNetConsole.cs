@@ -672,7 +672,7 @@ namespace DotNetConsoleAppToolkit
             Point cursorPos,
             bool forceEnableConstraintInWorkArea = false,
             bool fitToVisibleArea = true,
-            bool doNotEvaluatePrintDirectives = false,
+            bool doNotEvaluatePrintDirectives = true,
             bool ignorePrintDirectives = false
             )
             => GetIndexInWorkAreaConstraintedString(
@@ -692,7 +692,7 @@ namespace DotNetConsoleAppToolkit
             int cursorY,
             bool forceEnableConstraintInWorkArea = false,
             bool fitToVisibleArea = true,
-            bool doNotEvaluatePrintDirectives = false,
+            bool doNotEvaluatePrintDirectives = true,
             bool ignorePrintDirectives = false)
         {
             var r = GetWorkAreaStringSplits(
@@ -854,6 +854,11 @@ namespace DotNetConsoleAppToolkit
                         index += line.Length;
                         SetCursorPosConstraintedInWorkArea(ref x0, ref y0, false, forceEnableConstraintInWorkArea, fitToVisibleArea);
                         lineIndex++;
+                    }
+                    if (!indexFounds)
+                    {
+                        cursorIndex = index;
+                        cursorLineIndex = lineIndex;
                     }
                 }
                 else
