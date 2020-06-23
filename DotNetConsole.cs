@@ -382,11 +382,11 @@ namespace DotNetConsoleAppToolkit
         }
 
         public static void Println(IEnumerable<string> ls, bool ignorePrintDirectives = false) { foreach (var s in ls) Println(s, ignorePrintDirectives); }
-        public static void Print(IEnumerable<string> ls, bool ignorePrintDirectives = false) { foreach (var s in ls) Print(s, ignorePrintDirectives); }
+        public static void Print(IEnumerable<string> ls, bool lineBreak = false, bool ignorePrintDirectives = false) { foreach (var s in ls) Print(s, lineBreak, ignorePrintDirectives); }
         public static void Println(string s="", bool ignorePrintDirectives = false) => Print(s, true,false, !ignorePrintDirectives);
-        public static void Print(string s="",bool ignorePrintDirectives=false) => Print(s, false,false, !ignorePrintDirectives);
+        public static void Print(string s="",bool lineBreak=false, bool ignorePrintDirectives=false) => Print(s, lineBreak,false, !ignorePrintDirectives);
         public static void Println(char s, bool ignorePrintDirectives = false) => Print(s+"", true,false, !ignorePrintDirectives);
-        public static void Print(char s, bool ignorePrintDirectives = false) => Print(s+"", false, !ignorePrintDirectives);
+        public static void Print(char s, bool lineBreak = false, bool ignorePrintDirectives = false) => Print(s+"",lineBreak, !ignorePrintDirectives);
 
         public static void Error(string s="") => Error(s, false);
         public static void Errorln(string s="") => Error(s, true);
@@ -715,9 +715,11 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        public static List<LineSplit> GetWorkAreaStringSplits(string s, Point origin, bool forceEnableConstraintInWorkArea=false, bool fitToVisibleArea = true, bool doNotEvaluatePrintDirectives = false,bool ignorePrintDirectives=false )
+        public static LineSplits GetWorkAreaStringSplits(string s, Point origin, bool forceEnableConstraintInWorkArea=false, bool fitToVisibleArea = true, bool doNotEvaluatePrintDirectives = false,bool ignorePrintDirectives=false )
         {
-            var r = new List<LineSplit>();
+            var r = new List<StringSegment>();
+            PrintSequences printSequences = null;
+
             lock (ConsoleLock)
             {
                 int index = -1;
@@ -725,46 +727,109 @@ namespace DotNetConsoleAppToolkit
                 var x0 = origin.X;
                 var y0 = origin.Y;
 
-                var croppedLines = new List<string>();
+                var croppedLines = new List<StringSegment>();
                 string pds = null;
                 var length = s.Length;
-                PrintSequences ps = null;
                 if (doNotEvaluatePrintDirectives)
                 {
                     pds = s;
-                    ps = new PrintSequences();
-                    s = GetPrint(s, false, doNotEvaluatePrintDirectives, ignorePrintDirectives, ps);
+                    printSequences = new PrintSequences();
+                    s = GetPrint(s, false, doNotEvaluatePrintDirectives, ignorePrintDirectives, printSequences);
                 }
                 var xr = x0 + s.Length - 1;
                 var xm = x + w - 1;
+
                 if (xr >= xm)
                 {
-                    while (xr > xm && s.Length > 0)
+                    if (pds != null)
                     {
-                        var left = s.Substring(0, s.Length - (xr - xm));
-                        s = s.Substring(s.Length - (xr - xm), xr - xm);
-                        croppedLines.Add(left);
-                        xr = x + s.Length - 1;
+                        var croppedPrintDirectives = new StringBuilder();
+                        var currentLine = string.Empty;
+
+                        foreach ( var ps in printSequences )
+                        {
+                            if (!ps.IsText)
+                                croppedPrintDirectives.Append(ps.ToText());
+                            else
+                            {
+                                currentLine += ps.Text;
+                                xr = x0 + currentLine.Length - 1;
+                                if (xr > xm && currentLine.Length > 0)
+                                {
+                                    while (xr > xm && currentLine.Length > 0)
+                                    {
+                                        var left = currentLine.Substring(0, currentLine.Length - (xr - xm));
+                                        currentLine = currentLine.Substring(currentLine.Length - (xr - xm), xr - xm);
+                                        var sPrintDirective = croppedPrintDirectives.ToString();
+                                        croppedPrintDirectives.Clear();
+                                        if (!string.IsNullOrEmpty(sPrintDirective))
+                                            croppedLines.Add(new StringSegment(sPrintDirective + left,0,0,left.Length));
+                                        else
+                                            croppedLines.Add(new StringSegment(left,0,0,left.Length));
+                                        xr = x + currentLine.Length - 1;
+                                    }
+                                    if (currentLine.Length > 0)
+                                    {
+                                        croppedLines.Add(new StringSegment(currentLine,0,0,currentLine.Length));
+                                        currentLine = "";
+                                    }
+                                }
+                            }
+                        }
+
+                        var srPrintDirective = croppedPrintDirectives.ToString();
+                        croppedPrintDirectives.Clear();
+                        if (!string.IsNullOrEmpty(srPrintDirective))
+                        {
+                            if (croppedLines.Count == 0)
+                                croppedLines.Add(new StringSegment(srPrintDirective,0,0,0));
+                            else
+                            {
+                                var lastLine = croppedLines.Last();
+                                croppedLines.RemoveAt(croppedLines.Count - 1);
+                                croppedLines.Add(new StringSegment(lastLine.Text+srPrintDirective,0,0,lastLine.Length));
+                            }
+                        }
+
+                        if (currentLine.Length > 0)
+                            croppedLines.Add(new StringSegment(currentLine,0,0,currentLine.Length));
+
+                    } else
+                    { 
+                        while (xr > xm && s.Length > 0)
+                        {
+                            var left = s.Substring(0, s.Length - (xr - xm));
+                            s = s.Substring(s.Length - (xr - xm), xr - xm);
+                            croppedLines.Add(new StringSegment(left,0,0,left.Length));
+                            xr = x + s.Length - 1;
+                        }
+                        if (s.Length > 0)
+                            croppedLines.Add(new StringSegment(s,0,0,s.Length));                        
                     }
-                    if (s.Length > 0)
-                        croppedLines.Add(s);
 
                     var curx = x0;
                     int lineIndex = 0;
                     index = 0;
                     foreach (var line in croppedLines)
                     {
-                        r.Add(new LineSplit(line,x0,y0,line.Length));                        
+                        r.Add(new StringSegment(line.Text, x0, y0, line.Length));
                         x0 += line.Length;
                         index += line.Length;
-                        SetCursorPosConstraintedInWorkArea(ref x0, ref y0, false, forceEnableConstraintInWorkArea,fitToVisibleArea);
+                        SetCursorPosConstraintedInWorkArea(ref x0, ref y0, false, forceEnableConstraintInWorkArea, fitToVisibleArea);
                         lineIndex++;
                     }
                 }
                 else
-                    r.Add(new LineSplit(s,x0,y0,s.Length));
+                {
+                    if (pds!=null)
+                    {
+                        r.Add(new StringSegment(pds, x0, y0, pds.Length));
+                    }
+                    else
+                        r.Add(new StringSegment(s, x0, y0, s.Length));
+                }
             }
-            return r;
+            return new LineSplits(r,printSequences);
         }
 
         public static void SetCursorPosConstraintedInWorkArea(Point pos, bool enableOutput = true,bool forceEnableConstraintInWorkArea = false, bool fitToVisibleArea = true)
@@ -837,7 +902,7 @@ namespace DotNetConsoleAppToolkit
 
 #endregion
 
-#region UI operations
+        #region UI operations
 
         static void RunUIElementWatcher()
         {
@@ -992,7 +1057,7 @@ namespace DotNetConsoleAppToolkit
 
 #endregion
         
-#region stream methods
+        #region stream methods
 
         public static void RedirectOutputTo(StreamWriter sw)
         {
@@ -1027,13 +1092,13 @@ namespace DotNetConsoleAppToolkit
 
 #endregion
 
-#region folders
+        #region folders
 
         public static string TempPath => Path.Combine( Environment.CurrentDirectory , "Temp" );
 
-#endregion
+        #endregion
 
-#region implementation methods
+        #region implementation methods
 
         public static string GetCmd(string cmd, string value = null)
         {
@@ -1074,7 +1139,13 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        static void Print(object s, bool lineBreak = false, bool preserveColors = false, bool parseCommands = true, bool doNotEvalutatePrintDirectives = false, PrintSequences printSequences = null)
+        static void Print(
+            object s,
+            bool lineBreak = false,
+            bool preserveColors = false,
+            bool parseCommands = true,
+            bool doNotEvalutatePrintDirectives = false,
+            PrintSequences printSequences = null)
         {
             lock (ConsoleLock)
             {
@@ -1254,9 +1325,9 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-#endregion
+        #endregion
 
-#region commands shortcuts
+        #region commands shortcuts
 
         public static string Clleft => GetCmd(PrintDirectives.clleft);
         public static string Clright => GetCmd(PrintDirectives.clright);
@@ -1340,7 +1411,7 @@ namespace DotNetConsoleAppToolkit
 
         public static string Tab => "".PadLeft(TabLength, ' ');
 
-#endregion
+        #endregion
 
     }
 }

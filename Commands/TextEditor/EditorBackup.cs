@@ -20,7 +20,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         public readonly int X = 0;
         public readonly int Y = 0;
         public readonly List<string> Text;
-        public readonly List<List<LineSplit>> LinesSplits;
+        public readonly List<List<StringSegment>> LinesSplits;
         public readonly Encoding FileEncoding;
         public readonly OSPlatform? FileEOL;
         public readonly Point BeginOfLineCurPos;
@@ -39,7 +39,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             int x,
             int y,
             List<string> text,
-            List<List<LineSplit>> linesSplits,
+            List<List<StringSegment>> linesSplits,
             Encoding fileEncoding,
             OSPlatform? fileEOL,
             Point beginOfLineCurPos,
@@ -58,7 +58,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             Y = y;
             Text = new List<string>();
             Text.AddRange(text);
-            LinesSplits = new List<List<LineSplit>>();
+            LinesSplits = new List<List<StringSegment>>();
             LinesSplits.AddRange(linesSplits);
             FileEncoding = fileEncoding;
             FileEOL = fileEOL;

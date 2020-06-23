@@ -83,7 +83,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                         if (!string.IsNullOrWhiteSpace(txt))
                         {
                             var index = GetIndexInWorkAreaConstraintedString(txt, _beginOfLineCurPos, p);
-                            var slines = GetWorkAreaStringSplits(txt, _beginOfLineCurPos);
+                            var slines = GetWorkAreaStringSplits(txt, _beginOfLineCurPos).Splits;
 
                             if (CursorTop == slines.Min(o => o.Y))
                             {
@@ -290,7 +290,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                                             lock (ConsoleLock)
                                             {
                                                 var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
-                                                var sline = slines.Last();
+                                                var sline = slines.Splits.Last();
                                                 SetCursorPosConstraintedInWorkArea(sline.X + sline.Length, sline.Y);
                                             }
                                             break;
@@ -342,7 +342,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                                                     _inputReaderStringBuilder.Append(" ");
                                                     HideCur();
                                                     SetCursorPosConstraintedInWorkArea(ref x, ref y);
-                                                    var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
+                                                    var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos).Splits;
                                                     var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
                                                     EnableConstraintConsolePrintInsideWorkArea = false;
                                                     foreach (var sline in slines)
@@ -373,7 +373,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                                                     _inputReaderStringBuilder.Append(" ");
                                                     HideCur();
                                                     SetCursorPosConstraintedInWorkArea(ref x, ref y);
-                                                    var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
+                                                    var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos).Splits;
                                                     var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
                                                     EnableConstraintConsolePrintInsideWorkArea = false;
                                                     foreach (var sline in slines)
@@ -418,7 +418,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                                         case ConsoleKey.DownArrow:
                                             lock (ConsoleLock)
                                             {
-                                                var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
+                                                var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos).Splits;
                                                 if (CursorTop == slines.Max(o => o.Y))
                                                 {
                                                     var fh = CommandLineProcessor.CmdsHistory.GetForwardHistory();
@@ -478,7 +478,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                                         var y = y0;
                                         SetCursorPosConstraintedInWorkArea(ref x, ref y);
                                         _inputReaderStringBuilder.Insert(index, printedStr);
-                                        var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos);
+                                        var slines = GetWorkAreaStringSplits(_inputReaderStringBuilder.ToString(), _beginOfLineCurPos).Splits;
                                         var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
                                         EnableConstraintConsolePrintInsideWorkArea = false;
                                         foreach (var sline in slines)
@@ -554,7 +554,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                     var (id,left, top, right, bottom) = ActualWorkArea();
                     SetCursorPosConstraintedInWorkArea(_beginOfLineCurPos);
                     var txt = _inputReaderStringBuilder.ToString();
-                    var slines = GetWorkAreaStringSplits(txt, _beginOfLineCurPos);
+                    var slines = GetWorkAreaStringSplits(txt, _beginOfLineCurPos).Splits;
                     var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
                     EnableConstraintConsolePrintInsideWorkArea = false;
                     foreach (var sline in slines)

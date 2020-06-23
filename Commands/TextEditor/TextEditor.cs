@@ -44,7 +44,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         readonly int _defaultBarHeight = 2;
         ConsoleKeyInfo _lastKeyInfo;
         List<string> _text;
-        List<List<LineSplit>> _linesSplits;
+        List<List<StringSegment>> _linesSplits;
         Encoding _fileEncoding;
         OSPlatform? _fileEOL;
         string _eolSeparator;
@@ -114,7 +114,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 _filePath = null;
             }
             _text = new List<string> { "" };
-            _linesSplits = new List<List<LineSplit>> { new List<LineSplit> { new LineSplit("", 0, 0, 0) } };
+            _linesSplits = new List<List<StringSegment>> { new List<StringSegment> { new StringSegment("", 0, 0, 0) } };
         }
 
         void DisplayEditor()
@@ -597,7 +597,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     EraseInfoBar();
                     if (_lastVisibleLineIndex < _text.Count-1)
                     {
-                        var slines = GetWorkAreaStringSplits(_text[_lastVisibleLineIndex], new Point(_X, _Y), true, false);
+                        var slines = GetWorkAreaStringSplits(_text[_lastVisibleLineIndex], new Point(_X, _Y), true, false).Splits;
                         var y = _barY;
                         var newBarY = _barY + _barHeight;
                         SetCursorPos(_X, _barY);
@@ -704,18 +704,18 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     DisplayInfoBar(false);
 
                     var line = _text[_currentLine];
-                    var slines = GetWorkAreaStringSplits(line, _beginOfLineCurPos, true, false);
+                    var slines = GetWorkAreaStringSplits(line, _beginOfLineCurPos, true, false).Splits;
                     _linesSplits[_currentLine] = slines;
                     if (dy < 0)
                     {
                         SetCursorPos(0, _barY - 1);
-                        PrintLineSplit(slines[_splitedLineIndex].Text);
+                        PrintLineSplit(slines[_splitedLineIndex].Text,_splitedLastVisibleLineIndex==slines.Count-1);
                         _lastVisibleLineIndex = _currentLine;
                         _splitedLastVisibleLineIndex = _splitedLineIndex;
                     } else
                     {
                         SetCursorPos(0, 0);
-                        PrintLineSplit(slines[_splitedLineIndex].Text);
+                        PrintLineSplit(slines[_splitedLineIndex].Text, _splitedLineIndex==slines.Count-1);
                         DecrementLineYPosition();
                     }
 
@@ -753,7 +753,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 var (lines, platform, eolSeparator) = FIleReader.ReadAllLines(filePath.FullName);
                 _text = lines.ToList();
                 _eolSeparator = eolSeparator;
-                _linesSplits = new List<List<LineSplit>>(_text.Count);
+                _linesSplits = new List<List<StringSegment>>(_text.Count);
                 for (int i = 0; i < _text.Count; i++) _linesSplits.Add(null);
                 _fileEOL = platform;
                 return true;
@@ -810,21 +810,23 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 );
         }
 
-        (bool atBottom,int splitedLineIndex, List<LineSplit> slines) PrintLine(int index,int subIndex=0,int maxY=-1)
+        (bool atBottom,int splitedLineIndex, List<StringSegment> slines) PrintLine(int index,int subIndex=0,int maxY=-1)
         {
             if (maxY == -1) maxY = _barY;
             lock (ConsoleLock)
             {
                 var y = CursorTop;
                 var line = _text[index];
-                var slinesrw = GetWorkAreaStringSplits(line, new Point(0, y), true, false,true);
-                var slines = GetWorkAreaStringSplits(line, new Point(0, y), true, false);
+                
+                var slines = GetWorkAreaStringSplits(line, new Point(0, y), true, false, !_rawMode).Splits;
+
                 int i = subIndex;
                 while (i<slines.Count && y < maxY)
                 {
                     SetCursorPos(0, y);                    
-                    PrintLineSplit(slines[i++].Text);
+                    PrintLineSplit(slines[i].Text,i== slines.Count-1);
                     y++;
+                    i++;
                 }
                 if (y < maxY) SetCursorPos(0, y);
                 _linesSplits[index] = slines;
@@ -833,13 +835,13 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             }
         }
 
-        void PrintLineSplit(string s)
+        void PrintLineSplit(string s,bool eol)
         {
-            Print(s, _rawMode);
-            if (!_rawMode) Print(ColorSettings.Default.ToString());
+            Print(s, false, _rawMode);
+            if (!_rawMode && eol) Print(ColorSettings.Default.ToString());
         }
 
-        List<LineSplit> GetLineSplits(int lineIndex, int x,int y) => GetWorkAreaStringSplits(_text[lineIndex], new Point(x, y), true, false);
+        List<StringSegment> GetLineSplits(int lineIndex, int x,int y) => GetWorkAreaStringSplits(_text[lineIndex], new Point(x, y), true, false).Splits;
 
         void EraseInfoBar()
         {

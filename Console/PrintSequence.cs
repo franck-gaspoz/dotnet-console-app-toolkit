@@ -1,4 +1,5 @@
 ﻿using System;
+using static DotNetConsoleAppToolkit.DotNetConsole;
 
 namespace DotNetConsoleAppToolkit.Console
 {
@@ -44,6 +45,21 @@ namespace DotNetConsoleAppToolkit.Console
             Text = text;
         }
 
+        public string ToText()
+        {
+            var s = "";
+            if (PrintDirective.HasValue && Value == null)
+                s += $"{CommandBlockBeginChar}{PrintDirective}{CommandBlockEndChar}";
+            else
+            {
+                if (PrintDirective.HasValue && Value != null)
+                    s += $"{CommandBlockBeginChar}{PrintDirective}{CommandValueAssignationChar}{Value}{CommandBlockEndChar}";
+                else
+                    s += Text;
+            }
+            return s;
+        }
+
         public override string ToString()
         {
             var s = $"{FirstIndex}..{LastIndex}({Length})  ";
@@ -74,5 +90,7 @@ namespace DotNetConsoleAppToolkit.Console
             }
             return s;
         }
+
+        public bool IsText => !PrintDirective.HasValue;
     }
 }
