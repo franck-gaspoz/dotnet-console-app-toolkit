@@ -18,7 +18,6 @@ using static DotNetConsoleAppToolkit.Lib.Str;
 using sc = System.Console;
 using System.IO;
 using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
 
 namespace DotNetConsoleAppToolkit.Commands.TextEditor
 {
@@ -62,7 +61,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         Point _beginOfLineCurPos = new Point(0, 0);
         int _splitedLineIndex;
         int _cmdBarIndex;
-        readonly int _maxCmdBarIndex = 1;
+        readonly int _maxCmdBarIndex = 2;
         bool _barVisible;
         int _lastVisibleLineIndex;
         int _splitedLastVisibleLineIndex;
@@ -70,6 +69,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         string _pressCmdKeyText;
         Stack<EditorBackup> _editorBackups;
         bool _rawMode;
+        bool _exitAll;
 
         #endregion
 
@@ -80,11 +80,18 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             if (filePath==null || filePath.CheckPathExists())
             {
+                Init();
                 InitEditor();
                 LoadFile(filePath);
                 DisplayEditor();
                 WaitAndProcessKeyPress();
             }
+        }
+
+        void Init()
+        {
+            _rawMode = false;
+            _exitAll = false;
         }
 
         void InitEditor(bool clearEditorBackups=true,bool forgetCurrentFile=true)
@@ -145,7 +152,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             var end = false;
             _beginOfLineCurPos = new Point(0, _Y);
-            while (!end)
+            while (!end && !_exitAll)
             {
                 var c = sc.ReadKey(true);
                 _lastKeyInfo = c;
@@ -346,6 +353,14 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                                 // file bottom
                                 break;
 
+                            case ConsoleKey.A:
+                                // previous page
+                                break;
+
+                            case ConsoleKey.Z:
+                                // next page
+                                break;
+
                             case ConsoleKey.C:
                                 // clear editor
                                 if (_readOnly) { hideBar = false; break; }
@@ -379,6 +394,11 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                                 RefreshEditor();
                                 break;
 
+                            case ConsoleKey.X:
+                                // exit all
+                                _exitAll = true;
+                                break;
+
                             case ConsoleKey.Q:
                                 // quit current editor - unstack to previous file if any, else exit
                                 if (_fileModified && Confirm($"file '{_filePath.Name}' has unsaved changes. Do you want to save it"))
@@ -396,7 +416,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                             default:
                                 // invalid
                                 hideBar = false;
-                                _statusText = $"{Bred}Invalid comand key.{ColorSettings.Default} {_pressCmdKeyText} " + GetBarIndex();
+                                _statusText = $"{Bred}Invalid comand key: '{c.Key}'.{ColorSettings.Default} {_pressCmdKeyText} " + GetBarIndex();
                                 printOnlyCursorInfo = false;
                                 break;
                         }
@@ -926,24 +946,32 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         }
 
         string GetBarIndex() => $"({_cmdBarIndex}/{_maxCmdBarIndex})";
+
         string GetLastKeyInfo() => _lastKeyInfo.Key + "";
+
         string GetPositionInfo() => "line "+(_currentLine+1)+"";
+
         string GetCursorInfo() => $"{_X},{_Y}";
+
         string GetFileInfo()
         {
-            return (_filePath == null) ? $"no file" : $"{_filePath.Name}{(_readOnly?"(ro)":"")}{(_fileModified?"*":"")} | {Plur("line", _text.Count)} | size={HumanFormatOfSize(_fileSize,2)} | enc={((_fileEncoding==null)?"?":_fileEncoding.EncodingName)} | eol={FileEOL}";
+            return (_filePath == null) ? $"no file" : $"{_filePath.Name}{(_readOnly?"(ro)":"")}{(_fileModified?"*":"")} | {Plur("line", _text.Count)} | size={HumanFormatOfSize(_fileSize,2)} | enc={((_fileEncoding==null)?"?":_fileEncoding.EncodingName)} | eol={FileEOL} | {(_rawMode?"raw":"parsed")} mode";
         }
+
         string GetCmdsInfo()
         {
             string ShcutOpt(string shortCut,bool ifNotReadOnly=false,bool addCmdKeyStr=true) => $"{((ifNotReadOnly && _readOnly) ? Bwhite:Bwhite)}{( (ifNotReadOnly&&_readOnly) ?Gray:Black)}{(addCmdKeyStr?_cmdKeyStr:"")}{shortCut}{ColorSettings.Default}";
             string Opt(string shortCut,string label, bool ifNotReadOnly = false, bool addCmdKeyStr = true) => $"{ShcutOpt(shortCut, ifNotReadOnly, addCmdKeyStr)} {((ifNotReadOnly&&_readOnly)?$"{Bgray}":"")}{label}{ColorSettings.Default}";
             return _cmdBarIndex switch
             {
-                1 => $" {Opt("t", "Top")} | {Opt("b", "Bottom")} | {Opt("c", "Clear",true)} | {Opt("n", "New")} | {Opt("r", "Toggle raw mode")}",
-                _ => $" {Opt("q", "Quit")} | {Opt("l", "Load")} | {Opt("s", "Save",true)} | {Opt("v", "Toggle bar")} | {Opt("i", "Info bar")} | {Opt("F1", "Help",false,false)}",
+                2 => $" {Opt("t", "Top")} | {Opt("b", "Bottom")} | {Opt("z", "Next page")} | {Opt("a", "Previous page")}",
+                1 => $" {Opt("l", "Load")} | {Opt("s", "Save", true)} | {Opt("c", "Clear",true)} | {Opt("n", "New")} | {Opt("r", "Toggle raw mode")}",
+                _ => $" {Opt("q", "Quit")} | {Opt("x", "Exit all")} | {Opt("v", "Toggle bar")} | {Opt("i", "Info bar")} | {Opt("F1", "Help",false,false)}",
             };
         }
+
         void BackupCursorPos() => _bkCursorPos = CursorPos;
+
         void RestoreCursorPos() => SetCursorPos(_bkCursorPos);
 
     }

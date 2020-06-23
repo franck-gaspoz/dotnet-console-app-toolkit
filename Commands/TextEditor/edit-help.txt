@@ -15,13 +15,14 @@ The list of available commands is:
 (f=cyan)[Esc]S|s(f=white) :    Save the current file
 (f=cyan)[Esc]L|l(f=white) :    Load a file
 (f=cyan)[Esc]Q|q(f=white) :    Quit the current editor and restore the previous file if any, or else returns to underlying shell
+(f=cyan)[Esc]X|x(f=white) :    Exit from all editor and returns to underlying shell. Discard all changes
 
 (uon)edit commands:(tdoff)
 
 (f=cyan)[Esc]T|t (f=white) :   go to top of the file
 (f=cyan)[Esc]B|b (f=white) :   go to bottom of the file
-(f=cyan)[Esc]Q|q (f=white) :   go to previous page if any
-(f=cyan)[Esc]W|w (f=white) :   go to next page if any
+(f=cyan)[Esc]A|a (f=white) :   go to previous page if any
+(f=cyan)[Esc]Z|z (f=white) :   go to next page if any
 (f=cyan)[Esc]B|c (f=white) :   clear the file
 (f=cyan)[Esc]N|n (f=white) :   leave current file and begin the edition of a new file
 
