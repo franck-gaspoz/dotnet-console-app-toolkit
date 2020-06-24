@@ -96,7 +96,7 @@ namespace DotNetConsoleAppToolkit.Commands.Test
             Print(r);
 
             Println(ColorSettings.Default + "");
-            Println("24 bits: 16777216 colors(br) ");
+            Println("24 bits (16777216 colors): 0 <= r,g,b <= 255 (br) ");
 
             string cl(int r, int v, int b) =>
                 esc + "[48;2;" + r + ";" + v + ";" + b + "m ";

@@ -246,8 +246,35 @@ namespace DotNetConsoleAppToolkit
         public static void BackupBackground() => Lock(() => _backgroundBackup = sc.BackgroundColor);
         public static void RestoreForeground() => Lock(() => sc.ForegroundColor = _foregroundBackup);
         public static void RestoreBackground() => Lock(() => sc.BackgroundColor = _backgroundBackup);
+
+        /// <summary>
+        /// set foreground color from a 3 bit palette color (ConsoleColor)
+        /// </summary>
+        /// <param name="c"></param>
         public static void SetForeground(ConsoleColor c) => Lock(() => sc.ForegroundColor = c);
+
+        /// <summary>
+        /// set foreground color from a 8 bit palette color (vt/ansi)
+        /// </summary>
+        /// <param name="c"></param>
+        public static void SetForeground(int c) => Lock(() =>
+        {
+            Print($"{(char)27}[48;5;{c}m");
+        });
+
+        /// <summary>
+        /// set foreground color from a 24 bit palette color (vt/ansi)
+        /// </summary>
+        /// <param name="r">red from 0 to 255</param>
+        /// <param name="g">green from 0 to 255</param>
+        /// <param name="b">blue from 0 to 255</param>
+        public static void SetForeground(int r,int g,int b) => Lock(() =>
+        {
+            Print($"{(char)27}[48;2;{r};{g};{b}m");
+        });
+
         public static void SetBackground(ConsoleColor c) => Lock(() => sc.BackgroundColor = c);
+        
         public static void SetDefaultForeground(ConsoleColor c) => Lock(() => DefaultForeground = c);
         public static void SetDefaultBackground(ConsoleColor c) => Lock(() => DefaultBackground = c);
         public static void RestoreDefaultColors() => Lock(() => { sc.ForegroundColor = DefaultForeground; sc.BackgroundColor = DefaultBackground; });
@@ -479,7 +506,7 @@ namespace DotNetConsoleAppToolkit
             return sc.ReadLine();
         }
         
-        public static void Echo(string s,bool lineBreak=false,[CallerMemberName]string callerMemberName="",[CallerLineNumber]int callerLineNumber=-1)
+        public static void FileEcho(string s,bool lineBreak=false,[CallerMemberName]string callerMemberName="",[CallerLineNumber]int callerLineNumber=-1)
         {
             if (!FileEchoEnabled) return;
             if (FileEchoDumpDebugInfo)
@@ -590,7 +617,7 @@ namespace DotNetConsoleAppToolkit
                             Write(line);
                             x0 += line.Length;
                             SetCursorPosConstraintedInWorkArea(ref x0, ref y0);
-                            Echo(line);
+                            FileEcho(line);
                         }
                         if (lineBreak)
                         {
@@ -604,7 +631,7 @@ namespace DotNetConsoleAppToolkit
                         Write(s);
                         x0 += s.Length;
                         SetCursorPosConstraintedInWorkArea(ref x0, ref y0);
-                        Echo(s);
+                        FileEcho(s);
                         if (lineBreak)
                         {
                             x0 = x;
@@ -619,11 +646,12 @@ namespace DotNetConsoleAppToolkit
                     if (dep)
                     {                                         
                         Write(s);
-                        if (!IsOutputRedirected) FillLineFromCursor(' ');
+                        // removed: too slow & buggy (s.Length is wrong due to ansi codes)
+                        //if (!IsOutputRedirected) FillLineFromCursor(' ');   // this fix avoid background color to fill the full line on wsl/linux
                     }
                     else
                         Write(s);
-                    Echo(s);
+                    FileEcho(s);
                     if (lineBreak)
                     {
                         var f = sc.ForegroundColor;
@@ -634,7 +662,7 @@ namespace DotNetConsoleAppToolkit
                             sc.BackgroundColor = ColorSettings.Default.Background.Value;
                             sc.WriteLine(string.Empty);
                         }
-                        Echo(string.Empty,true);
+                        FileEcho(string.Empty,true);
                         if (!IsOutputRedirected)
                         {
                             sc.ForegroundColor = f;
@@ -655,13 +683,14 @@ namespace DotNetConsoleAppToolkit
                 var aw = ActualWorkArea();
                 var nb = Math.Max(0, Math.Max(aw.Right, sc.BufferWidth - 1) - CursorLeft - 1);
                 var x = CursorLeft;
+                var y = CursorTop;
                 if (useDefaultColors)
                 {
                     sc.ForegroundColor = ColorSettings.Default.Foreground.Value;
-                    sc.BackgroundColor = ColorSettings.Default.Background.Value;
+                    sc.BackgroundColor = ConsoleColor.Red; // ColorSettings.Default.Background.Value;
                 }
-                Write("".PadLeft(nb, c));   // BUG: WINDOWS: do not print the last character
-                SetCursorPos(nb, CursorTop);
+                Write("".PadLeft(nb, c));   // TODO: BUG in WINDOWS: do not print the last character
+                SetCursorPos(nb, y);
                 Write(" ");
                 if (useDefaultColors)
                 {
@@ -1394,14 +1423,14 @@ namespace DotNetConsoleAppToolkit
                     }
                     if (!doNotEvalutatePrintDirectives) result = cmd.Value.Value(value);
                     if (FileEchoEnabled && FileEchoCommands)
-                        Echo(CommandBlockBeginChar + cmd.Value.Key + value + CommandBlockEndChar);
+                        FileEcho(CommandBlockBeginChar + cmd.Value.Key + value + CommandBlockEndChar);
                     printSequences?.Add(new PrintSequence(cmd.Value.Key.Substring(0, cmd.Value.Key.Length-1), i, j, value, null,startIndex));
                 }
                 else
                 {
                     if (!doNotEvalutatePrintDirectives) result = cmd.Value.Value(null);
                     if (FileEchoEnabled && FileEchoCommands)
-                        Echo(CommandBlockBeginChar + cmd.Value.Key + CommandBlockEndChar);
+                        FileEcho(CommandBlockBeginChar + cmd.Value.Key + CommandBlockEndChar);
                     printSequences?.Add(new PrintSequence(cmd.Value.Key, i, j, value, null,startIndex));
                 }
                 if (result != null)
