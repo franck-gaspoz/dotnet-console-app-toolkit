@@ -85,7 +85,12 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             {
                 Init();
                 InitEditor();
-                LoadFile(filePath);
+                if (filePath.FileSystemInfo.Exists) 
+                    LoadFile(filePath);
+                else
+                {
+                    _filePath = filePath;
+                }
                 DisplayEditor();
                 WaitAndProcessKeyPress();
             }
