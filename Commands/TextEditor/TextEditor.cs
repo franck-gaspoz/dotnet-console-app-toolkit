@@ -910,7 +910,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         void PrintLineSplit(string s,bool eol)
         {
             Print(s, false, _rawMode);
-            if (!_rawMode && eol) Print(ColorSettings.Default.ToString());
+            if (!_rawMode) Print(ColorSettings.Default.ToString());
         }
 
         List<StringSegment> GetLineSplits(int lineIndex, int x,int y) => GetWorkAreaStringSplits(_text[lineIndex], new Point(x, y), true, false, !_rawMode).Splits;
