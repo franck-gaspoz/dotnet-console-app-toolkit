@@ -406,8 +406,19 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
                             case ConsoleKey.Q:
                                 // quit current editor - unstack to previous file if any, else exit
-                                if (_fileModified && Confirm($"file '{_filePath.Name}' has unsaved changes. Do you want to save it"))
-                                    SaveFile();
+                                if (_fileModified) {
+                                    if (_filePath != null)
+                                    {
+                                        if (Confirm($"file '{_filePath.Name}' has unsaved changes. Do you want to save it"))
+                                            SaveFile();
+                                    } else
+                                    {
+                                        if (Confirm($"current text has unsaved changes. Do you want to save it"))
+                                        {
+                                            SaveFile();
+                                        }
+                                    }
+                                }
                                 if (_editorBackups.Count == 0)
                                     end = true;
                                 else
@@ -950,12 +961,12 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             SetCursorPos(1, _barY+ 1 );
             EnableInvert();            
-            Print($"{GetPositionInfo()} | {_splitedLineIndex} | {GetCursorInfo()} | [{GetLastKeyInfo()}]       ");            
+            Print($"{GetPositionInfo()} | {_splitedLineIndex} | {GetCursorInfo()} | {GetLastKeyInfo()}               ");            
         }
 
         string GetBarIndex() => $"({_cmdBarIndex}/{_maxCmdBarIndex})";
 
-        string GetLastKeyInfo() => _lastKeyInfo.Key + "";
+        string GetLastKeyInfo() => $"[{_lastKeyInfo.Key}]{(_lastKeyInfo.Modifiers.HasFlag(ConsoleModifiers.Alt)?"[Alt]":"")}{(_lastKeyInfo.Modifiers.HasFlag(ConsoleModifiers.Control) ? "[Ctl]" : "")}{(_lastKeyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? "[Shf]" : "")}";
 
         string GetPositionInfo() => "line "+(_currentLine+1)+"";
 
@@ -963,7 +974,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
         string GetFileInfo()
         {
-            return (_filePath == null) ? $"no file" : $"{_filePath.Name}{(_readOnly?"(ro)":"")}{(_fileModified?"*":"")} | {Plur("line", _text.Count)} | size={HumanFormatOfSize(_fileSize,2)} | enc={((_fileEncoding==null)?"?":_fileEncoding.EncodingName)} | eol={FileEOL} | {(_rawMode?"raw":"parsed")} mode";
+            return $"{((_filePath == null) ? "no file" : _filePath.Name)}{(_readOnly ? "(ro)" : "")}{(_fileModified ? "*" : "")} | {Plur("line", _text.Count)} | size={HumanFormatOfSize(_fileSize,2)} | enc={((_fileEncoding==null)?"?":_fileEncoding.EncodingName)} | eol={FileEOL} | {(_rawMode?"raw":"parsed")} mode";
         }
 
         string GetCmdsInfo()
