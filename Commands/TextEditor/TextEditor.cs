@@ -18,6 +18,7 @@ using static DotNetConsoleAppToolkit.Lib.Str;
 using sc = System.Console;
 using System.IO;
 using System.Reflection;
+using System.Runtime.Versioning;
 
 namespace DotNetConsoleAppToolkit.Commands.TextEditor
 {
@@ -406,19 +407,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
                             case ConsoleKey.Q:
                                 // quit current editor - unstack to previous file if any, else exit
-                                if (_fileModified) {
-                                    if (_filePath != null)
-                                    {
-                                        if (Confirm($"file '{_filePath.Name}' has unsaved changes. Do you want to save it"))
-                                            SaveFile();
-                                    } else
-                                    {
-                                        if (Confirm($"current text has unsaved changes. Do you want to save it"))
-                                        {
-                                            SaveFile();
-                                        }
-                                    }
-                                }
+                                CheckFileSaveDialog();
                                 if (_editorBackups.Count == 0)
                                     end = true;
                                 else
@@ -455,6 +444,27 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 }
             }
             Exit();
+        }
+
+        void CheckFileSaveDialog()
+        {
+            if (_fileModified)
+            {
+                if (_filePath != null)
+                {
+                    if (Confirm($"file '{_filePath.Name}' has unsaved changes. Do you want to save it"))
+                        SaveFile();
+                }
+                else
+                {
+                    if (Confirm($"current text has unsaved changes. Do you want to save it"))
+                    {
+                        var fname = Input("input a name for the file");
+                        _filePath = new FilePath(Path.Combine(Environment.CurrentDirectory, fname));
+                        SaveFile();
+                    }
+                }
+            }
         }
 
         void RefreshEditor()
@@ -511,6 +521,19 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 var c = sc.ReadKey(true);
                 if (bVis) ToggleBarVisibility();
             }
+        }
+
+        string Input(string prompt)
+        {
+            var bVis = ShowEmptyBar();
+            PrintBarMessage(prompt + ": ");
+            var text = sc.ReadLine();
+            DisableTextDecoration();
+            if (!bVis)
+                ToggleBarVisibility();
+            else
+                RestoreBar();
+            return text;
         }
 
         bool Confirm(string text)
@@ -618,6 +641,12 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             _barHeight = _barVisible ? _defaultBarHeight : 0;
             _barY = _height - (_barVisible ? _barHeight : 0);
+        }
+
+        void RestoreBar()
+        {
+            ToggleBarVisibility();
+            ToggleBarVisibility();
         }
 
         void ToggleBarVisibility()
