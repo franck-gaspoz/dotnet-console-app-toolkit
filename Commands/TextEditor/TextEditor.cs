@@ -18,7 +18,6 @@ using static DotNetConsoleAppToolkit.Lib.Str;
 using sc = System.Console;
 using System.IO;
 using System.Reflection;
-using System.Runtime.Versioning;
 
 namespace DotNetConsoleAppToolkit.Commands.TextEditor
 {
