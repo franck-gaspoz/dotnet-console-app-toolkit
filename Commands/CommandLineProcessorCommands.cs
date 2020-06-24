@@ -167,12 +167,15 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                         if (string.IsNullOrWhiteSpace(com.Documentation)) Println();
                         Print(GetPrintableDocText(com.Documentation, list, shortView, singleout ? 0 : maxcnamelength));
                         
-                        Println($"{col}{ColorSettings.Label}type  : {ColorSettings.DarkLabel}{com.DeclaringTypeShortName}");
-                        Println($"{col}{ColorSettings.Label}module: {ColorSettings.DarkLabel}{com.ModuleName}{ColorSettings.Default}");
                     } else
                     {
                         Println(GetPrintableDocText(com.Documentation, list, shortView, singleout ? 0 : maxcnamelength));
                     }
+                }
+                if (!shortView)
+                {
+                    Println($"{col}{ColorSettings.Label}type  : {ColorSettings.DarkLabel}{com.DeclaringTypeShortName}");
+                    Println($"{col}{ColorSettings.Label}module: {ColorSettings.DarkLabel}{com.ModuleName}{ColorSettings.Default}");
                 }
             }
 #pragma warning restore IDE0071WithoutSuggestion // Simplifier l’interpolation
