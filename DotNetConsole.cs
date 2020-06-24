@@ -30,6 +30,7 @@ namespace DotNetConsoleAppToolkit
     {
         #region attributes
 
+        public static bool IsErrorRedirected = false;
         public static bool IsOutputRedirected = false;
         public static bool EnableFillLineFromCursor = true;
         public static bool RedirectOutToError = false;
@@ -73,6 +74,8 @@ namespace DotNetConsoleAppToolkit
         static Thread _watcherThread;
         static readonly Dictionary<int, UIElement> _uielements = new Dictionary<int, UIElement>();
 
+        static TextWriter _errorWriter;
+        static StreamWriter _errorStreamWriter;
         static TextWriter _outputWriter;
         static StreamWriter _outputStreamWriter;
         static FileStream _outputFileStream;
@@ -1152,6 +1155,24 @@ namespace DotNetConsoleAppToolkit
                 _outputStreamWriter.Close();
                 sc.SetOut(_outputWriter);
                 IsOutputRedirected = false;
+            }
+        }
+
+        public static void RedirectErrorTo(StreamWriter sw)
+        {
+            if (sw != null)
+            {
+                _errorWriter = sc.Error;
+                _errorStreamWriter = sw;
+                sc.SetError(_errorStreamWriter);
+                IsErrorRedirected = true;
+            }
+            else
+            {
+                _errorStreamWriter.Flush();
+                _errorStreamWriter.Close();
+                sc.SetError(_errorWriter);
+                IsErrorRedirected = false;
             }
         }
 

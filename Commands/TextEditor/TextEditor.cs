@@ -70,6 +70,8 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         Stack<EditorBackup> _editorBackups;
         bool _rawMode;
         bool _exitAll;
+        StreamWriter _errorStreamWriter;
+        Stream _errorStream;
 
         #endregion
 
@@ -92,6 +94,9 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             _rawMode = false;
             _exitAll = false;
+            _errorStream = new MemoryStream();
+            _errorStreamWriter = new StreamWriter(_errorStream);
+            RedirectErrorTo(_errorStreamWriter);
         }
 
         void InitEditor(bool clearEditorBackups=true,bool forgetCurrentFile=true)
@@ -753,6 +758,9 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         void Exit()
         {
             ClearScreen();
+            RedirectErrorTo(null);
+            _errorStream = null;
+            _errorStreamWriter = null;
         }
 
         void SetCursorHome()

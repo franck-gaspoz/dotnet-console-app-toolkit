@@ -49,15 +49,3 @@ begin text|(f=cyan,b=darkblue)test: begin with a text and having directives(f=wh
 
 ------------------------------------
 
-ERROR 2: 
-- is: 
-test: bad directive value
-- should have GetPrint:
-invalid color name: cyanuretest: bad directive value
-
-ERROR 1: 
-- is:
-bad directive name at pos>0 in list
-- should have GetPrint:
-invalid color name: cyanuretest 1: bad directive name at pos>0 in list
-
