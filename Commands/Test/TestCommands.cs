@@ -2,7 +2,9 @@
 using DotNetConsoleAppToolkit.Component.CommandLine;
 using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 using DotNetConsoleAppToolkit.Console;
+using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using static DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.FIleReader;
 using sc = System.Console;
@@ -44,17 +46,17 @@ namespace DotNetConsoleAppToolkit.Commands.Test
             Println();
             Println("Background | Foreground colors");
             Println(hsep);
-            for (int j=0;j<=7;j++)
+            for (int j = 0; j <= 7; j++)
             {
                 var str1 = $" ESC[4{j}m   | {esc}[4{j}m";
                 var str2 = str1;
-                for (int i=0;i<=7;i++)
+                for (int i = 0; i <= 7; i++)
                 {
                     str1 += $"{esc}[3{i}m [3{i}m   ";
                     str2 += $"{esc}[1;3{i}m [1;3{i}m ";
                 }
-                Println(str1+ColorSettings.Default);
-                Println(str2+ColorSettings.Default);
+                Println(str1 + ColorSettings.Default);
+                Println(str2 + ColorSettings.Default);
                 Println(hsep);
             }
             Println(ColorSettings.Default + "");
@@ -66,20 +68,20 @@ namespace DotNetConsoleAppToolkit.Commands.Test
             int n = 16;
             for (int y = 0; y < 6; y++)
             {
-                r = White;                
-                for (int x=16;x<=51;x++)
+                r = White;
+                for (int x = 16; x <= 51; x++)
                 {
                     if (x == 34)
                         r += Black;
-                    r += $"{esc}[48;5;{n}m" + ((n+"").PadLeft(4,' '));
+                    r += $"{esc}[48;5;{n}m" + ((n + "").PadLeft(4, ' '));
                     n++;
                     x2++;
                     if (x2 >= 6) { r += Br; x2 = 0; }
                 }
                 Print(r);
             }
-            
-            Println(ColorSettings.Default+"");
+
+            Println(ColorSettings.Default + "");
             Println("grayscale colors (24 colors) : 232 + l (0 <= l <= 24)(br)");
             r = White;
             x2 = 0;
@@ -94,7 +96,50 @@ namespace DotNetConsoleAppToolkit.Commands.Test
             Print(r);
 
             Println(ColorSettings.Default + "");
-            Println("24 bits: ");
+            Println("24 bits: 16777216 colors(br) ");
+
+            string cl(int r, int v, int b) =>
+                esc + "[48;2;" + r + ";" + v + ";" + b + "m ";
+
+            var stp = 4;
+            r = "";
+            int cr, cb = 0, cv = 0;
+            for (cr = 0; cr < 255; cr += stp)
+                r += cl(cr, cv, cb);
+            Println(r);
+
+            r = "";
+            cr = 0;
+            for (cv = 0; cv < 255; cv += stp)
+                r += cl(cr, cv, cb);
+            Println(r);
+
+            cv = 0;
+            r = "";
+            for (cb = 0; cb < 255; cb += stp)
+                r += cl(cr, cv, cb);
+            Println(r);
+
+            r = "";
+            for (cb = 0; cb < 255; cb += stp)
+                r += cl(cb, cb, 0);
+            Println(r);
+
+            r = "";
+            for (cb = 0; cb < 255; cb += stp)
+                r += cl(cb, 0, cb);
+            Println(r);
+
+            r = "";
+            for (cb = 0; cb < 255; cb += stp)
+                r += cl(0, cb, cb);
+            Println(r);
+
+            r = "";
+            for (cb = 0; cb < 255; cb += stp)
+                r += cl(cb, cb, cb);
+            Println(r);
+
         }
     }
 }
