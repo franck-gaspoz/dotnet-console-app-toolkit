@@ -32,10 +32,16 @@ namespace DotNetConsoleAppToolkit.Commands.Test
         [Command("show current colors support and current colors map using ANSI escape codes")]
         public void ANSIColorTest()
         {
+            // 3 bits colors (standard)
             var colw = 8;
             var totw = colw * 8 + 3 + 10;
             var hsep = "".PadLeft(totw, '-');
             var esc = (char)27;
+            string r;
+            int x2 = 0;
+
+            Println("3 bits (8 color mode)");
+            Println();
             Println("Background | Foreground colors");
             Println(hsep);
             for (int j=0;j<=7;j++)
@@ -51,6 +57,44 @@ namespace DotNetConsoleAppToolkit.Commands.Test
                 Println(str2+ColorSettings.Default);
                 Println(hsep);
             }
+            Println(ColorSettings.Default + "");
+
+            // 8 bits colors
+            Println("8 bits (256 color mode)");
+            Println();
+            Println("216 colors: 16 + 36 × r + 6 × g + b (0 <= r, g, b <= 5)(br)");
+            int n = 16;
+            for (int y = 0; y < 6; y++)
+            {
+                r = White;                
+                for (int x=16;x<=51;x++)
+                {
+                    if (x == 34)
+                        r += Black;
+                    r += $"{esc}[48;5;{n}m" + ((n+"").PadLeft(4,' '));
+                    n++;
+                    x2++;
+                    if (x2 >= 6) { r += Br; x2 = 0; }
+                }
+                Print(r);
+            }
+            
+            Println(ColorSettings.Default+"");
+            Println("grayscale colors (24 colors) : 232 + l (0 <= l <= 24)(br)");
+            r = White;
+            x2 = 0;
+            for (int x = 232; x <= 255; x++)
+            {
+                if (x == 244)
+                    r += Black;
+                r += $"{esc}[48;5;{x}m" + ((x + "").PadLeft(4, ' '));
+                x2++;
+                if (x2 >= 6) { r += Br; x2 = 0; }
+            }
+            Print(r);
+
+            Println(ColorSettings.Default + "");
+            Println("24 bits: ");
         }
     }
 }
