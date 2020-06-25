@@ -49,6 +49,11 @@ namespace DotNetConsoleAppToolkit.Console
             return DefaultForeground;
         }
 
+        /// <summary>
+        /// parse a 8 bit color
+        /// </summary>
+        /// <param name="c">string representing an integer in range 0..255 (included)</param>
+        /// <returns></returns>
         public static int Parse8BitColor(object c)
         {
             if (int.TryParse((string)c, out int r) && r>=0 && r<=255)            
@@ -57,6 +62,11 @@ namespace DotNetConsoleAppToolkit.Console
             return 255;
         }
 
+        /// <summary>
+        /// parse a 24 bit color
+        /// </summary>
+        /// <param name="c">string of format: r:g:b where 0<=r,g,b<=255</param>
+        /// <returns></returns>
         public static (int r,int g,int b) Parse24BitColor(object c)
         {
             var s = (string)c;

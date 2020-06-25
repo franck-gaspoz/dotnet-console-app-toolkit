@@ -26,6 +26,11 @@ namespace DotNetConsoleAppToolkit
 {
     /// <summary>
     /// dotnet core sdk helps build fastly nice console applications
+    /// <para>
+    /// slowness due to:
+    /// - many system calls on both linux (ConsolePal.Unix.cs) and windows 
+    /// - use of interop on each console method in windows (ConsolePal.Windows.cs)
+    /// </para>
     /// </summary>
     public static class DotNetConsole
     {
@@ -1040,9 +1045,9 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-#endregion
+        #endregion
 
-#region UI operations
+        #region UI operations
 
         static void RunUIElementWatcher()
         {
@@ -1195,9 +1200,9 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-#endregion
+        #endregion
         
-#region stream methods
+        #region stream methods
 
         public static void RedirectOutputTo(StreamWriter sw)
         {
@@ -1250,15 +1255,15 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-#endregion
+        #endregion
 
-#region folders
+        #region folders
 
         public static string TempPath => Path.Combine( Environment.CurrentDirectory , "Temp" );
 
-#endregion
+        #endregion
 
-#region implementation methods
+        #region implementation methods
 
         public static string GetCmd(string cmd, string value = null)
         {
@@ -1485,9 +1490,9 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-#endregion
+        #endregion
 
-#region commands shortcuts
+        #region commands shortcuts
 
         public static string Clleft => GetCmd(PrintDirectives.clleft);
         public static string Clright => GetCmd(PrintDirectives.clright);
@@ -1576,7 +1581,7 @@ namespace DotNetConsoleAppToolkit
 
         public static string Tab => "".PadLeft(TabLength, ' ');
 
-#endregion
+        #endregion
 
     }
 }
