@@ -10,6 +10,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -161,8 +162,14 @@ namespace DotNetConsoleAppToolkit
             { PrintDirectives.bkb+""   , (x) => RelayCall(BackupBackground) },
             { PrintDirectives.rsf+""   , (x) => RelayCall(RestoreForeground) },
             { PrintDirectives.rsb+""   , (x) => RelayCall(RestoreBackground) },
+
             { PrintDirectives.f+"="    , (x) => RelayCall(() => SetForeground( TextColor.ParseColor(x))) },
+            { PrintDirectives.f8+"="   , (x) => RelayCall(() => SetForeground( TextColor.Parse8BitColor(x))) },
+            { PrintDirectives.f24+"="  , (x) => RelayCall(() => SetForeground( TextColor.Parse24BitColor(x))) },
             { PrintDirectives.b+"="    , (x) => RelayCall(() => SetBackground( TextColor.ParseColor(x))) },
+            { PrintDirectives.b8+"="   , (x) => RelayCall(() => SetBackground( TextColor.Parse8BitColor(x))) },
+            { PrintDirectives.b24+"="  , (x) => RelayCall(() => SetBackground( TextColor.Parse24BitColor(x))) },
+
             { PrintDirectives.df+"="   , (x) => RelayCall(() => SetDefaultForeground( TextColor.ParseColor(x))) },
             { PrintDirectives.db+"="   , (x) => RelayCall(() => SetDefaultBackground( TextColor.ParseColor(x))) },
             { PrintDirectives.rdc+""   , (x) => RelayCall(RestoreDefaultColors)},
@@ -259,6 +266,15 @@ namespace DotNetConsoleAppToolkit
         /// <param name="c"></param>
         public static void SetForeground(int c) => Lock(() =>
         {
+            Print($"{(char)27}[38;5;{c}m");
+        });
+
+        /// <summary>
+        /// set background color from a 8 bit palette color (vt/ansi)
+        /// </summary>
+        /// <param name="c"></param>
+        public static void SetBackground(int c) => Lock(() =>
+        {
             Print($"{(char)27}[48;5;{c}m");
         });
 
@@ -270,9 +286,22 @@ namespace DotNetConsoleAppToolkit
         /// <param name="b">blue from 0 to 255</param>
         public static void SetForeground(int r,int g,int b) => Lock(() =>
         {
+            Print($"{(char)27}[38;2;{r};{g};{b}m");
+        });
+
+        /// <summary>
+        /// set background color from a 24 bit palette color (vt/ansi)
+        /// </summary>
+        /// <param name="r">red from 0 to 255</param>
+        /// <param name="g">green from 0 to 255</param>
+        /// <param name="b">blue from 0 to 255</param>
+        public static void SetBackground(int r, int g, int b) => Lock(() =>
+        {
             Print($"{(char)27}[48;2;{r};{g};{b}m");
         });
 
+        public static void SetForeground((int r, int g, int b) color) => SetForeground(color.r, color.g, color.b);
+        public static void SetBackground((int r, int g, int b) color) => SetBackground(color.r, color.g, color.b);
         public static void SetBackground(ConsoleColor c) => Lock(() => sc.BackgroundColor = c);
         
         public static void SetDefaultForeground(ConsoleColor c) => Lock(() => DefaultForeground = c);
@@ -1530,7 +1559,12 @@ namespace DotNetConsoleAppToolkit
         public static string Br => GetCmd(PrintDirectives.br );
 
         public static string B(ConsoleColor c) => GetCmd(PrintDirectives.b , c+"");
+        public static string B8(ConsoleColor c) => GetCmd(PrintDirectives.b8 , c+"");
+        public static string B24(ConsoleColor c) => GetCmd(PrintDirectives.b24 , c+"");
+
         public static string F(ConsoleColor c) => GetCmd(PrintDirectives.f , c+"");
+        public static string F8(ConsoleColor c) => GetCmd(PrintDirectives.f8 , c+"");
+        public static string F24(ConsoleColor c) => GetCmd(PrintDirectives.f24 , c+"");
 
         public static string Bkcr => GetCmd(PrintDirectives.bkcr );
         public static string Rscr => GetCmd(PrintDirectives.rscr );

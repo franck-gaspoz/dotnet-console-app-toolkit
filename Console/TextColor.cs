@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using static DotNetConsoleAppToolkit.DotNetConsole;
 
 namespace DotNetConsoleAppToolkit.Console
@@ -36,12 +37,39 @@ namespace DotNetConsoleAppToolkit.Console
             return (ConsoleColor)Enum.Parse(typeof(ConsoleColor), colorName);
         }
         
+        /// <summary>
+        /// parse a 4 bit color
+        /// </summary>
+        /// <param name="c">text of color name</param>
         public static ConsoleColor ParseColor(object c)
         {
             if (Enum.TryParse((string)c, true, out ConsoleColor r))
                 return r;
             if (TraceCommandErrors) Error($"invalid color name: {c}");
             return DefaultForeground;
+        }
+
+        public static int Parse8BitColor(object c)
+        {
+            if (int.TryParse((string)c, out int r) && r>=0 && r<=255)            
+                return r;
+            if (TraceCommandErrors) Error($"invalid 8 bit color number: {c}");
+            return 255;
+        }
+
+        public static (int r,int g,int b) Parse24BitColor(object c)
+        {
+            var s = (string)c;
+            var t = s.Split(':');
+            if (t.Length==3)
+            {
+                if (int.TryParse(t[0], out int r) && r >= 0 && r <= 255
+                    && int.TryParse(t[1], out int g) && g >= 0 && g <= 255
+                    && int.TryParse(t[2], out int b) && b >= 0 && b <= 255)
+                    return (r, g, b);
+            }
+            if (TraceCommandErrors) Error($"invalid 24 bit color: {c}");
+            return (255, 255, 255);
         }
     }
 }

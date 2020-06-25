@@ -23,7 +23,12 @@ current print directives are:
     (1) (uon)colorization:(tdoff)
 
     (f=yellow)f=(f=darkyellow)ConsoleColor(rdc)      : set foreground color
+    (f=yellow)f8=(f=darkyellow)Int32(rdc)            : set foreground 8bit color index, where 0 <= index <= 255 
+    (f=yellow)f24=(f=darkyellow)Int32:Int32:Int32(rdc) : set foreground 24bit color red:green:blue, where 0 <= red,green,blue <= 255 
+    (f=yellow)f=(f=darkyellow)ConsoleColor(rdc)      : set foreground color
     (f=yellow)b=(f=darkyellow)ConsoleColor(rdc)      : set background color
+    (f=yellow)b8=(f=darkyellow)Int32(rdc)            : set background 8bit color index, where 0 <= index <= 255
+    (f=yellow)b24=(f=darkyellow)Int32:Int32:Int32(rdc) : set background 24bit color red:green:blue, where 0 <= red,green,blue <= 255 
     (f=yellow)df=(f=darkyellow)ConsoleColor(rdc)     : set default foreground
     (f=yellow)db=(f=darkyellow)ConsoleColor(rdc)     : set default background
     (f=yellow)bkf(rdc)                 : backup foreground color
