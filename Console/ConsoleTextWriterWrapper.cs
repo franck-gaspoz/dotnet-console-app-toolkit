@@ -147,10 +147,13 @@ namespace DotNetConsoleAppToolkit.Console
         
         object RelayCall(Action method) { method(); return null; }
 
-        public void CursorHome() => Locked(() => { Print($"{(char)27}[H"); });
-        public void ClearLineFromCursorRight() => Locked(() => { Print($"{(char)27}[K"); });
-        public void ClearLineFromCursorLeft() => Locked(() => { Print($"{(char)27}[1K"); });
-        public void ClearLine() => Locked(() => { Print($"{(char)27}[2K"); });
+        public void CursorHome() => Locked(() => { Write($"{(char)27}[H"); });
+        
+        public void ClearLineFromCursorRight() => Locked(() => { Write($"{(char)27}[K"); });
+        
+        public void ClearLineFromCursorLeft() => Locked(() => { Write($"{(char)27}[1K"); });
+        
+        public void ClearLine() => Locked(() => { Write($"{(char)27}[2K"); });
 
         public void FillFromCursorRight()
         {
@@ -160,42 +163,83 @@ namespace DotNetConsoleAppToolkit.Console
             }
         }
 
-        public void EnableInvert() => Locked(() => { Print($"{(char)27}[7m"); });
-        public void EnableBlink() => Locked(() => { Print($"{(char)27}[5m"); });           // not available on many consoles
-        public void EnableLowIntensity() => Locked(() => { Print($"{(char)27}[2m"); });    // not available on many consoles
-        public void EnableUnderline() => Locked(() => { Print($"{(char)27}[4m"); });
-        public void EnableBold() => Locked(() => { Print($"{(char)27}[1m"); });            // not available on many consoles
-        public void DisableTextDecoration() => Locked(() => { Print($"{(char)27}[0m"); RestoreDefaultColors(); });
+        public void EnableInvert() => Locked(() => { Write($"{(char)27}[7m"); });
+        
+        public void EnableBlink() => Locked(() => { Write($"{(char)27}[5m"); });           // not available on many consoles
+        
+        public void EnableLowIntensity() => Locked(() => { Write($"{(char)27}[2m"); });    // not available on many consoles
+        
+        public void EnableUnderline() => Locked(() => { Write($"{(char)27}[4m"); });
+        
+        public void EnableBold() => Locked(() => { Write($"{(char)27}[1m"); });            // not available on many consoles
+        
+        public void DisableTextDecoration() => Locked(() => { Write($"{(char)27}[0m"); RestoreDefaultColors(); });
 
-        public void MoveCursorDown(int n = 1) => Locked(() => { Print($"{(char)27}[{n}B"); });
-        public void MoveCursorTop(int n = 1) => Locked(() => { Print($"{(char)27}[{n}A"); });
-        public void MoveCursorLeft(int n = 1) => Locked(() => { Print($"{(char)27}[{n}D"); });
-        public void MoveCursorRight(int n = 1) => Locked(() => { Print($"{(char)27}[{n}C"); });
+        public void MoveCursorDown(int n = 1) => Locked(() => { Write($"{(char)27}[{n}B"); });
 
-        public void ScrollWindowDown(int n = 1) { _textWriter.Write(((char)27) + $"[{n}T"); }
-        public void ScrollWindowUp(int n = 1) { _textWriter.Write(((char)27) + $"[{n}S"); }
+        public void MoveCursorTop(int n = 1) => Locked(() => { Write($"{(char)27}[{n}A"); });
 
+        public void MoveCursorLeft(int n = 1) => Locked(() => { Write($"{(char)27}[{n}D"); });
+
+        public void MoveCursorRight(int n = 1) => Locked(() => { Write($"{(char)27}[{n}C"); });
+
+        public void ScrollWindowDown(int n = 1) { Write(((char)27) + $"[{n}T"); }
+
+        public void ScrollWindowUp(int n = 1) { Write(((char)27) + $"[{n}S"); }
+
+        /// <summary>
+        /// backup the current 3bit foreground color
+        /// </summary>
         public void BackupForeground() => Locked(() =>
         {
             if (IsBufferEnabled) throw new BufferedOperationNotAvailableException();
             _foregroundBackup = sc.ForegroundColor;
         });
+
+        /// <summary>
+        /// backup the current 3bit background color
+        /// </summary>
         public void BackupBackground() => Locked(() => {
             if (IsBufferEnabled) throw new BufferedOperationNotAvailableException();
             _backgroundBackup = sc.BackgroundColor;
         });
 
-        public void RestoreForeground() => Locked(() => sc.ForegroundColor = _foregroundBackup);
-        public void RestoreBackground() => Locked(() => sc.BackgroundColor = _backgroundBackup);
+        public void RestoreForeground() => Locked(() => SetForeground( _foregroundBackup ));
+
+        public void RestoreBackground() => Locked(() => SetBackground( _backgroundBackup ));
 
         /// <summary>
-        /// set foreground color from a 3 bit palette color (ConsoleColor)
+        /// set foreground color from a 3 bit palette color (ConsoleColor to ansi)
         /// </summary>
         /// <param name="c"></param>
-        public void SetForeground(ConsoleColor c) => Locked(() =>
+        public void SetForeground(ConsoleColor c)
         {
-            sc.ForegroundColor = c;
-        });
+            lock (Lock)
+            {
+                if (Enum.TryParse<Color3BitToAnsi>((c + "").ToLower(), out var colbit))
+                {
+                    var num = (int)colbit & 0X111;
+                    var isDark = ((int)colbit & 0X1000) != 0;
+                    //sc.ForegroundColor = c;
+                    Write(((char)27)+"["+(isDark?$"1;3{num,1}m": $"3{num,1}m"));
+                }
+            }
+        }
+
+        public void SetBackground(ConsoleColor c)
+        {
+            lock (Lock)
+            {
+                if (Enum.TryParse<Color3BitToAnsi>((c + "").ToLower(), out var colbit))
+                {
+                    var num = (int)colbit & 0X111;
+                    var isDark = ((int)colbit & 0X1000) != 0;
+                    //sc.ForegroundColor = c;
+                    Write(((char)27) + "[" + (isDark ? $"1;4{num,1}m" : $"4{num,1}m"));
+                }
+            }
+            //_textWriter.BackgroundColor = c;
+        }
 
         /// <summary>
         /// set foreground color from a 8 bit palette color (vt/ansi)
@@ -203,7 +247,7 @@ namespace DotNetConsoleAppToolkit.Console
         /// <param name="c"></param>
         public void SetForeground(int c) => Locked(() =>
         {
-            Print($"{(char)27}[38;5;{c}m");
+            Write($"{(char)27}[38;5;{c}m");
         });
 
         /// <summary>
@@ -212,7 +256,7 @@ namespace DotNetConsoleAppToolkit.Console
         /// <param name="c"></param>
         public void SetBackground(int c) => Locked(() =>
         {
-            Print($"{(char)27}[48;5;{c}m");
+            Write($"{(char)27}[48;5;{c}m");
         });
 
         /// <summary>
@@ -223,7 +267,7 @@ namespace DotNetConsoleAppToolkit.Console
         /// <param name="b">blue from 0 to 255</param>
         public void SetForeground(int r, int g, int b) => Locked(() =>
         {
-            Print($"{(char)27}[38;2;{r};{g};{b}m");
+            Write($"{(char)27}[38;2;{r};{g};{b}m");
         });
 
         /// <summary>
@@ -234,18 +278,21 @@ namespace DotNetConsoleAppToolkit.Console
         /// <param name="b">blue from 0 to 255</param>
         public void SetBackground(int r, int g, int b) => Locked(() =>
         {
-            Print($"{(char)27}[48;2;{r};{g};{b}m");
+            Write($"{(char)27}[48;2;{r};{g};{b}m");
         });
 
         public void SetForeground((int r, int g, int b) color) => SetForeground(color.r, color.g, color.b);
+        
         public void SetBackground((int r, int g, int b) color) => SetBackground(color.r, color.g, color.b);
-        public void SetBackground(ConsoleColor c) => Locked(() => _textWriter.BackgroundColor = c);
 
         public void SetDefaultForeground(ConsoleColor c) => Locked(() => DefaultForeground = c);
         
         public void SetDefaultBackground(ConsoleColor c) => Locked(() => DefaultBackground = c);
         
-        public void RestoreDefaultColors() => Locked(() => { _textWriter.ForegroundColor = DefaultForeground; _textWriter.BackgroundColor = DefaultBackground; });
+        public void RestoreDefaultColors() => Locked(() => { 
+            SetForeground( DefaultForeground); 
+            SetBackground( DefaultBackground); 
+        });
         
         public void ClearScreen()
         {
