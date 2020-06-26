@@ -28,6 +28,9 @@ namespace DotNetConsoleAppToolkit.Console
         protected ConsoleColor _foregroundBackup = ConsoleColor.White;
         protected Dictionary<string, CommandDelegate> _drtvs;
 
+        public static readonly string Esc = (char)27+"";
+        public static readonly string CRLF = (char)13 + ((char)10+"");
+
         #region cursor information cache
 
         protected Point _cachedCursorPosition = Point.Empty;
@@ -298,7 +301,8 @@ namespace DotNetConsoleAppToolkit.Console
         {
             Locked(() =>
             {
-                _textWriter.Clear();
+                //_textWriter.Clear();
+                Write(Esc+"[2J" + Esc + "[0;0H");
                 RestoreDefaultColors();
                 UpdateUI(true, false);
             }
@@ -309,7 +313,8 @@ namespace DotNetConsoleAppToolkit.Console
         {
             Locked(() =>
             {
-                ConsolePrint(string.Empty, true);
+                //ConsolePrint(string.Empty, true);
+                Write(CRLF);
             });
         }
 
@@ -317,8 +322,8 @@ namespace DotNetConsoleAppToolkit.Console
         {
             Locked(() =>
             {
-                _cursorLeftBackup = _textWriter.CursorLeft;
-                _cursorTopBackup = _textWriter.CursorTop;
+                _cursorLeftBackup = CursorLeft;
+                _cursorTopBackup = CursorTop;
             });
         }
         
@@ -326,23 +331,53 @@ namespace DotNetConsoleAppToolkit.Console
         {
             Locked(() =>
             {
-                _textWriter.CursorLeft = _cursorLeftBackup;
-                _textWriter.CursorTop = _cursorTopBackup;
+                Write(Esc + "[2J" + Esc + $"[{_cursorLeftBackup};{_cursorTopBackup}H");
+                //_textWriter.CursorLeft = _cursorLeftBackup;
+                //textWriter.CursorTop = _cursorTopBackup;
             });
         }
         
-        public void SetCursorLeft(int x) => Locked(() => _textWriter.CursorLeft = FixX(x));
+        //public void SetCursorLeft(int x) => Locked(() => _textWriter.CursorLeft = FixX(x));
         
-        public void SetCursorTop(int y) => Locked(() => _textWriter.CursorTop = FixY(y));
+        //public void SetCursorTop(int y) => Locked(() => _textWriter.CursorTop = FixY(y));
         
+        /// <summary>
+        /// get/set cursor column
+        /// </summary>
         public int CursorLeft
         {
-            get { lock (Lock) { return _textWriter.CursorLeft; } }
+            get { 
+                lock (Lock) { 
+                    return IsBufferEnabled? _cachedCursorPosition.X : sc.CursorLeft; 
+                } 
+            }
+            set {  
+                lock (Lock)
+                {
+                    Write(Esc + "["+value+"G");
+                } 
+            }
         }
         
+        /// <summary>
+        /// get/set cursor top
+        /// </summary>
         public int CursorTop
         {
-            get { lock (Lock) { return _textWriter.CursorTop; } }
+            get
+            {
+                lock (Lock)
+                {
+                    return IsBufferEnabled ? _cachedCursorPosition.X : sc.CursorTop;
+                }
+            }
+            set
+            {
+                lock (Lock)
+                {
+                    Write(Esc + "[2J" + Esc + $"[{CursorLeft};{value}H");
+                }
+            }
         }
         
         public Point CursorPos
@@ -350,7 +385,9 @@ namespace DotNetConsoleAppToolkit.Console
             get
             {
                 lock (Lock)
-                { return new Point(CursorLeft, CursorTop); }
+                { 
+                    return new Point(CursorLeft, CursorTop); 
+                }
             }
         }
         
@@ -361,8 +398,9 @@ namespace DotNetConsoleAppToolkit.Console
                 var x = p.X;
                 var y = p.Y;
                 FixCoords(ref x, ref y);
-                _textWriter.CursorLeft = x;
-                _textWriter.CursorTop = y;
+                //_textWriter.CursorLeft = x;
+                //_textWriter.CursorTop = y;
+                Write(Esc + "[2J" + Esc + $"[{x};{y}H");
             }
         }
         
@@ -371,16 +409,15 @@ namespace DotNetConsoleAppToolkit.Console
             lock (Lock)
             {
                 FixCoords(ref x, ref y);
-                _textWriter.CursorLeft = x;
-                _textWriter.CursorTop = y;
+                Write(Esc + "[2J" + Esc + $"[{x};{y}H");
             }
         }
         
-        public bool CursorVisible => _textWriter.CursorVisible;
+        public bool CursorVisible => sc.CursorVisible;
         
-        public void HideCur() => Locked(() => _textWriter.CursorVisible = false);
+        public void HideCur() => Locked(() => sc.CursorVisible = false);
         
-        public void ShowCur() => Locked(() => _textWriter.CursorVisible = true);              
+        public void ShowCur() => Locked(() => sc.CursorVisible = true);              
 
         public string GetPrint(
             string s,
