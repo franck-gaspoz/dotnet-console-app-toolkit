@@ -38,6 +38,9 @@
     *      underline on: uon
     *      inverted text on: invon
     *      text decoration off: tdoff
+    *      low intensity: lion
+    *      blon: blinkon
+    *      bon: boldon
     */
     public enum PrintDirectives
     {
@@ -66,13 +69,12 @@
         exit,
         exec,
 
-        // VT100
+        // VT/ANSI
         uon,
-        //bon,
-        //blon,
+        bon,
+        blon,
         invon,
-        //novon,
-        //lion,
+        lion,
 
         tdoff,
         fillright,

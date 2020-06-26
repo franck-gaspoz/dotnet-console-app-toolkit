@@ -101,7 +101,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             _exitAll = false;
             _errorStream = new MemoryStream();
             _errorStreamWriter = new StreamWriter(_errorStream);
-            RedirectErrorTo(_errorStreamWriter);
+            RedirectErr(_errorStreamWriter);
         }
 
         void InitEditor(bool clearEditorBackups=true,bool forgetCurrentFile=true)
@@ -802,7 +802,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         void Exit()
         {
             ClearScreen();
-            RedirectErrorTo(null);
+            RedirectErr(null);
             _errorStream = null;
             _errorStreamWriter = null;
         }
