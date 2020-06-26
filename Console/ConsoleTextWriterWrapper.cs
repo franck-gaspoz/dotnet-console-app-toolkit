@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using static DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.Str;
 using static DotNetConsoleAppToolkit.Component.UI.UIElement;
+using sc = System.Console;
 
 namespace DotNetConsoleAppToolkit.Console
 {
@@ -26,6 +27,13 @@ namespace DotNetConsoleAppToolkit.Console
         protected ConsoleColor _backgroundBackup = ConsoleColor.Black;
         protected ConsoleColor _foregroundBackup = ConsoleColor.White;
         protected Dictionary<string, CommandDelegate> _drtvs;
+
+        #region cursor information cache
+
+        protected Point _cachedCursorPosition = Point.Empty;
+        protected Point _cachedBufferSize = Point.Empty;
+
+        #endregion
 
         #endregion
 
@@ -97,23 +105,37 @@ namespace DotNetConsoleAppToolkit.Console
 
         #region buffering operations
 
-        public void EnableBuffer()
+        void BackupCursorInformation()
+        {
+            _cachedCursorPosition = CursorPos;
+        }
+
+        void ClearCursorInformation()
+        {
+            _cachedCursorPosition = CursorPos;
+        }
+
+        public override void EnableBuffer()
         {
             lock (Lock)
             {
-                _buffer.Clear();
-                IsBufferEnabled = true;
+                if (!IsBufferEnabled)
+                {
+                    base.EnableBuffer();
+                    BackupCursorInformation();
+                }
             }
         }
 
-        public void CloseBuffer()
+        public override void CloseBuffer()
         {
             lock (Lock)
             {
-                var txt = _buffer.ToString();
-                //Print(txt);
-                _buffer.Clear();
-                IsBufferEnabled = false;
+                if (IsBufferEnabled)
+                {
+                    base.CloseBuffer();
+                    ClearCursorInformation();
+                }
             }
         }
 
@@ -153,16 +175,27 @@ namespace DotNetConsoleAppToolkit.Console
         public void ScrollWindowDown(int n = 1) { _textWriter.Write(((char)27) + $"[{n}T"); }
         public void ScrollWindowUp(int n = 1) { _textWriter.Write(((char)27) + $"[{n}S"); }
 
-        public void BackupForeground() => Locked(() => _foregroundBackup = _textWriter.ForegroundColor);
-        public void BackupBackground() => Locked(() => _backgroundBackup = _textWriter.BackgroundColor);
-        public void RestoreForeground() => Locked(() => _textWriter.ForegroundColor = _foregroundBackup);
-        public void RestoreBackground() => Locked(() => _textWriter.BackgroundColor = _backgroundBackup);
+        public void BackupForeground() => Locked(() =>
+        {
+            if (IsBufferEnabled) throw new BufferedOperationNotAvailableException();
+            _foregroundBackup = sc.ForegroundColor;
+        });
+        public void BackupBackground() => Locked(() => {
+            if (IsBufferEnabled) throw new BufferedOperationNotAvailableException();
+            _backgroundBackup = sc.BackgroundColor;
+        });
+
+        public void RestoreForeground() => Locked(() => sc.ForegroundColor = _foregroundBackup);
+        public void RestoreBackground() => Locked(() => sc.BackgroundColor = _backgroundBackup);
 
         /// <summary>
         /// set foreground color from a 3 bit palette color (ConsoleColor)
         /// </summary>
         /// <param name="c"></param>
-        public void SetForeground(ConsoleColor c) => Locked(() => _textWriter.ForegroundColor = c);
+        public void SetForeground(ConsoleColor c) => Locked(() =>
+        {
+            sc.ForegroundColor = c;
+        });
 
         /// <summary>
         /// set foreground color from a 8 bit palette color (vt/ansi)
@@ -363,7 +396,7 @@ namespace DotNetConsoleAppToolkit.Console
                     ConsoleSubPrint(s, lineBreak);
                 else
                 {
-                    var x = CursorLeft;
+                    var x = CursorLeft;             // TODO: use cached cursor position
                     var mx = Math.Max(x, CropX);
                     if (mx > x)
                     {
@@ -409,12 +442,6 @@ namespace DotNetConsoleAppToolkit.Console
         {
             lock (Lock)
             {
-                if (!preserveColors && SaveColors)
-                {
-                    BackupBackground();
-                    BackupForeground();
-                }
-
                 if (s == null)
                 {
                     if (DumpNullStringAsText != null)

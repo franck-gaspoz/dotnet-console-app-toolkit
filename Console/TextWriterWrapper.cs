@@ -17,7 +17,8 @@ namespace DotNetConsoleAppToolkit.Console
 
         protected TextWriter _textWriter;
         protected TextWriter _redirectedTextWriter;
-        protected TextWriter _bufferWriter = new StreamWriter(new MemoryStream(InitialBufferCapacity));
+        protected MemoryStream _buffer = new MemoryStream(InitialBufferCapacity);
+        protected TextWriter _bufferWriter;
 
         #region echo to filestream
 
@@ -116,6 +117,33 @@ namespace DotNetConsoleAppToolkit.Console
 
         #endregion
 
+        #region buffering operations
+
+        public virtual void EnableBuffer()
+        {
+            lock (Lock)
+            {
+                if (IsBufferEnabled) return;
+                if (_bufferWriter==null) _bufferWriter = new StreamWriter(_buffer);
+                IsBufferEnabled = true;
+            }
+        }
+
+        public virtual void CloseBuffer()
+        {
+            lock (Lock)
+            {
+                if (!IsBufferEnabled) return;
+                _buffer.Seek(0,SeekOrigin.Begin);
+                var txt = Encoding.Default.GetString( _buffer.ToArray() );
+                _textWriter.Write(txt);
+                _buffer.SetLength(0);
+                IsBufferEnabled = false;
+            }
+        }
+
+        #endregion
+
         #region stream write operations
 
         /// <summary>
@@ -125,9 +153,29 @@ namespace DotNetConsoleAppToolkit.Console
         public virtual void Write(string s)
         {
             if (IsBufferEnabled)
+            {
                 _bufferWriter.Write(s);
+            }
             else
+            {
                 _textWriter.Write(s);
+            }
+        }
+
+        /// <summary>
+        /// writes a string to the stream
+        /// </summary>
+        /// <param name="s">string to be written to the stream</param>
+        public virtual void WriteLine(string s)
+        {
+            if (IsBufferEnabled)
+            {
+                _bufferWriter.WriteLine(s);
+            }
+            else
+            {
+                _textWriter.WriteLine(s);
+            }
         }
 
         public virtual void FileEcho(

@@ -552,7 +552,7 @@ namespace DotNetConsoleAppToolkit
             return $"{CommandBlockBeginChar}{cmd}{CommandBlockEndChar}";
         }
 
-        static int GetCursorX(object x)
+        public static int GetCursorX(object x)
         {
             if (x != null && x is string s && !string.IsNullOrWhiteSpace(s)
                 && int.TryParse(s, out var v))
@@ -564,7 +564,7 @@ namespace DotNetConsoleAppToolkit
             }
         }
 
-        static int GetCursorY(object x)
+        public static int GetCursorY(object x)
         {
             if (x != null && x is string s && !string.IsNullOrWhiteSpace(s)
                 && int.TryParse(s, out var v))
