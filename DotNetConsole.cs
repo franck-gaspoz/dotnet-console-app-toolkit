@@ -46,12 +46,26 @@ namespace DotNetConsoleAppToolkit
 
         #endregion
 
+        #region work area settings
+
+        static WorkArea _workArea = new WorkArea();
+        public static WorkArea WorkArea => new WorkArea(_workArea);
+        public static bool InWorkArea => !_workArea.Rect.IsEmpty;
+        public static EventHandler ViewSizeChanged;
+        public static EventHandler<WorkAreaScrollEventArgs> WorkAreaScrolled;
+        public static bool EnableConstraintConsolePrintInsideWorkArea = false;
+
+        #endregion
+
         public static bool IsErrorRedirected = false;
         public static bool IsOutputRedirected = false;
+
         public static int UIWatcherThreadDelay = 500;
         public static ViewResizeStrategy ViewResizeStrategy = ViewResizeStrategy.FitViewSize;
         public static bool ClearOnViewResized = true;      // false not works properly in Windows Terminal + fit view size
-        public static bool SaveColors = /*true*/ false; /*bug fix*/
+        
+        public static bool SaveColors = /*true*/ false; /*bug fix*/ // TODO: remove
+        
         public static bool TraceCommandErrors = true;
         public static bool DumpExceptions = true;
         public static ConsoleColor DefaultForeground = ConsoleColor.White;
@@ -66,12 +80,6 @@ namespace DotNetConsoleAppToolkit
 
         public static bool ForwardLogsToSystemDiagnostics = true;
         public static int TabLength = 7;
-
-        static WorkArea _workArea = new WorkArea();
-        public static WorkArea WorkArea => new WorkArea(_workArea);
-        public static bool InWorkArea => !_workArea.Rect.IsEmpty;
-        public static EventHandler ViewSizeChanged;
-        public static EventHandler<WorkAreaScrollEventArgs> WorkAreaScrolled;
 
         static Thread _watcherThread;
         static readonly Dictionary<int, UIElement> _uielements = new Dictionary<int, UIElement>();
@@ -153,9 +161,9 @@ namespace DotNetConsoleAppToolkit
 
         public static void Println(IEnumerable<string> ls, bool ignorePrintDirectives = false) { foreach (var s in ls) Println(s, ignorePrintDirectives); }
         public static void Print(IEnumerable<string> ls, bool lineBreak = false, bool ignorePrintDirectives = false) { foreach (var s in ls) Print(s, lineBreak, ignorePrintDirectives); }
-        public static void Println(string s = "", bool ignorePrintDirectives = false) => Print(s, true, false, !ignorePrintDirectives);
-        public static void Print(string s = "", bool lineBreak = false, bool ignorePrintDirectives = false) => Print(s, lineBreak, false, !ignorePrintDirectives);
-        public static void Println(char s, bool ignorePrintDirectives = false) => Print(s + "", true, false, !ignorePrintDirectives);
+        public static void Println(string s = "", bool ignorePrintDirectives = false) => Out.Print(s, true, false, !ignorePrintDirectives);
+        public static void Print(string s = "", bool lineBreak = false, bool ignorePrintDirectives = false) => Out.Print(s, lineBreak, false, !ignorePrintDirectives);
+        public static void Println(char s, bool ignorePrintDirectives = false) => Out.Print(s + "", true, false, !ignorePrintDirectives);
         public static void Print(char s, bool lineBreak = false, bool ignorePrintDirectives = false) => Print(s + "", lineBreak, !ignorePrintDirectives);
 
         public static void Error(string s = "") => Error(s, false);
@@ -228,6 +236,64 @@ namespace DotNetConsoleAppToolkit
         }
 
         public static void Exit(int r = 0) => Environment.Exit(r);
+
+        #region work area operations
+
+        public static void SetWorkArea(string id, int wx, int wy, int width, int height)
+        {
+            lock (Out.Lock)
+            {
+                _workArea = new WorkArea(id, wx, wy, width, height);
+                ApplyWorkArea();
+                EnableConstraintConsolePrintInsideWorkArea = true;
+            }
+        }
+
+        public static void UnsetWorkArea()
+        {
+            _workArea = new WorkArea();
+            EnableConstraintConsolePrintInsideWorkArea = false;
+        }
+
+        public static ActualWorkArea ActualWorkArea(bool fitToVisibleArea = true)
+        {
+            var x0 = _workArea.Rect.IsEmpty ? 0 : _workArea.Rect.X;
+            var y0 = _workArea.Rect.IsEmpty ? 0 : _workArea.Rect.Y;
+            var w0 = _workArea.Rect.IsEmpty ? -1 : _workArea.Rect.Width;
+            var h0 = _workArea.Rect.IsEmpty ? -1 : _workArea.Rect.Height;
+            var (x, y, w, h) = GetCoords(x0, y0, w0, h0, fitToVisibleArea);
+            return new ActualWorkArea(_workArea.Id, x, y, w, h);
+        }
+
+        public static void ApplyWorkArea(bool viewSizeChanged = false)
+        {
+            if (_workArea.Rect.IsEmpty) return;
+            lock (Out.Lock)
+            {
+                if (ViewResizeStrategy != ViewResizeStrategy.HostTerminalDefault &&
+                    (!viewSizeChanged ||
+                    (viewSizeChanged && ViewResizeStrategy == ViewResizeStrategy.FitViewSize)))
+                    try
+                    {
+                        sc.WindowTop = 0;
+                        sc.WindowLeft = 0;
+                        sc.BufferWidth = sc.WindowWidth;
+                        sc.BufferHeight = sc.WindowHeight;
+                    }
+                    catch (Exception) { }
+            }
+        }
+
+        public static void SetCursorAtWorkAreaTop()
+        {
+            if (_workArea.Rect.IsEmpty) return;     // TODO: set cursor even if workarea empty?
+            lock (Out.Lock)
+            {
+                Out.SetCursorPos(_workArea.Rect.X, _workArea.Rect.Y);
+            }
+        }
+
+        #endregion
 
         #region UI operations
 
@@ -303,7 +369,7 @@ namespace DotNetConsoleAppToolkit
             bool mustRedrawBackground = true,
             int updateTimerInterval=0)
         {
-            lock (ConsoleLock)
+            lock (Out.Lock)
             {
                 var o = new Frame(
                     getContent,
@@ -324,7 +390,7 @@ namespace DotNetConsoleAppToolkit
 
         public static bool RemoveFrame(int id)
         {
-            lock (ConsoleLock)
+            lock (Out.Lock)
             {
                 if (_uielements.ContainsKey(id))
                 {
@@ -356,13 +422,13 @@ namespace DotNetConsoleAppToolkit
 
                     if (viewSizeChanged)
                     {
-                        Out.ApplyWorkArea(viewSizeChanged);
+                        ApplyWorkArea(viewSizeChanged);
                         if (ViewResizeStrategy == ViewResizeStrategy.FitViewSize
                             && ClearOnViewResized)
                             if (_workArea.Rect.IsEmpty)
                                 Out.SetCursorPos(cursorPosBackup);
                             else
-                                Out.SetCursorAtWorkAreaTop();
+                                SetCursorAtWorkAreaTop();
                         if (enableViewSizeChangedEvent)
                             ViewSizeChanged?.Invoke(null,EventArgs.Empty);
                     }

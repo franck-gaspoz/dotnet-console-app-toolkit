@@ -5,6 +5,8 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.CompilerServices;
 using static DotNetConsoleAppToolkit.DotNetConsole;
+using static DotNetConsoleAppToolkit.Lib.Str;
+using static DotNetConsoleAppToolkit.Component.UI.UIElement;
 
 namespace DotNetConsoleAppToolkit.Console
 {
@@ -17,7 +19,6 @@ namespace DotNetConsoleAppToolkit.Console
         #region console output settings
 
         public int CropX = -1;
-        public bool EnableConstraintConsolePrintInsideWorkArea = false;
         public bool EnableFillLineFromCursor = true;
 
         protected int _cursorLeftBackup;
@@ -301,60 +302,6 @@ namespace DotNetConsoleAppToolkit.Console
         
         public void ShowCur() => Locked(() => _textWriter.CursorVisible = true);              
 
-        public void SetWorkArea(string id, int wx, int wy, int width, int height)
-        {
-            lock (Lock)
-            {
-                _workArea = new WorkArea(id, wx, wy, width, height);
-                ApplyWorkArea();
-                EnableConstraintConsolePrintInsideWorkArea = true;
-            }
-        }
-
-        public void UnsetWorkArea()
-        {
-            _workArea = new WorkArea();
-            EnableConstraintConsolePrintInsideWorkArea = false;
-        }
-
-        public ActualWorkArea ActualWorkArea(bool fitToVisibleArea = true)
-        {
-            var x0 = _workArea.Rect.IsEmpty ? 0 : _workArea.Rect.X;
-            var y0 = _workArea.Rect.IsEmpty ? 0 : _workArea.Rect.Y;
-            var w0 = _workArea.Rect.IsEmpty ? -1 : _workArea.Rect.Width;
-            var h0 = _workArea.Rect.IsEmpty ? -1 : _workArea.Rect.Height;
-            var (x, y, w, h) = GetCoords(x0, y0, w0, h0, fitToVisibleArea);
-            return new ActualWorkArea(_workArea.Id, x, y, w, h);
-        }
-
-        void ApplyWorkArea(bool viewSizeChanged = false)
-        {
-            if (_workArea.Rect.IsEmpty) return;
-            lock (Lock)
-            {
-                if (ViewResizeStrategy != ViewResizeStrategy.HostTerminalDefault &&
-                    (!viewSizeChanged ||
-                    (viewSizeChanged && ViewResizeStrategy == ViewResizeStrategy.FitViewSize)))
-                    try
-                    {
-                        _textWriter.WindowTop = 0;
-                        _textWriter.WindowLeft = 0;
-                        _textWriter.BufferWidth = _textWriter.WindowWidth;
-                        _textWriter.BufferHeight = _textWriter.WindowHeight;
-                    }
-                    catch (Exception) { }
-            }
-        }
-
-        public void SetCursorAtWorkAreaTop()
-        {
-            if (_workArea.Rect.IsEmpty) return;     // TODO: set cursor even if workarea empty?
-            lock (Lock)
-            {
-                SetCursorPos(_workArea.Rect.X, _workArea.Rect.Y);
-            }
-        }
-
         public string GetPrint(
             string s,
             bool lineBreak = false,
@@ -452,17 +399,16 @@ namespace DotNetConsoleAppToolkit.Console
                 base.Write(s);
         }
 
-        void Print(
+        public void Print(
             object s,
             bool lineBreak = false,
-            bool preserveColors = false,
+            bool preserveColors = false,        // TODO: remove this parameter + SaveColors property
             bool parseCommands = true,
             bool doNotEvalutatePrintDirectives = false,
             PrintSequences printSequences = null)
         {
             lock (Lock)
             {
-                var redrawUIElementsEnabled = RedrawUIElementsEnabled;
                 if (!preserveColors && SaveColors)
                 {
                     BackupBackground();
@@ -483,8 +429,6 @@ namespace DotNetConsoleAppToolkit.Console
                 }
 
                 if (lineBreak) LineBreak();
-
-                RedrawUIElementsEnabled = redrawUIElementsEnabled;
             }
         }
 
