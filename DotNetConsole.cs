@@ -95,6 +95,8 @@ namespace DotNetConsoleAppToolkit
 
         static string[] _crlf = { Environment.NewLine };
 
+        public static object ConsoleLock => Out.Lock;
+
         #endregion
 
         #region log methods
@@ -154,17 +156,10 @@ namespace DotNetConsoleAppToolkit
             if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(s);
             var ls = (s + "").Split(_crlf, StringSplitOptions.None)
                 .Select(x => ColorSettings.Log + x);
-            Println(ls);
+            Out.Println(ls);
         }
 
         #endregion
-
-        public static void Println(IEnumerable<string> ls, bool ignorePrintDirectives = false) { foreach (var s in ls) Println(s, ignorePrintDirectives); }
-        public static void Print(IEnumerable<string> ls, bool lineBreak = false, bool ignorePrintDirectives = false) { foreach (var s in ls) Print(s, lineBreak, ignorePrintDirectives); }
-        public static void Println(string s = "", bool ignorePrintDirectives = false) => Out.Print(s, true, false, !ignorePrintDirectives);
-        public static void Print(string s = "", bool lineBreak = false, bool ignorePrintDirectives = false) => Out.Print(s, lineBreak, false, !ignorePrintDirectives);
-        public static void Println(char s, bool ignorePrintDirectives = false) => Out.Print(s + "", true, false, !ignorePrintDirectives);
-        public static void Print(char s, bool lineBreak = false, bool ignorePrintDirectives = false) => Print(s + "", lineBreak, !ignorePrintDirectives);
 
         public static void Error(string s = "") => Error(s, false);
         public static void Errorln(string s = "") => Error(s, true);
@@ -175,7 +170,7 @@ namespace DotNetConsoleAppToolkit
             lock (Out.Lock)
             {
                 Out.RedirecToErr = true;
-                Print($"{ColorSettings.Error}{s}{ColorSettings.Default}", lineBreak);
+                Out.Print($"{ColorSettings.Error}{s}{ColorSettings.Default}", lineBreak);
                 Out.RedirecToErr = false;
             }
         }
@@ -188,7 +183,7 @@ namespace DotNetConsoleAppToolkit
         {
             lock (Out.Lock)
             {
-                Print($"{ColorSettings.Warning}{s}{ColorSettings.Default}", lineBreak);
+                Out.Print($"{ColorSettings.Warning}{s}{ColorSettings.Default}", lineBreak);
             }
         }
 
@@ -196,7 +191,7 @@ namespace DotNetConsoleAppToolkit
         {
             lock (Out.Lock)
             {
-                if (prompt != null) Print(prompt);
+                if (prompt != null) Out.Print(prompt);
             }
             return sc.ReadLine();
         }
@@ -205,11 +200,11 @@ namespace DotNetConsoleAppToolkit
         {
             Out.Locked(() =>
             {
-                Println($"OS={Environment.OSVersion} {(Environment.Is64BitOperatingSystem ? "64" : "32")}bits");
-                Println($"{White}{Bkf}{ColorSettings.HighlightIdentifier}window:{Rf} left={ColorSettings.Numeric}{sc.WindowLeft}{Rf},top={ColorSettings.Numeric}{sc.WindowTop}{Rf},width={ColorSettings.Numeric}{sc.WindowWidth}{Rf},height={ColorSettings.Numeric}{sc.WindowHeight}{Rf},largest width={ColorSettings.Numeric}{sc.LargestWindowWidth}{Rf},largest height={ColorSettings.Numeric}{sc.LargestWindowHeight}{Rf}");
-                Println($"{ColorSettings.HighlightIdentifier}buffer:{Rf} width={ColorSettings.Numeric}{sc.BufferWidth}{Rf},height={ColorSettings.Numeric}{sc.BufferHeight}{Rf} | input encoding={ColorSettings.Numeric}{sc.InputEncoding.EncodingName}{Rf} | output encoding={ColorSettings.Numeric}{sc.OutputEncoding.EncodingName}{Rf}");
-                Println($"number lock={ColorSettings.Numeric}{sc.NumberLock}{Rf} | capslock={ColorSettings.Numeric}{sc.CapsLock}{Rf}");            // TODO: not supported on linux ubuntu 18.04 wsl
-                Println($"cursor visible={ColorSettings.Numeric}{sc.CursorVisible}{Rf} | cursor size={ColorSettings.Numeric}{sc.CursorSize}");     // TODO: not supported on linux ubuntu 18.04 wsl
+                Out.Println($"OS={Environment.OSVersion} {(Environment.Is64BitOperatingSystem ? "64" : "32")}bits");
+                Out.Println($"{White}{Bkf}{ColorSettings.HighlightIdentifier}window:{Rf} left={ColorSettings.Numeric}{sc.WindowLeft}{Rf},top={ColorSettings.Numeric}{sc.WindowTop}{Rf},width={ColorSettings.Numeric}{sc.WindowWidth}{Rf},height={ColorSettings.Numeric}{sc.WindowHeight}{Rf},largest width={ColorSettings.Numeric}{sc.LargestWindowWidth}{Rf},largest height={ColorSettings.Numeric}{sc.LargestWindowHeight}{Rf}");
+                Out.Println($"{ColorSettings.HighlightIdentifier}buffer:{Rf} width={ColorSettings.Numeric}{sc.BufferWidth}{Rf},height={ColorSettings.Numeric}{sc.BufferHeight}{Rf} | input encoding={ColorSettings.Numeric}{sc.InputEncoding.EncodingName}{Rf} | output encoding={ColorSettings.Numeric}{sc.OutputEncoding.EncodingName}{Rf}");
+                Out.Println($"number lock={ColorSettings.Numeric}{sc.NumberLock}{Rf} | capslock={ColorSettings.Numeric}{sc.CapsLock}{Rf}");            // TODO: not supported on linux ubuntu 18.04 wsl
+                Out.Println($"cursor visible={ColorSettings.Numeric}{sc.CursorVisible}{Rf} | cursor size={ColorSettings.Numeric}{sc.CursorSize}");     // TODO: not supported on linux ubuntu 18.04 wsl
             });
         }
 

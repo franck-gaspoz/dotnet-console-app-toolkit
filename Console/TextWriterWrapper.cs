@@ -29,7 +29,8 @@ namespace DotNetConsoleAppToolkit.Console
         public bool FileEchoEnabled => _echoStreamWriter != null;
         protected StreamWriter _echoStreamWriter;
         protected FileStream _echoFileStream;
-
+        public static readonly string CRLF = (char)13 + ((char)10 + "");
+        
         #endregion
 
         #endregion

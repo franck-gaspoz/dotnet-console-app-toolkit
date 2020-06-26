@@ -140,8 +140,8 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             {
                 lock (ConsoleLock)
                 {
-                    HideCur();
-                    ClearScreen();
+                    Out.HideCur();
+                    Out.ClearScreen();
                     _width = sc.WindowWidth;
                     _height = sc.WindowHeight;
                     ComputeBarVisible();
@@ -149,8 +149,8 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     DisplayFile();
                     EmptyInfoBar();
                     DisplayInfoBar(false);
-                    SetCursorPos(_X, _Y);
-                    ShowCur();
+                    Out.SetCursorPos(_X, _Y);
+                    Out.ShowCur();
                 }                
             } catch (Exception ex)
             {
@@ -175,25 +175,25 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     case ConsoleKey.LeftArrow:
                         lock (ConsoleLock)
                         {
-                            var p = CursorPos;
+                            var p = Out.CursorPos;
                             if (_splitedLineIndex == 0)
                             {
                                 if (p.X > 0)
-                                    SetCursorLeft(p.X - 1);                                
+                                    Out.CursorLeft = p.X - 1;                                
                             }
                             else
                             {
                                 var x = p.X - 1;
                                 if (x < left)
                                 {
-                                    SetCursorPosConstraintedInWorkArea(right - 1, p.Y - 1, true, true, false);
+                                    Out.SetCursorPosConstraintedInWorkArea(right - 1, p.Y - 1, true, true, false);
                                     _splitedLineIndex--;
                                 }
                                 else
-                                    SetCursorLeft(x);
+                                    Out.CursorLeft = x;
                             }
-                            _X = CursorLeft;
-                            _Y = CursorTop;
+                            _X = Out.CursorLeft;
+                            _Y = Out.CursorTop;
                         }
                         break;
 
@@ -201,14 +201,14 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                         lock (ConsoleLock)
                         {
                             var line = _text[_currentLine];
-                            var spl = GetIndexLineSplitsInWorkAreaConstraintedString(line, _beginOfLineCurPos, CursorPos.X,CursorPos.Y, true,false, !_rawMode);
+                            var spl = Out.GetIndexLineSplitsInWorkAreaConstraintedString(line, _beginOfLineCurPos, Out.CursorPos.X, Out.CursorPos.Y, true,false, !_rawMode);
                             var index = spl.CursorIndex;
-                            var curY = CursorTop;
-                            if (index < spl.PrintSequences.TextLength)                            
-                                SetCursorPosConstraintedInWorkArea(CursorLeft + 1, CursorTop,true,true,false);
-                            _X = CursorLeft;
-                            _Y = CursorTop;
-                            if (CursorTop > curY) _splitedLineIndex++;
+                            var curY = Out.CursorTop;
+                            if (index < spl.PrintSequences.TextLength)
+                                Out.SetCursorPosConstraintedInWorkArea(Out.CursorLeft + 1, Out.CursorTop,true,true,false);
+                            _X = Out.CursorLeft;
+                            _Y = Out.CursorTop;
+                            if (Out.CursorTop > curY) _splitedLineIndex++;
                         }
                         break;
 
@@ -237,14 +237,14 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                                     _splitedLineIndex++;
                                 }
                                 if (_Y < _barY)
-                                    SetCursorPos(_X, _Y);
+                                    Out.SetCursorPos(_X, _Y);
                                 else
                                 {
                                     _Y = _barY - 1;
                                     if (_splitedLineIndex==0)
                                         _beginOfLineCurPos.Y = _Y;
                                     Scroll(-1);
-                                    SetCursorPos(_X, _Y);
+                                    Out.SetCursorPos(_X, _Y);
                                 }
                             }
 #if dbg
@@ -274,13 +274,13 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                                 }
                                 if (_Y >= 0)
                                 {
-                                    SetCursorPos(_X, _Y);
+                                    Out.SetCursorPos(_X, _Y);
                                 } else
                                 {
                                     _Y = 0;
                                     _beginOfLineCurPos.Y = _Y - (_linesSplits[_currentLine].Count - 1);
                                     Scroll(1);
-                                    SetCursorPos(_X, _Y);
+                                    Out.SetCursorPos(_X, _Y);
                                 }
                             }
 #if dbg
@@ -443,7 +443,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     BackupCursorPos();
                     DisplayInfoBar(false, printOnlyCursorInfo);
                     RestoreCursorPos();
-                    ShowCur();
+                    Out.ShowCur();
                     printOnlyCursorInfo = true;
                 }
             }
@@ -532,7 +532,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             var bVis = ShowEmptyBar();
             PrintBarMessage(prompt + ": ");
             var text = sc.ReadLine();
-            DisableTextDecoration();
+            Out.DisableTextDecoration();
             if (!bVis)
                 ToggleBarVisibility();
             else
@@ -549,10 +549,10 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 var c = sc.ReadKey();
                 if (Char.IsLetterOrDigit(c.KeyChar))
                 {
-                    EnableInvert();
-                    Print(c + "");
+                    Out.EnableInvert();
+                    Out.Print(c + "");
                 }
-                DisableTextDecoration();
+                Out.DisableTextDecoration();
                 var s = c.KeyChar.ToString().ToLower();
                 if (!bVis) ToggleBarVisibility();
                 return s=="y";
@@ -561,10 +561,10 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
         void PrintBarMessage(string text)
         {
-            SetCursorPos(1, _barY);
-            EnableInvert();
-            Print(text);
-            DisableTextDecoration();
+            Out.SetCursorPos(1, _barY);
+            Out.EnableInvert();
+            Out.Print(text);
+            Out.DisableTextDecoration();
         }
 
         bool ShowEmptyBar()
@@ -663,14 +663,14 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             {
                 if (_barVisible)
                 {
-                    HideCur();
+                    Out.HideCur();
                     EraseInfoBar();
                     if (_lastVisibleLineIndex < _text.Count-1)
                     {
-                        var slines = GetWorkAreaStringSplits(_text[_lastVisibleLineIndex], new Point(_X, _Y), true, false,!_rawMode).Splits;
+                        var slines = Out.GetWorkAreaStringSplits(_text[_lastVisibleLineIndex], new Point(_X, _Y), true, false,!_rawMode).Splits;
                         var y = _barY;
                         var newBarY = _barY + _barHeight;
-                        SetCursorPos(_X, _barY);
+                        Out.SetCursorPos(_X, _barY);
                         bool atBottom;
                         int splitedLineIndex;
                         for (int i = 0; i < 2; i++)
@@ -709,8 +709,8 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                             }
                         }
                     }
-                    SetCursorPos(_X, _Y);
-                    ShowCur();
+                    Out.SetCursorPos(_X, _Y);
+                    Out.ShowCur();
                 }
                 else
                 {
@@ -759,38 +759,38 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 lock (ConsoleLock)
                 {
                     BackupCursorPos();
-                    HideCur();
+                    Out.HideCur();
 
                     if (_barVisible && dy < 0)
                     {
                         EraseInfoBar();
                     }
                     if (dy > 0)
-                        ScrollWindowDown(dy);
+                        Out.ScrollWindowDown(dy);
                     else
-                        ScrollWindowUp(-dy);
+                        Out.ScrollWindowUp(-dy);
 
                     EmptyInfoBar();
                     DisplayInfoBar(false);
 
                     var line = _text[_currentLine];
-                    var slines = GetWorkAreaStringSplits(line, _beginOfLineCurPos, true, false, !_rawMode).Splits;
+                    var slines = Out.GetWorkAreaStringSplits(line, _beginOfLineCurPos, true, false, !_rawMode).Splits;
                     _linesSplits[_currentLine] = slines;
                     if (dy < 0)
                     {
-                        SetCursorPos(0, _barY - 1);
+                        Out.SetCursorPos(0, _barY - 1);
                         PrintLineSplit(slines[_splitedLineIndex].Text,_splitedLastVisibleLineIndex==slines.Count-1);
                         _lastVisibleLineIndex = _currentLine;
                         _splitedLastVisibleLineIndex = _splitedLineIndex;
                     } else
                     {
-                        SetCursorPos(0, 0);
+                        Out.SetCursorPos(0, 0);
                         PrintLineSplit(slines[_splitedLineIndex].Text, _splitedLineIndex==slines.Count-1);
                         DecrementLineYPosition();
                     }
 
                     RestoreCursorPos();
-                    ShowCur();
+                    Out.ShowCur();
                 }
             }
             else
@@ -801,8 +801,8 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
         void Exit()
         {
-            ClearScreen();
-            RedirectErr(null);
+            Out.ClearScreen();
+            RedirectErr((TextWriter)null);
             _errorStream = null;
             _errorStreamWriter = null;
         }
@@ -811,7 +811,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             _X = 0;
             _Y = 0;
-            CursorHome();
+            Out.CursorHome();
         }
 
         bool LoadFile(FilePath filePath)
@@ -846,13 +846,13 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 var atBottom = false;
                 while (y < _barY && index < _text.Count && !atBottom)
                 {
-                    var pos = CursorPos;
+                    var pos = Out.CursorPos;
                     var r = PrintLine(index++);
                     atBottom = r.atBottom;
                     var splitedLastLineIndex = r.splitedLineIndex;
                     _lastVisibleLineIndex = index-1;
                     _splitedLastVisibleLineIndex = splitedLastLineIndex;
-                    y = CursorTop;
+                    y = Out.CursorTop;
                 }
             }
 #if dbg
@@ -888,19 +888,19 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             if (maxY == -1) maxY = _barY;
             lock (ConsoleLock)
             {
-                var y = CursorTop;
+                var y = Out.CursorTop;
                 var line = _text[index];
                 
-                var slines = GetWorkAreaStringSplits(line, new Point(0, y), true, false, !_rawMode).Splits;
+                var slines = Out.GetWorkAreaStringSplits(line, new Point(0, y), true, false, !_rawMode).Splits;
 
                 int i = subIndex;
                 while (i<slines.Count && y < maxY)
                 {
-                    SetCursorPos(0, y);                    
+                    Out.SetCursorPos(0, y);                    
                     PrintLineSplit(slines[i].Text,i== slines.Count-1);
                     y++; i++;
                 }
-                if (y < maxY) SetCursorPos(0, y);
+                if (y < maxY) Out.SetCursorPos(0, y);
                 _linesSplits[index] = slines;
                 var atBottom = y >= maxY;
                 return (atBottom,i-1,slines);
@@ -909,19 +909,19 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
         void PrintLineSplit(string s,bool eol)
         {
-            Print(s, false, _rawMode);
-            if (!_rawMode) Print(ColorSettings.Default.ToString());
+            Out.Print(s, false, _rawMode);
+            if (!_rawMode) Out.Print(ColorSettings.Default.ToString());
         }
 
-        List<StringSegment> GetLineSplits(int lineIndex, int x,int y) => GetWorkAreaStringSplits(_text[lineIndex], new Point(x, y), true, false, !_rawMode).Splits;
+        List<StringSegment> GetLineSplits(int lineIndex, int x,int y) => Out.GetWorkAreaStringSplits(_text[lineIndex], new Point(x, y), true, false, !_rawMode).Splits;
 
         void EraseInfoBar()
         {
             if (!_barVisible) return;
-            SetCursorPos(0, _barY);
-            FillFromCursorRight();
-            SetCursorPos(0, _barY + 1);
-            FillFromCursorRight();
+            Out.SetCursorPos(0, _barY);
+            Out.FillFromCursorRight();
+            Out.SetCursorPos(0, _barY + 1);
+            Out.FillFromCursorRight();
         }
 
         void EmptyInfoBar()
@@ -932,16 +932,16 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 // all these remarks for 'auto line break' console mode
                 // /!\ cursor visible leads to erase some characters (blank) in inverted mode and force ignore Tdoff !!
                 // conclusion: invert mode switched is system bugged on windows -- avoid it
-                SetCursorPos(0, _barY);
-                EnableInvert();
-                FillFromCursorRight();
+                Out.SetCursorPos(0, _barY);
+                Out.EnableInvert();
+                Out.FillFromCursorRight();
 
-                SetCursorPos(0, _barY + 1);
-                FillFromCursorRight();
+                Out.SetCursorPos(0, _barY + 1);
+                Out.FillFromCursorRight();
                 //Print($"{Invon} {Fillright}{Tdoff}"); // TODO: fix this sentence do not print the last character line whereas this one does: Print($"{Invon}{Fillright}{Tdoff}");
 
-                SetCursorPos(0, _barY + 1);
-                DisableTextDecoration();
+                Out.SetCursorPos(0, _barY + 1);
+                Out.DisableTextDecoration();
             }
         }
 
@@ -951,50 +951,50 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             lock (ConsoleLock)
             {
                 var r = ActualWorkArea(false);
-                CropX = r.Right-2;
-                HideCur();
+                Out.CropX = r.Right-2;
+                Out.HideCur();
 
                 if (!onlyCursorInfo)
                 {
-                    SetCursorPos(0, _barY);
-                    EnableInvert();
+                    Out.SetCursorPos(0, _barY);
+                    Out.EnableInvert();
 
                     if (_statusText == null)
                     {                   // added { } has remove a bug of the print (disapear cmd line above when window less large than text on linux wsl ?!)
-                        SetCursorPos(1, _barY);
-                        Print(GetFileInfo());
+                        Out.SetCursorPos(1, _barY);
+                        Out.Print(GetFileInfo());
                     }
                     else
                     {
                         EmptyInfoBar();
-                        SetCursorPos(1, _barY);
-                        EnableInvert();
-                        Print(_statusText);
+                        Out.SetCursorPos(1, _barY);
+                        Out.EnableInvert();
+                        Out.Print(_statusText);
                     }
 
                     if (_cmdInput)
                     {
-                        SetCursorPos(0, _barY + 1);
-                        Print(GetCmdsInfo());
+                        Out.SetCursorPos(0, _barY + 1);
+                        Out.Print(GetCmdsInfo());
                     }
                 }
 
                 if (!_cmdInput) PrintCursorInfo();
+
+                Out.CropX = -1;
+
+                Out.SetCursorPos(0, _barY);
+                Out.DisableTextDecoration();
                 
-                CropX = -1;
-                
-                SetCursorPos(0, _barY);
-                DisableTextDecoration();
-                
-                if (showCursor) ShowCur();
+                if (showCursor) Out.ShowCur();
             }
         }
 
         void PrintCursorInfo()
         {
-            SetCursorPos(1, _barY+ 1 );
-            EnableInvert();            
-            Print($"{GetPositionInfo()} | {_splitedLineIndex} | {GetCursorInfo()} | {GetLastKeyInfo()}               ");            
+            Out.SetCursorPos(1, _barY+ 1 );
+            Out.EnableInvert();
+            Out.Print($"{GetPositionInfo()} | {_splitedLineIndex} | {GetCursorInfo()} | {GetLastKeyInfo()}               ");            
         }
 
         string GetBarIndex() => $"({_cmdBarIndex}/{_maxCmdBarIndex})";
@@ -1022,9 +1022,9 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
             };
         }
 
-        void BackupCursorPos() => _bkCursorPos = CursorPos;
+        void BackupCursorPos() => _bkCursorPos = Out.CursorPos;
 
-        void RestoreCursorPos() => SetCursorPos(_bkCursorPos);
+        void RestoreCursorPos() => Out.SetCursorPos(_bkCursorPos);
 
     }
 }

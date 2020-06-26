@@ -29,12 +29,13 @@ namespace DotNetConsoleAppToolkit.Console
         protected Dictionary<string, CommandDelegate> _drtvs;
 
         public static readonly string Esc = (char)27+"";
-        public static readonly string CRLF = (char)13 + ((char)10+"");
-
-        #region cursor information cache
+        
+        #region console information cache
 
         protected Point _cachedCursorPosition = Point.Empty;
-        protected Point _cachedBufferSize = Point.Empty;
+        protected Size _cachedBufferSize = Size.Empty;
+        ConsoleColor _cachedForegroundColor;
+        ConsoleColor _cachedBackgroundColor;
 
         #endregion
 
@@ -44,12 +45,14 @@ namespace DotNetConsoleAppToolkit.Console
 
         #region construction & init
 
-        public ConsoleTextWriterWrapper() : base() { }
+        public ConsoleTextWriterWrapper() : base() { Init(); }
 
-        public ConsoleTextWriterWrapper(TextWriter textWriter) : base(textWriter) { }
+        public ConsoleTextWriterWrapper(TextWriter textWriter) : base(textWriter) { Init(); }
 
         void Init()
         {
+            _cachedForegroundColor = sc.ForegroundColor;
+            _cachedBackgroundColor = sc.BackgroundColor;
             _drtvs = new Dictionary<string, CommandDelegate>() {
                 { PrintDirectives.bkf+""   , (x) => RelayCall(BackupForeground) },
                 { PrintDirectives.bkb+""   , (x) => RelayCall(BackupBackground) },
@@ -74,8 +77,8 @@ namespace DotNetConsoleAppToolkit.Console
                 { PrintDirectives.rscr+""  , (x) => RelayCall(RestoreCursorPos) },
                 { PrintDirectives.crh+""   , (x) => RelayCall(HideCur) },
                 { PrintDirectives.crs+""   , (x) => RelayCall(ShowCur) },
-                { PrintDirectives.crx+"="  , (x) => RelayCall(() => SetCursorLeft(GetCursorX(x))) },
-                { PrintDirectives.cry+"="  , (x) => RelayCall(() => SetCursorTop(GetCursorY(x))) },
+                { PrintDirectives.crx+"="  , (x) => RelayCall(() => CursorLeft = GetCursorX(x)) },
+                { PrintDirectives.cry+"="  , (x) => RelayCall(() => CursorTop = GetCursorY(x)) },
                 { PrintDirectives.exit+""  , (x) => RelayCall(() => Exit()) },
                 { PrintDirectives.exec+"=" , (x) => ExecCSharp((string)x) },
 
@@ -111,11 +114,13 @@ namespace DotNetConsoleAppToolkit.Console
         void BackupCursorInformation()
         {
             _cachedCursorPosition = CursorPos;
+            _cachedBufferSize = new Size(sc.BufferWidth, sc.BufferHeight);
         }
 
         void ClearCursorInformation()
         {
-            _cachedCursorPosition = CursorPos;
+            _cachedCursorPosition = Point.Empty;
+            _cachedBufferSize = Size.Empty;
         }
 
         public override void EnableBuffer()
@@ -354,6 +359,7 @@ namespace DotNetConsoleAppToolkit.Console
             set {  
                 lock (Lock)
                 {
+                    _cachedCursorPosition.X = value;
                     Write(Esc + "["+value+"G");
                 } 
             }
@@ -375,6 +381,7 @@ namespace DotNetConsoleAppToolkit.Console
             {
                 lock (Lock)
                 {
+                    _cachedCursorPosition.Y = value;
                     Write(Esc + "[2J" + Esc + $"[{CursorLeft};{value}H");
                 }
             }
@@ -398,6 +405,11 @@ namespace DotNetConsoleAppToolkit.Console
                 var x = p.X;
                 var y = p.Y;
                 FixCoords(ref x, ref y);
+                if (IsBufferEnabled)
+                {
+                    _cachedCursorPosition.X = x;
+                    _cachedCursorPosition.Y = y;
+                }
                 //_textWriter.CursorLeft = x;
                 //_textWriter.CursorTop = y;
                 Write(Esc + "[2J" + Esc + $"[{x};{y}H");
@@ -409,6 +421,11 @@ namespace DotNetConsoleAppToolkit.Console
             lock (Lock)
             {
                 FixCoords(ref x, ref y);
+                if (IsBufferEnabled)
+                {
+                    _cachedCursorPosition.X = x;
+                    _cachedCursorPosition.Y = y;
+                }
                 Write(Esc + "[2J" + Esc + $"[{x};{y}H");
             }
         }
@@ -428,24 +445,21 @@ namespace DotNetConsoleAppToolkit.Console
         {
             lock (Lock)
             {
-                lock (Lock)
-                {
-                    if (string.IsNullOrWhiteSpace(s)) return s;
-                    var ms = new MemoryStream(s.Length * 4);
-                    var sw = new StreamWriter(ms);
-                    Redirect(sw);
-                    var e = EnableConstraintConsolePrintInsideWorkArea;
-                    EnableConstraintConsolePrintInsideWorkArea = false;
-                    Print(s, lineBreak, false, !ignorePrintDirectives, true, printSequences);
-                    EnableConstraintConsolePrintInsideWorkArea = e;
-                    sw.Flush();
-                    ms.Position = 0;
-                    var rw = new StreamReader(ms);
-                    var txt = rw.ReadToEnd();
-                    rw.Close();
-                    Redirect((StreamWriter)null);
-                    return txt;
-                }
+                if (string.IsNullOrWhiteSpace(s)) return s;
+                var ms = new MemoryStream(s.Length * 4);
+                var sw = new StreamWriter(ms);
+                Redirect(sw);
+                var e = EnableConstraintConsolePrintInsideWorkArea;
+                EnableConstraintConsolePrintInsideWorkArea = false;
+                Print(s, lineBreak, false, !ignorePrintDirectives, true, printSequences);
+                EnableConstraintConsolePrintInsideWorkArea = e;
+                sw.Flush();
+                ms.Position = 0;
+                var rw = new StreamReader(ms);
+                var txt = rw.ReadToEnd();
+                rw.Close();
+                Redirect((StreamWriter)null);
+                return txt;
             }
         }
 
@@ -480,7 +494,7 @@ namespace DotNetConsoleAppToolkit.Console
                     ConsoleSubPrint(s, lineBreak);
                 else
                 {
-                    var x = CursorLeft;             // TODO: use cached cursor position
+                    var x = CursorLeft;
                     var mx = Math.Max(x, CropX);
                     if (mx > x)
                     {
@@ -502,7 +516,12 @@ namespace DotNetConsoleAppToolkit.Console
         {
             if (!FileEchoEnabled) return;
             if (FileEchoDumpDebugInfo)
-                _echoStreamWriter?.Write($"x={CursorLeft},y={CursorTop},l={s.Length},w={_textWriter.WindowWidth},h={_textWriter.WindowHeight},wtop={_textWriter.WindowTop} bw={_textWriter.BufferWidth},bh={_textWriter.BufferHeight},br={lineBreak} [{callerMemberName}:{callerLineNumber}] :");
+            {
+                if (IsBufferEnabled)
+                    _echoStreamWriter?.Write($"x={CursorLeft},y={CursorTop},l={s.Length}, bw={_cachedBufferSize},bh={_cachedBufferSize},br={lineBreak} [{callerMemberName}:{callerLineNumber}] :");
+                else
+                    _echoStreamWriter?.Write($"x={CursorLeft},y={CursorTop},l={s.Length},w={sc.WindowWidth},h={sc.WindowHeight},wtop={sc.WindowTop} bw={sc.BufferWidth},bh={sc.BufferHeight},br={lineBreak} [{callerMemberName}:{callerLineNumber}] :");
+            }
             _echoStreamWriter?.Write(s);
             if (lineBreak | FileEchoAutoLineBreak) _echoStreamWriter?.WriteLine(string.Empty);
             if (FileEchoAutoFlush) _echoStreamWriter?.Flush();
@@ -515,6 +534,18 @@ namespace DotNetConsoleAppToolkit.Console
             else
                 base.Write(s);
         }
+
+        public void Println(IEnumerable<string> ls, bool ignorePrintDirectives = false) { foreach (var s in ls) Println(s, ignorePrintDirectives); }
+        
+        public void Print(IEnumerable<string> ls, bool lineBreak = false, bool ignorePrintDirectives = false) { foreach (var s in ls) Print(s, lineBreak, ignorePrintDirectives); }
+        
+        public void Println(string s = "", bool ignorePrintDirectives = false) => Print(s, true, false, !ignorePrintDirectives);
+        
+        public void Print(string s = "", bool lineBreak = false, bool ignorePrintDirectives = false) => Print(s, lineBreak, false, !ignorePrintDirectives);
+        
+        public void Println(char s, bool ignorePrintDirectives = false) => Print(s + "", true, false, !ignorePrintDirectives);
+        
+        public void Print(char s, bool lineBreak = false, bool ignorePrintDirectives = false) => Print(s + "", lineBreak, !ignorePrintDirectives);
 
         public void Print(
             object s,
@@ -764,22 +795,26 @@ namespace DotNetConsoleAppToolkit.Console
                     }
                     else
                         Write(s);
+                    
                     FileEcho(s);
+                    
                     if (lineBreak)
                     {
-                        var f = _textWriter.ForegroundColor;
-                        var b = _textWriter.BackgroundColor;
+                        var f = _cachedForegroundColor;
+                        var b = _cachedBackgroundColor;
                         if (!IsRedirected)
                         {
-                            _textWriter.ForegroundColor = ColorSettings.Default.Foreground.Value;
-                            _textWriter.BackgroundColor = ColorSettings.Default.Background.Value;
+                            SetForeground( ColorSettings.Default.Foreground.Value );
+                            SetBackground( ColorSettings.Default.Background.Value );
                             _textWriter.WriteLine(string.Empty);
                         }
+
                         FileEcho(string.Empty, true);
+
                         if (!IsRedirected)
                         {
-                            _textWriter.ForegroundColor = f;
-                            _textWriter.BackgroundColor = b;
+                            SetForeground( f );
+                            SetBackground( b );
                         }
                     }
                 }
@@ -791,27 +826,27 @@ namespace DotNetConsoleAppToolkit.Console
             lock (Lock)
             {
                 if (!EnableFillLineFromCursor) return;
-                var f = _textWriter.ForegroundColor;
-                var b = _textWriter.BackgroundColor;
+                var f = _cachedForegroundColor;
+                var b = _cachedForegroundColor;
                 var aw = ActualWorkArea();
-                var nb = Math.Max(0, Math.Max(aw.Right, _textWriter.BufferWidth - 1) - CursorLeft - 1);
+                var nb = Math.Max(0, Math.Max(aw.Right, _cachedBufferSize.Width - 1) - CursorLeft - 1);
                 var x = CursorLeft;
                 var y = CursorTop;
                 if (useDefaultColors)
                 {
-                    _textWriter.ForegroundColor = ColorSettings.Default.Foreground.Value;
-                    _textWriter.BackgroundColor = ConsoleColor.Red; // ColorSettings.Default.Background.Value;
+                    SetForeground( ColorSettings.Default.Foreground.Value );
+                    SetBackground( ColorSettings.Default.Background.Value );
                 }
                 Write("".PadLeft(nb, c));   // TODO: BUG in WINDOWS: do not print the last character
                 SetCursorPos(nb, y);
                 Write(" ");
                 if (useDefaultColors)
                 {
-                    _textWriter.ForegroundColor = f;
-                    _textWriter.BackgroundColor = b;
+                    SetForeground( f );
+                    SetBackground( b );
                 }
                 if (resetCursorLeft)
-                    _textWriter.CursorLeft = x;
+                    CursorLeft = x;
             }
         }
 
@@ -880,6 +915,18 @@ namespace DotNetConsoleAppToolkit.Console
             return r;
         }
 
+        /// <summary>
+        /// TODO: check for buffered mode
+        /// </summary>
+        /// <param name="s"></param>
+        /// <param name="origin"></param>
+        /// <param name="forceEnableConstraintInWorkArea"></param>
+        /// <param name="fitToVisibleArea"></param>
+        /// <param name="doNotEvaluatePrintDirectives"></param>
+        /// <param name="ignorePrintDirectives"></param>
+        /// <param name="cursorX"></param>
+        /// <param name="cursorY"></param>
+        /// <returns></returns>
         public LineSplits GetWorkAreaStringSplits(
             string s,
             Point origin,
@@ -1039,6 +1086,14 @@ namespace DotNetConsoleAppToolkit.Console
         public void SetCursorPosConstraintedInWorkArea(int cx, int cy, bool enableOutput = true, bool forceEnableConstraintInWorkArea = false, bool fitToVisibleArea = true)
             => SetCursorPosConstraintedInWorkArea(ref cx, ref cy, enableOutput, forceEnableConstraintInWorkArea, fitToVisibleArea);
 
+        /// <summary>
+        /// TODO: check for buffered mode
+        /// </summary>
+        /// <param name="cx"></param>
+        /// <param name="cy"></param>
+        /// <param name="enableOutput"></param>
+        /// <param name="forceEnableConstraintInWorkArea"></param>
+        /// <param name="fitToVisibleArea"></param>
         public void SetCursorPosConstraintedInWorkArea(ref int cx, ref int cy, bool enableOutput = true, bool forceEnableConstraintInWorkArea = false, bool fitToVisibleArea = true)
         {
             lock (Lock)
@@ -1065,7 +1120,7 @@ namespace DotNetConsoleAppToolkit.Console
                         dy = top - cy;
                         cy += dy;
                         if (top + 1 <= bottom)
-                            _textWriter.MoveBufferArea(      // TODO: not supported on linux (ubuntu 18.04 wsl)
+                            sc.MoveBufferArea(      // TODO: not supported on linux (ubuntu 18.04 wsl)
                                 left, top, right, bottom - top,
                                 left, top + 1,
                                 ' ',
@@ -1079,7 +1134,7 @@ namespace DotNetConsoleAppToolkit.Console
                         var nh = bottom - top + dy + 1;
                         if (nh > 0)
                         {
-                            _textWriter.MoveBufferArea(      // TODO: not supported on linux (ubuntu 18.04 wsl)
+                            sc.MoveBufferArea(      // TODO: not supported on linux (ubuntu 18.04 wsl)
                                 left, top - dy, right, nh,
                                 left, top,
                                 ' ',

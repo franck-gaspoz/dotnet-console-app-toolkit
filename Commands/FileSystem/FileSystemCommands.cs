@@ -45,8 +45,8 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                 var items = FindItems(path.FullName, sp, top,all,dirs,attributes,shortPathes,contains, checkPatternOnFullName,counts,true);
                 var f = DefaultForegroundCmd;
                 var elapsed = DateTime.Now - counts.BeginDateTime;
-                if (items.Count > 0) Println();
-                Println($"found {ColorSettings.Numeric}{Plur("file",counts.FilesCount,f)} and {ColorSettings.Numeric}{Plur("folder",counts.FoldersCount,f)}. scanned {ColorSettings.Numeric}{Plur("file",counts.ScannedFilesCount,f)} in {ColorSettings.Numeric}{Plur("folder",counts.ScannedFoldersCount,f)} during {TimeSpanDescription(elapsed, ColorSettings.Numeric.ToString(), f)}");
+                if (items.Count > 0) Out.Println();
+                Out.Println($"found {ColorSettings.Numeric}{Plur("file",counts.FilesCount,f)} and {ColorSettings.Numeric}{Plur("folder",counts.FoldersCount,f)}. scanned {ColorSettings.Numeric}{Plur("file",counts.ScannedFilesCount,f)} in {ColorSettings.Numeric}{Plur("folder",counts.ScannedFoldersCount,f)} during {TimeSpanDescription(elapsed, ColorSettings.Numeric.ToString(), f)}");
                 return items;
             }
             return new List<FileSystemPath>();
@@ -145,8 +145,8 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                 void postCmd(object o, EventArgs e)
                 {
                     sc.CancelKeyPress -= cancelCmd;
-                    Println($"{Tab}{ColorSettings.Numeric}{Plur("file", counts.FilesCount, f),-30}{HumanFormatOfSize(totFileSize, 2," ", ColorSettings.Numeric.ToString(), f)}");
-                    Println($"{Tab}{ColorSettings.Numeric}{Plur("folder", counts.FoldersCount, f),-30}{Drives.GetDriveInfo(path.FileSystemInfo.FullName,false, ColorSettings.Numeric.ToString(), f," ",2)}");
+                    Out.Println($"{Tab}{ColorSettings.Numeric}{Plur("file", counts.FilesCount, f),-30}{HumanFormatOfSize(totFileSize, 2," ", ColorSettings.Numeric.ToString(), f)}");
+                    Out.Println($"{Tab}{ColorSettings.Numeric}{Plur("folder", counts.FoldersCount, f),-30}{Drives.GetDriveInfo(path.FileSystemInfo.FullName,false, ColorSettings.Numeric.ToString(), f," ",2)}");
                 }
                 void cancelCmd(object o, ConsoleCancelEventArgs e)
                 {
@@ -186,7 +186,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                         if (nocol == nbcols)
                             nocol = 0;
                     }
-                    if (!recurse && wide && nocol < nbcols && nocol>0) Println();
+                    if (!recurse && wide && nocol < nbcols && nocol>0) Out.Println();
                     return i;
                 }
                 sc.CancelKeyPress += cancelCmd;
@@ -400,7 +400,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                                         File.Move(item.FullName, Path.Combine(dest.FullName,item.Name));
                                     else
                                         Directory.Move(item.FullName, Path.Combine(dest.FullName, item.Name));
-                                    if (verbose) Println(msg.Replace("move ", "moved "));
+                                    if (verbose) Out.Println(msg.Replace("move ", "moved "));
                                 }
                             }
                         }
@@ -419,7 +419,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                                     File.Move(source.FullNameWithWildcard, Path.Combine(dest.FullName, source.NameWithWildcard));
                                 else
                                     Directory.Move(source.FullName, Path.Combine(dest.FullName, source.NameWithWildcard));
-                                if (verbose) Println(msg.Replace("move ", "moved "));
+                                if (verbose) Out.Println(msg.Replace("move ", "moved "));
                             }
                         } else
                         {
@@ -429,7 +429,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                             {
                                 dest.FileSystemInfo.Delete();
                                 File.Move(source.FullNameWithWildcard, dest.FullName );
-                                if (verbose) Println(msg.Replace("rename ", "renamed "));
+                                if (verbose) Out.Println(msg.Replace("rename ", "renamed "));
                             }
                         }
                     } else
@@ -442,7 +442,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                                 File.Move(source.FullNameWithWildcard, dest.FullName);
                             else
                                 Directory.Move(source.FullName, dest.FullName);
-                            if (verbose) Println(msg.Replace("rename ", "renamed "));
+                            if (verbose) Out.Println(msg.Replace("rename ", "renamed "));
                         }
                     }
                 }
@@ -491,7 +491,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                 var items = FindItems(path.FullName, path.WildCardFileName ?? "*", true, false, false, true, false, null, false, counts, false, false);
                 foreach (var item in items) PrintFile((FilePath)item,hideLineNumbers);
                 if (items.Count == 0)  Errorln($"more: no such file: {path.OriginalPath}");
-                ShowCur();
+                Out.ShowCur();
             }
         }
 
@@ -532,9 +532,9 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             var infos = $"    ({Plur("line", nblines)},encoding={(fileEncoding!=null?fileEncoding.EncodingName:"?")},eol={filePlatform})";
             var n = file.Name.Length + TabLength + infos.Length;
             var sep = "".PadRight(n+1, '-');
-            Println($"{ColorSettings.TitleBar}{sep}");
-            Println($"{ColorSettings.TitleBar} {file.Name}{ColorSettings.TitleDarkText}{infos.PadRight(n- file.Name.Length, ' ')}");
-            Println($"{ColorSettings.TitleBar}{sep}{ColorSettings.Default}");
+            Out.Println($"{ColorSettings.TitleBar}{sep}");
+            Out.Println($"{ColorSettings.TitleBar} {file.Name}{ColorSettings.TitleDarkText}{infos.PadRight(n- file.Name.Length, ' ')}");
+            Out.Println($"{ColorSettings.TitleBar}{sep}{ColorSettings.Default}");
 
             var preambleHeight = 3;
             var linecollength = nblines.ToString().Length;
@@ -560,15 +560,15 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                 if (!skipPrint)
                     lock (ConsoleLock)
                     {
-                        HideCur();
+                        Out.HideCur();
                         while (i < curNbLines && pos + decpos + i < nblines)
                         {
                             if (CommandLineProcessor.CancellationTokenSource.IsCancellationRequested) return;
                             var prefix = hideLineNumbers ? "" : (ColorSettings.Dark + "  " + (pos + decpos + i + 1).ToString().PadRight(linecollength, ' ') + "  ");
-                            Println(prefix + ColorSettings.Default + lines[pos + decpos + i]);
+                            Out.Println(prefix + ColorSettings.Default + lines[pos + decpos + i]);
                             i++;
                         }
-                        ShowCur();
+                        Out.ShowCur();
                         y = sc.CursorTop;
                         x = sc.CursorLeft;
                         endReached = pos + i >= nblines;
@@ -598,22 +598,22 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                     decpos = 0;
                 }
 
-                if ((string)action == totop) { k = maxk; pos = 0; if (pos != oldpos) ClearScreen(); }
-                if ((string)action == toend) { k = maxk; pos = Math.Max(0,nblines-maxk+1); if (pos != oldpos) ClearScreen(); }
+                if ((string)action == totop) { k = maxk; pos = 0; if (pos != oldpos) Out.ClearScreen(); }
+                if ((string)action == toend) { k = maxk; pos = Math.Max(0,nblines-maxk+1); if (pos != oldpos) Out.ClearScreen(); }
 
-                if ((string)action == scrolllineup && !topReached) { 
-                    ClearScreen(); k = maxk; pos = Math.Max(0, pos- 1); 
+                if ((string)action == scrolllineup && !topReached) {
+                    Out.ClearScreen(); k = maxk; pos = Math.Max(0, pos- 1); 
                 }
-                if ((string)action == pagedown && !endReached) { ClearScreen(); k = maxk; pos+=k-1-preambleHeight; }
-                if ((string)action == pageup && !topReached) { ClearScreen(); k = maxk; pos = Math.Max(0, pos - k+1); }
+                if ((string)action == pagedown && !endReached) { Out.ClearScreen(); k = maxk; pos+=k-1-preambleHeight; }
+                if ((string)action == pageup && !topReached) { Out.ClearScreen(); k = maxk; pos = Math.Max(0, pos - k+1); }
 
                 if ((string)action == help)
                 {
                     var sepw = inputMaps.Select(x => ((string)x.Code).Length).Max();
                     var hsep = "".PadRight(sepw + 10, '-');
-                    Println(Br+hsep+Br);
-                    inputMaps.ForEach(x => Println((string)x.Code+Br));
-                    Println(hsep);
+                    Out.Println(Br+hsep+Br);
+                    inputMaps.ForEach(x => Out.Println((string)x.Code+Br));
+                    Out.Println(hsep);
                     forcePrintInputBar = true;
                 }
 
@@ -625,7 +625,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                     sc.CursorLeft = x;
                     if (forcePrintInputBar || !skipPrint || end)
                     {
-                        Print("".PadLeft(inputText.Length, ' '));
+                        Out.Print("".PadLeft(inputText.Length, ' '));
                         sc.CursorLeft = x;
                         forcePrintInputBar = false;
                     }

@@ -79,20 +79,20 @@ current print directives are:
             )]
         public void Print(
             [Parameter("text to be writen to output",true)] string expr = ""
-            ) => DotNetConsole.Print(expr);
+            ) => Out.Print(expr);
 
         [Command("write text to the output stream followed by a line break",null, _printDocText)]
         public void Println(
             [Parameter("text to be writen to output", true)] string expr = ""
-            ) => DotNetConsole.Println(expr);
+            ) => Out.Println(expr);
 
         [Command("clear console screen")]
-        public void Cls() => ClearScreen();
+        public void Cls() => Out.ClearScreen();
 
         [Command("hide cursor")]
-        public void HideCursor() => HideCur();
+        public void HideCursor() => Out.HideCur();
 
         [Command("show cursor")]
-        public void ShowCursor() => ShowCur();
+        public void ShowCursor() => Out.ShowCur();
     }
 }

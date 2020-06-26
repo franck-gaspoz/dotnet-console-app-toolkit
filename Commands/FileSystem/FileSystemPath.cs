@@ -119,9 +119,9 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             if (!string.IsNullOrWhiteSpace(quote)) pdr -= 2;
             var rightspace = (paddingRight > -1) ? endcolor+"".PadRight(pdr>0?pdr:1, ' ') : "";
             r += $"{linePrefix}{attr}{color}{prefix}{quote}{name}{quote}{hidden}{rightspace}{postfix}";
-            DotNetConsole.Print(r+ColorSettings.Default);
+            Out.Print(r+ColorSettings.Default);
             if (HasError)
-                DotNetConsole.Print($" {ErrorColorization}{GetError()}");
+                Out.Print($" {ErrorColorization}{GetError()}");
         }
 
         public override string ToString()

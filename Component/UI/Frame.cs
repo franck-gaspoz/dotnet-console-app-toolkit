@@ -77,9 +77,9 @@ namespace DotNetConsoleAppToolkit.Component.UI
                     Thread.Sleep(UpdateTimerInterval);
                     lock (ConsoleLock)
                     {
-                        BackupCursorPos();
+                        Out.BackupCursorPos();
                         Draw(AlwaysPaintBackground);
-                        RestoreCursorPos();
+                        Out.RestoreCursorPos();
                     }
                 }
             }
@@ -114,12 +114,12 @@ namespace DotNetConsoleAppToolkit.Component.UI
                 RedrawUIElementsEnabled = false;
                 var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
                 EnableConstraintConsolePrintInsideWorkArea = false;
-                var p = CursorPos;
+                var p = Out.CursorPos;
                 var (x, y, w, h) = GetCurrentCoords();
                 BackupCoords(x, y, w, h);
                 var content = GetContent?.Invoke(this);
-                var cursorVisible = CursorVisible;
-                HideCur();
+                var cursorVisible = Out.CursorVisible;
+                Out.HideCur();
                 if (viewSizeChanged || AlwaysPaintBackground)
                     DrawRectAt(BackgroundColor, x, y, w, h);
 
@@ -127,16 +127,16 @@ namespace DotNetConsoleAppToolkit.Component.UI
                 {
                     if (i < h)
                     {
-                        SetCursorPos(x, y + i);
-                        CropX = x + w - 1;
-                        Print(content[i]);
-                        CropX = -1;
+                        Out.SetCursorPos(x, y + i);
+                        Out.CropX = x + w - 1;
+                        Out.Print(content[i]);
+                        Out.CropX = -1;
                     }
                 }
 
-                SetCursorPos(p);
+                Out.SetCursorPos(p);
                 if (cursorVisible)
-                    ShowCur();
+                    Out.ShowCur();
                 EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
                 RedrawUIElementsEnabled = redrawUIElementsEnabled;
             }
@@ -154,15 +154,15 @@ namespace DotNetConsoleAppToolkit.Component.UI
         {
             lock (ConsoleLock)
             {
-                var p = CursorPos;                
+                var p = Out.CursorPos;                
                 var redrawUIElementsEnabled = RedrawUIElementsEnabled;
                 var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
                 EnableConstraintConsolePrintInsideWorkArea = false;
                 RedrawUIElementsEnabled = false;
-                HideCur();
+                Out.HideCur();
                 DrawRect(DefaultBackground, ActualX, ActualY, ActualWidth, ActualHeight);
-                SetCursorPos(p);
-                ShowCur();
+                Out.SetCursorPos(p);
+                Out.ShowCur();
                 EnableConstraintConsolePrintInsideWorkArea = enableConstraintConsolePrintInsideWorkArea;
                 RedrawUIElementsEnabled = redrawUIElementsEnabled;
             }

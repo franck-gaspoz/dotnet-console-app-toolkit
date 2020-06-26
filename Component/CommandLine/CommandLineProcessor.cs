@@ -119,10 +119,10 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
         public void PrintInfo()
         {
-            Println($"{ColorSettings.Label}{Uon} {AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}" + ("".PadRight(30,' ')) + Tdoff);
-            Println($" {AppEditor}");
-            Println($" {RuntimeInformation.OSDescription} {RuntimeInformation.OSArchitecture} - {RuntimeInformation.FrameworkDescription}");
-            Println();
+            Out.Println($"{ColorSettings.Label}{Uon} {AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}" + ("".PadRight(30,' ')) + Tdoff);
+            Out.Println($" {AppEditor}");
+            Out.Println($" {RuntimeInformation.OSDescription} {RuntimeInformation.OSArchitecture} - {RuntimeInformation.FrameworkDescription}");
+            Out.Println();
         }
         
         public (int typesCount,int commandsCount) UnregisterCommandsAssembly(string assemblyName)

@@ -22,7 +22,7 @@ namespace DotNetConsoleAppToolkit.Console
             }
             var cmdlr = new CommandLineReader(null,question + "? ", null);
             cmdlr.BeginReadln(endReadln, null, true, false);
-            Println();
+            Out.Println();
             return r;
         }
 
@@ -35,7 +35,7 @@ namespace DotNetConsoleAppToolkit.Console
         public static object InputBar(string text,List<InputMap> inputMaps)
         {
             object r = null;
-            Print($"{ColorSettings.Inverted}{text}{ColorSettings.Default}");
+            Out.Print($"{ColorSettings.Inverted}{text}{ColorSettings.Default}");
             bool end = false;
             string input = "";
             while (!end)

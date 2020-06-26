@@ -96,7 +96,7 @@ namespace DotNetConsoleAppToolkit.Component.UI
                 if (!ValidCoords(x, y)) return;
                 var s = "".PadLeft(w, ' ');
                 for (int i = 0; i < h; i++)
-                    Print($"{Crx(x)}{Cry(y + i)}{B(backgroundColor)}{s}");
+                    Out.Print($"{Crx(x)}{Cry(y + i)}{B(backgroundColor)}{s}");
             }
         }
 
@@ -110,7 +110,7 @@ namespace DotNetConsoleAppToolkit.Component.UI
                 if (!ValidCoords(x, y)) return;
                 var s = "".PadLeft(w, ' ');
                 for (int i = 0; i < h; i++)
-                    Print($"{Crx(x)}{Cry(y + i)}{B(backgroundColor)}{s}");
+                    Out.Print($"{Crx(x)}{Cry(y + i)}{B(backgroundColor)}{s}");
             }
         }
 

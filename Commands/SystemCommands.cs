@@ -67,7 +67,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
         [Command("get information about current user")]
         public void Whoami()
         {
-            Println($"{Environment.UserName} [{ColorSettings.Highlight}{Environment.UserDomainName}{ColorSettings.Default}]");
+            Out.Println($"{Environment.UserName} [{ColorSettings.Highlight}{Environment.UserDomainName}{ColorSettings.Default}]");
         }
     }
 }
