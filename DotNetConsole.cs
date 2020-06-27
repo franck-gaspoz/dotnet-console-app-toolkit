@@ -406,7 +406,9 @@ namespace DotNetConsoleAppToolkit
                     var cursorPosBackup = Out.CursorPos;
 
                     if (ViewResizeStrategy == ViewResizeStrategy.FitViewSize
-                        && viewSizeChanged)
+                        && viewSizeChanged
+                        && _uielements.Count > 0        // ADDED 27/6 for test
+                        )
                     {
                         if (ClearOnViewResized)
                             Out.ClearScreen();

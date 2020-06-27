@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.CompilerServices;
 using static DotNetConsoleAppToolkit.DotNetConsole;
+using cons= DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.Str;
 using static DotNetConsoleAppToolkit.Component.UI.UIElement;
 using sc = System.Console;
@@ -226,8 +227,8 @@ namespace DotNetConsoleAppToolkit.Console
             {
                 if (Enum.TryParse<Color3BitToAnsi>((c + "").ToLower(), out var colbit))
                 {
-                    var num = (int)colbit & 0X111;
-                    var isDark = ((int)colbit & 0X1000) != 0;
+                    var num = (int)colbit & 0b111;
+                    var isDark = ((int)colbit & 0b1000) != 0;
                     //sc.ForegroundColor = c;
                     Write(((char)27)+"["+(isDark?$"1;3{num,1}m": $"3{num,1}m"));
                 }
@@ -306,12 +307,12 @@ namespace DotNetConsoleAppToolkit.Console
         {
             Locked(() =>
             {
-                //_textWriter.Clear();
-                Write(Esc+"[2J" + Esc + "[0;0H");
+                if (IsBufferEnabled) throw new BufferedOperationNotAvailableException();
+                sc.Clear();
+                //Write(Esc+"[2J" + Esc + "[0;0H"); // bugged on windows
                 RestoreDefaultColors();
                 UpdateUI(true, false);
-            }
-            );
+            });
         }
         
         public void LineBreak()
@@ -336,7 +337,7 @@ namespace DotNetConsoleAppToolkit.Console
         {
             Locked(() =>
             {
-                Write(Esc + "[2J" + Esc + $"[{_cursorLeftBackup};{_cursorTopBackup}H");
+                Write(Esc + "[2J" + Esc + $"[{_cursorTopBackup+1};{_cursorLeftBackup+1}H");
                 //_textWriter.CursorLeft = _cursorLeftBackup;
                 //textWriter.CursorTop = _cursorTopBackup;
             });
@@ -382,7 +383,7 @@ namespace DotNetConsoleAppToolkit.Console
                 lock (Lock)
                 {
                     _cachedCursorPosition.Y = value;
-                    Write(Esc + "[2J" + Esc + $"[{CursorLeft};{value}H");
+                    Write(Esc + "[2J" + Esc + $"[{value+1};{CursorLeft+1}H");
                 }
             }
         }
@@ -412,7 +413,7 @@ namespace DotNetConsoleAppToolkit.Console
                 }
                 //_textWriter.CursorLeft = x;
                 //_textWriter.CursorTop = y;
-                Write(Esc + "[2J" + Esc + $"[{x};{y}H");
+                Write(Esc + $"[{y+1};{x+1}H");
             }
         }
         
@@ -426,7 +427,7 @@ namespace DotNetConsoleAppToolkit.Console
                     _cachedCursorPosition.X = x;
                     _cachedCursorPosition.Y = y;
                 }
-                Write(Esc + "[2J" + Esc + $"[{x};{y}H");
+                Write(Esc + $"[{(y+1)};{(x+1)}H");
             }
         }
         
@@ -448,7 +449,7 @@ namespace DotNetConsoleAppToolkit.Console
                 if (string.IsNullOrWhiteSpace(s)) return s;
                 var ms = new MemoryStream(s.Length * 4);
                 var sw = new StreamWriter(ms);
-                Redirect(sw);
+                RedirectOut(sw);
                 var e = EnableConstraintConsolePrintInsideWorkArea;
                 EnableConstraintConsolePrintInsideWorkArea = false;
                 Print(s, lineBreak, false, !ignorePrintDirectives, true, printSequences);
@@ -458,7 +459,7 @@ namespace DotNetConsoleAppToolkit.Console
                 var rw = new StreamReader(ms);
                 var txt = rw.ReadToEnd();
                 rw.Close();
-                Redirect((StreamWriter)null);
+                RedirectOut((StreamWriter)null);
                 return txt;
             }
         }
@@ -470,7 +471,7 @@ namespace DotNetConsoleAppToolkit.Console
                 if (string.IsNullOrWhiteSpace(s)) return s;
                 var ms = new MemoryStream(s.Length * 4);
                 var sw = new StreamWriter(ms);
-                Redirect(sw);
+                RedirectOut(sw);
                 var e = EnableConstraintConsolePrintInsideWorkArea;
                 EnableConstraintConsolePrintInsideWorkArea = false;
                 Print(s, lineBreak);
@@ -480,7 +481,7 @@ namespace DotNetConsoleAppToolkit.Console
                 var rw = new StreamReader(ms);
                 var txt = rw.ReadToEnd();
                 rw.Close();
-                Redirect((StreamWriter)null);
+                RedirectOut((StreamWriter)null);
                 return txt;
             }
         }
