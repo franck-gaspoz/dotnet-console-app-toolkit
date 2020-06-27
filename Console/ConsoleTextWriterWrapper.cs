@@ -229,8 +229,9 @@ namespace DotNetConsoleAppToolkit.Console
                 {
                     var num = (int)colbit & 0b111;
                     var isDark = ((int)colbit & 0b1000) != 0;
+                    //WriteLine($"num={num} isDark={isDark}");
                     //sc.ForegroundColor = c;
-                    Write(((char)27)+"["+(isDark?$"1;3{num,1}m": $"3{num,1}m"));
+                    Write(((char)27)+"["+(!isDark?$"1;3{num,1}m": $"3{num,1}m"));
                 }
             }
         }
@@ -244,7 +245,7 @@ namespace DotNetConsoleAppToolkit.Console
                     var num = (int)colbit & 0X111;
                     var isDark = ((int)colbit & 0X1000) != 0;
                     //sc.ForegroundColor = c;
-                    Write(((char)27) + "[" + (isDark ? $"1;4{num,1}m" : $"4{num,1}m"));
+                    Write(((char)27) + "[" + (!isDark ? $"1;4{num,1}m" : $"4{num,1}m"));
                 }
             }
             //_textWriter.BackgroundColor = c;
@@ -297,7 +298,13 @@ namespace DotNetConsoleAppToolkit.Console
         public void SetDefaultForeground(ConsoleColor c) => Locked(() => DefaultForeground = c);
         
         public void SetDefaultBackground(ConsoleColor c) => Locked(() => DefaultBackground = c);
-        
+
+        public void SetDefaultColors(ConsoleColor foregroundColor, ConsoleColor backgroundColor) => 
+            Locked(() => {
+                SetDefaultForeground( foregroundColor );
+                SetDefaultForeground( backgroundColor );
+            });
+
         public void RestoreDefaultColors() => Locked(() => { 
             SetForeground( DefaultForeground); 
             SetBackground( DefaultBackground); 
@@ -308,9 +315,9 @@ namespace DotNetConsoleAppToolkit.Console
             Locked(() =>
             {
                 if (IsBufferEnabled) throw new BufferedOperationNotAvailableException();
+                RestoreDefaultColors();
                 sc.Clear();
                 //Write(Esc+"[2J" + Esc + "[0;0H"); // bugged on windows
-                RestoreDefaultColors();
                 UpdateUI(true, false);
             });
         }

@@ -11,8 +11,8 @@
         cyan =    0b110,
         white =   0b111,
 
-        black =         0b100,
-        darkred =       0b101,
+        black =         0b1000,
+        darkred =       0b1001,
         darkgreen =     0b1010,
         darkorange =    0b1011,
         darkblue =      0b1100,
