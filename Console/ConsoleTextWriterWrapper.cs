@@ -9,6 +9,7 @@ using cons= DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.Str;
 using static DotNetConsoleAppToolkit.Component.UI.UIElement;
 using sc = System.Console;
+using static DotNetConsoleAppToolkit.Console.ANSISequences;
 
 namespace DotNetConsoleAppToolkit.Console
 {
@@ -327,7 +328,7 @@ namespace DotNetConsoleAppToolkit.Console
             Locked(() =>
             {
                 //ConsolePrint(string.Empty, true);
-                Write(CRLF);
+                Write(LNBRK);
             });
         }
 

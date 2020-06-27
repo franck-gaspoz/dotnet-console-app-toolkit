@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using static DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.FIleReader;
 using sc = System.Console;
+using static DotNetConsoleAppToolkit.Console.ANSISequences;
 
 namespace DotNetConsoleAppToolkit.Commands.Test
 {
@@ -49,12 +50,14 @@ namespace DotNetConsoleAppToolkit.Commands.Test
             for (int j = 0; j <= 7; j++)
             {
                 var str1 = $" ESC[4{j}m   | {esc}[4{j}m";
-                var str2 = str1;
+                var str2 = $" ESC[10{j}m  | {esc}[10{j}m";
                 for (int i = 0; i <= 7; i++)
                 {
-                    str1 += $"{esc}[3{i}m [3{i}m   ";
-                    str2 += $"{esc}[1;3{i}m [1;3{i}m ";
+                    str1 += $"{esc}[9{i}m [9{i}m   ";
+                    str2 += $"{esc}[0m{esc}[10{j}m{esc}[3{i}m [3{i}m   ";     // works
+                    //str2 += $"{esc}[2;3{i}m [3{i}m   ";     // works
                 }
+
                 Out.Println(str1 + ColorSettings.Default);
                 Out.Println(str2 + ColorSettings.Default);
                 Out.Println(hsep);
@@ -71,7 +74,7 @@ namespace DotNetConsoleAppToolkit.Commands.Test
                 r = White;
                 for (int x = 16; x <= 51; x++)
                 {
-                    if (x == 34)
+                    if (x >= 34)
                         r += Black;
                     r += $"{esc}[48;5;{n}m" + ((n + "").PadLeft(4, ' '));
                     n++;
@@ -87,11 +90,11 @@ namespace DotNetConsoleAppToolkit.Commands.Test
             x2 = 0;
             for (int x = 232; x <= 255; x++)
             {
-                if (x == 244)
+                if (x >= 244)
                     r += Black;
                 r += $"{esc}[48;5;{x}m" + ((x + "").PadLeft(4, ' '));
                 x2++;
-                if (x2 >= 6) { r += Br; x2 = 0; }
+                if (x2 >= 6) { r += LNBRK; x2 = 0; }
             }
             Out.Print(r);
 
