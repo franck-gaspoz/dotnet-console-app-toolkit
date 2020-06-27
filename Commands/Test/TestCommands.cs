@@ -8,7 +8,8 @@ using System.Runtime.CompilerServices;
 using static DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.FIleReader;
 using sc = System.Console;
-using static DotNetConsoleAppToolkit.Console.ANSISequences;
+using static DotNetConsoleAppToolkit.Console.ANSI;
+using DotNetConsoleAppToolkit.Lib;
 
 namespace DotNetConsoleAppToolkit.Commands.Test
 {
@@ -53,9 +54,11 @@ namespace DotNetConsoleAppToolkit.Commands.Test
                 var str2 = $" ESC[10{j}m  | {esc}[10{j}m";
                 for (int i = 0; i <= 7; i++)
                 {
-                    str1 += $"{esc}[9{i}m [9{i}m   ";
-                    str2 += $"{esc}[0m{esc}[10{j}m{esc}[3{i}m [3{i}m   ";     // works
-                    //str2 += $"{esc}[2;3{i}m [3{i}m   ";     // works
+                    //str1 += $"{esc}[9{i}m [9{i}m   ";
+                    //str2 += $"{esc}[0m{esc}[10{j}m{esc}[3{i}m [3{i}m   ";     // works
+
+                    str1 += Set3BitsColors(i, j | 0b1000) + $" [9{i}m   ";
+                    str2 += Set3BitsColors(i | 0b1000, j) + $" [3{i}m   ";
                 }
 
                 Out.Println(str1 + ColorSettings.Default);

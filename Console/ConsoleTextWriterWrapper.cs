@@ -9,7 +9,7 @@ using cons= DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.Str;
 using static DotNetConsoleAppToolkit.Component.UI.UIElement;
 using sc = System.Console;
-using static DotNetConsoleAppToolkit.Console.ANSISequences;
+using static DotNetConsoleAppToolkit.Console.ANSI;
 
 namespace DotNetConsoleAppToolkit.Console
 {
