@@ -31,7 +31,8 @@ namespace DotNetConsoleAppToolkit.Console
         protected Dictionary<string, CommandDelegate> _drtvs;
 
         public static readonly string Esc = (char)27+"";
-        
+        public string LNBRK => $"{DefaultColors}{CRLF}";        // {ESC}[0m
+
         #region console information cache
 
         protected Point _cachedCursorPosition = Point.Empty;
@@ -55,8 +56,13 @@ namespace DotNetConsoleAppToolkit.Console
         {
             DefaultForeground = sc.ForegroundColor;
             DefaultBackground = sc.BackgroundColor;
+            // fix for linux
+            if ((int)DefaultForeground == -1) DefaultForeground = ConsoleColor.White;
+            if ((int)DefaultBackground == -1) DefaultBackground = ConsoleColor.Black;
+            
             _cachedForegroundColor = DefaultForeground;
             _cachedBackgroundColor = DefaultBackground;
+
             _drtvs = new Dictionary<string, CommandDelegate>() {
                 { PrintDirectives.bkf+""   , (x) => RelayCall(BackupForeground) },
                 { PrintDirectives.bkb+""   , (x) => RelayCall(BackupBackground) },
@@ -220,8 +226,6 @@ namespace DotNetConsoleAppToolkit.Console
 
         public void RestoreBackground() => Locked(() => SetBackground( _backgroundBackup ));
 
-
-
         /// <summary>
         /// set foreground color from a 3 bit palette color (ConsoleColor to ansi)
         /// </summary>
@@ -304,6 +308,14 @@ namespace DotNetConsoleAppToolkit.Console
             SetForeground( DefaultForeground); 
             SetBackground( DefaultBackground); 
         });
+
+        public string DefaultColors
+        {
+            get
+            {
+                return Set3BitsColors(To3BitColorNum(DefaultForeground), To3BitColorNum(DefaultBackground));
+            }
+        }
         
         public void ClearScreen()
         {

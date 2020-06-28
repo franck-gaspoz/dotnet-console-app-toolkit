@@ -2,6 +2,7 @@
 
 using DotNetConsoleAppToolkit.Component.UI;
 using DotNetConsoleAppToolkit.Console;
+using DotNetConsoleAppToolkit.Lib;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using System;
@@ -12,9 +13,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using static DotNetConsoleAppToolkit.Component.UI.UIElement;
 using static DotNetConsoleAppToolkit.Lib.Str;
+using RuntimeEnvironment = DotNetConsoleAppToolkit.Lib.RuntimeEnvironment;
 using sc = System.Console;
 
 [assembly: AssemblyDescription("Dot Net Console App Toolkit kernel commands module")]
@@ -68,8 +71,8 @@ namespace DotNetConsoleAppToolkit
         
         public static bool TraceCommandErrors = true;
         public static bool DumpExceptions = true;
-        public static ConsoleColor DefaultForeground = sc.ForegroundColor; // ConsoleColor.White;
-        public static ConsoleColor DefaultBackground = sc.BackgroundColor; // ConsoleColor.Black;
+        public static ConsoleColor DefaultForeground;
+        public static ConsoleColor DefaultBackground;
 
         public static char CommandBlockBeginChar = '(';
         public static char CommandBlockEndChar = ')';
@@ -203,8 +206,12 @@ namespace DotNetConsoleAppToolkit
                 Out.Println($"OS={Environment.OSVersion} {(Environment.Is64BitOperatingSystem ? "64" : "32")}bits");
                 Out.Println($"{White}{Bkf}{ColorSettings.HighlightIdentifier}window:{Rf} left={ColorSettings.Numeric}{sc.WindowLeft}{Rf},top={ColorSettings.Numeric}{sc.WindowTop}{Rf},width={ColorSettings.Numeric}{sc.WindowWidth}{Rf},height={ColorSettings.Numeric}{sc.WindowHeight}{Rf},largest width={ColorSettings.Numeric}{sc.LargestWindowWidth}{Rf},largest height={ColorSettings.Numeric}{sc.LargestWindowHeight}{Rf}");
                 Out.Println($"{ColorSettings.HighlightIdentifier}buffer:{Rf} width={ColorSettings.Numeric}{sc.BufferWidth}{Rf},height={ColorSettings.Numeric}{sc.BufferHeight}{Rf} | input encoding={ColorSettings.Numeric}{sc.InputEncoding.EncodingName}{Rf} | output encoding={ColorSettings.Numeric}{sc.OutputEncoding.EncodingName}{Rf}");
-                Out.Println($"number lock={ColorSettings.Numeric}{sc.NumberLock}{Rf} | capslock={ColorSettings.Numeric}{sc.CapsLock}{Rf}");            // TODO: not supported on linux ubuntu 18.04 wsl
-                Out.Println($"cursor visible={ColorSettings.Numeric}{sc.CursorVisible}{Rf} | cursor size={ColorSettings.Numeric}{sc.CursorSize}");     // TODO: not supported on linux ubuntu 18.04 wsl
+                Out.Println($"{White}default background color={Bkf}{ColorSettings.KeyWord}{DefaultBackground}{Rf} | default foreground color={ColorSettings.KeyWord}{DefaultForeground}{Rf}");
+                if (RuntimeEnvironment.OSType == OSPlatform.Windows)
+                {
+                    Out.Println($"number lock={ColorSettings.Numeric}{sc.NumberLock}{Rf} | capslock={ColorSettings.Numeric}{sc.CapsLock}{Rf}");            // TODO: not supported on linux ubuntu 18.04 wsl
+                    Out.Println($"cursor visible={ColorSettings.Numeric}{sc.CursorVisible}{Rf} | cursor size={ColorSettings.Numeric}{sc.CursorSize}");     // TODO: not supported on linux ubuntu 18.04 wsl
+                }
             });
         }
 

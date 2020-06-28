@@ -28,6 +28,7 @@ namespace DotNetConsoleAppToolkit.Console
         public static TextColor TableColumnName = new TextColor(ConsoleColor.Yellow,null);
 
         public static TextColor ParameterName = new TextColor(ConsoleColor.Yellow, null);
+        public static TextColor KeyWord = new TextColor(ConsoleColor.Yellow, null);
         public static TextColor ParameterValueType = new TextColor(ConsoleColor.DarkYellow, null);
         public static TextColor OptionPrefix = new TextColor(ConsoleColor.Yellow, null);
         public static TextColor OptionName = new TextColor(ConsoleColor.Yellow, null);
