@@ -31,7 +31,15 @@ namespace DotNetConsoleAppToolkit.Console
         protected Dictionary<string, CommandDelegate> _drtvs;
 
         public static readonly string Esc = (char)27+"";
-        public string LNBRK => $"{DefaultColors}{CRLF}";        // {ESC}[0m
+        
+        public string LNBRK {
+            get
+            {
+                _cachedBackgroundColor = DefaultBackground;
+                _cachedForegroundColor = DefaultForeground;
+                return $"{DefaultColors}{CRLF}";        // {ESC}[0m
+            }
+        }
 
         #region console information cache
 
