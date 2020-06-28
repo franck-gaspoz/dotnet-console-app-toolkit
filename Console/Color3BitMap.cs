@@ -1,6 +1,6 @@
 ﻿namespace DotNetConsoleAppToolkit.Console
 {
-    public enum Color3BitToAnsi
+    public enum Color3BitMap
     {
         darkgray =    0b0,
         gray = 0b1111,
