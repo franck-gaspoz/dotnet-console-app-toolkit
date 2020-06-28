@@ -173,7 +173,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                     {
                         /*if (!WorkArea.rect.IsEmpty && (WorkArea.rect.Y != CursorTop || WorkArea.rect.X != CursorLeft))
                             LineBreak();*/      // case of auto line break (spacing)
-                        Out.RestoreDefaultColors();
+                        
+                        //Out.RestoreDefaultColors();   // FGZ removed
                     }
                 }
             }

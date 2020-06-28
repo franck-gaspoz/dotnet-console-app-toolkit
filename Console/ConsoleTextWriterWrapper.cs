@@ -53,8 +53,10 @@ namespace DotNetConsoleAppToolkit.Console
 
         void Init()
         {
-            _cachedForegroundColor = sc.ForegroundColor;
-            _cachedBackgroundColor = sc.BackgroundColor;
+            DefaultForeground = sc.ForegroundColor;
+            DefaultBackground = sc.BackgroundColor;
+            _cachedForegroundColor = DefaultForeground;
+            _cachedBackgroundColor = DefaultBackground;
             _drtvs = new Dictionary<string, CommandDelegate>() {
                 { PrintDirectives.bkf+""   , (x) => RelayCall(BackupForeground) },
                 { PrintDirectives.bkb+""   , (x) => RelayCall(BackupBackground) },
@@ -218,6 +220,8 @@ namespace DotNetConsoleAppToolkit.Console
 
         public void RestoreBackground() => Locked(() => SetBackground( _backgroundBackup ));
 
+
+
         /// <summary>
         /// set foreground color from a 3 bit palette color (ConsoleColor to ansi)
         /// </summary>
@@ -226,14 +230,9 @@ namespace DotNetConsoleAppToolkit.Console
         {
             lock (Lock)
             {
-                if (Enum.TryParse<Color3BitToAnsi>((c + "").ToLower(), out var colbit))
-                {
-                    var num = (int)colbit & 0b111;
-                    var isDark = ((int)colbit & 0b1000) != 0;
-                    //WriteLine($"num={num} isDark={isDark}");
-                    //sc.ForegroundColor = c;
-                    Write(((char)27)+"["+(!isDark?$"1;3{num,1}m": $"3{num,1}m"));
-                }
+                _cachedForegroundColor = c;
+                var s = Set3BitsColors(To3BitColorNum(c),To3BitColorNum(_cachedBackgroundColor));
+                Write(s);
             }
         }
 
@@ -241,15 +240,10 @@ namespace DotNetConsoleAppToolkit.Console
         {
             lock (Lock)
             {
-                if (Enum.TryParse<Color3BitToAnsi>((c + "").ToLower(), out var colbit))
-                {
-                    var num = (int)colbit & 0X111;
-                    var isDark = ((int)colbit & 0X1000) != 0;
-                    //sc.ForegroundColor = c;
-                    Write(((char)27) + "[" + (!isDark ? $"1;4{num,1}m" : $"4{num,1}m"));
-                }
+                _cachedBackgroundColor = c;
+                var s = Set3BitsColors(To3BitColorNum(_cachedForegroundColor), To3BitColorNum(_cachedBackgroundColor));
+                Write(s);
             }
-            //_textWriter.BackgroundColor = c;
         }
 
         /// <summary>

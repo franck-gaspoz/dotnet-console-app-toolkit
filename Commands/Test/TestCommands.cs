@@ -50,13 +50,10 @@ namespace DotNetConsoleAppToolkit.Commands.Test
             Out.Println(hsep);
             for (int j = 0; j <= 7; j++)
             {
-                var str1 = $" ESC[4{j}m   | {esc}[4{j}m";
-                var str2 = $" ESC[10{j}m  | {esc}[10{j}m";
+                var str1 = $" ESC[10{j}m  | {esc}[10{j}m";
+                var str2 = $" ESC[4{j}m   | {esc}[4{j}m";
                 for (int i = 0; i <= 7; i++)
                 {
-                    //str1 += $"{esc}[9{i}m [9{i}m   ";
-                    //str2 += $"{esc}[0m{esc}[10{j}m{esc}[3{i}m [3{i}m   ";     // works
-
                     str1 += Set3BitsColors(i, j | 0b1000) + $" [9{i}m   ";
                     str2 += Set3BitsColors(i | 0b1000, j) + $" [3{i}m   ";
                 }
@@ -74,11 +71,13 @@ namespace DotNetConsoleAppToolkit.Commands.Test
             int n = 16;
             for (int y = 0; y < 6; y++)
             {
-                r = White;
+                r = "";
                 for (int x = 16; x <= 51; x++)
                 {
                     if (x >= 34)
                         r += Black;
+                    else
+                        r += White;
                     r += $"{esc}[48;5;{n}m" + ((n + "").PadLeft(4, ' '));
                     n++;
                     x2++;
