@@ -54,7 +54,7 @@ namespace DotNetConsoleAppToolkit.Lib
                             sitem = null;
 
                         if (!top)
-                            items.AddRange(FindItems(fsinf.FullName, pattern, top, all, dirs, attributes, shortPathes, contains, checkPatternOnFullName, counts, print));
+                            items.AddRange(FindItems(fsinf.FullName, pattern, top, all, dirs, attributes, shortPathes, contains, checkPatternOnFullName, counts, print, alwaysSelectDirs, ignoreCase));
                     }
                     else
                     {

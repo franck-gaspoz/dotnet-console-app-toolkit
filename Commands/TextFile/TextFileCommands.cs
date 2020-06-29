@@ -179,12 +179,13 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
         }
 
         [Command("check integrity of one or several text files","output a message for each corrupted file.\nThese command will declares a text file to be not integre as soon that it detects than the ratio of non printable caracters (excepted CR,LF) is geater than a fixed amount when reading the file")]
-        public void CheckIntegrity(
+        public void FckIntegrity(
             [Parameter( "path of a file to be checked or path from where find files to to be checked")] FileSystemPath fileOrDir,
             [Option("p", "select names that matches the pattern", true, true)] string pattern,
             [Option("i", "if set and p is set, perform a non case sensisitive search")] bool ignoreCase,
             [Option("a", "print file system attributes")] bool printAttr,
             [Option("t", "search in top directory only")] bool top,
+            [Option("q", "quiet mode: do not print error message below corrupted file name" )] bool quiet,
             [Option("r", "acceptable ratio of non printable characters",true,true)] double ratio = 30,
             [Option("s", "minimum size of analysed part of the text",true,true)] int minSeqLength = 1024
             )
@@ -193,10 +194,33 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
             {
                 if (fileOrDir.IsFile)
                 {
-                    CheckIntegrity(new FilePath(fileOrDir.FullName),ratio,printAttr, minSeqLength);
+                    CheckIntegrity(new FilePath(fileOrDir.FullName),ratio,printAttr, minSeqLength,quiet);
                 }
                 else
-                    Errorln("find in checkintegrity command not yet implemented");
+                {
+                    var sp = string.IsNullOrWhiteSpace(pattern) ? "*" : pattern;
+                    var counts = new FindCounts();
+                    var items = FindItems(fileOrDir.FullName, sp, top, false, false, printAttr, false, null, false, counts, false,false, ignoreCase);
+                    var f = ColorSettings.Default.ToString();
+                    var elapsed = DateTime.Now - counts.BeginDateTime;
+                    Out.Println($"found {ColorSettings.Numeric}{Plur("file", counts.FilesCount, f)} and {ColorSettings.Numeric}{Plur("folder", counts.FoldersCount, f)}. scanned {ColorSettings.Numeric}{Plur("file", counts.ScannedFilesCount, f)} in {ColorSettings.Numeric}{Plur("folder", counts.ScannedFoldersCount, f)} during {TimeSpanDescription(elapsed, ColorSettings.Numeric.ToString(), f)}");
+                    if (items.Count > 0)
+                    {
+                        Out.Println($"analyzing files ({counts.FilesCount})...");
+                        int corruptedFilesCount = 0;
+                        foreach (var item in items)
+                        {
+                            if (CommandLineProcessor.CancellationTokenSource.Token.IsCancellationRequested)
+                                break;
+                            if (item.IsFile)
+                                if (!CheckIntegrity((FilePath)item, ratio, printAttr, minSeqLength,quiet))
+                                    corruptedFilesCount++;
+                        }
+                        if (corruptedFilesCount > 0) Out.Println();
+                        var crprt = (double)corruptedFilesCount / (double)counts.FilesCount * 100d;
+                        Out.Println($"found {ColorSettings.Numeric}{Plur("corrupted file",corruptedFilesCount,f)} in {ColorSettings.Numeric}{Plur("file",counts.FilesCount,f)} corruption ratio={Cyan}{crprt}%");
+                    }
+                }
             }
         }
 
@@ -204,7 +228,8 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
             FilePath filePath,
             double maxRatio,
             bool printAttr,
-            int minSeqLength
+            int minSeqLength,
+            bool quiet
             )
         {
             var str = File.ReadAllText(filePath.FullName);
@@ -228,7 +253,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
             r &= rt <= maxRatio;
             if (!r)
             {
-                filePath.Print(printAttr, false, "", $"{Red} seems corrupted from index {cti}: bad chars ratio={rt}%");
+                filePath.Print(printAttr, false, "", !quiet ? $"{Red} seems corrupted from index {cti}: bad chars ratio={rt}%":"");
                 Out.LineBreak();
             }
             return r;

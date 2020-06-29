@@ -41,7 +41,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             {
                 var sp = string.IsNullOrWhiteSpace(pattern) ? "*" : pattern;
                 var counts = new FindCounts();
-                var items = FindItems(path.FullName, sp, top,all,dirs,attributes,shortPathes,contains, checkPatternOnFullName,counts,true, ignoreCase);
+                var items = FindItems(path.FullName, sp, top,all,dirs,attributes,shortPathes,contains, checkPatternOnFullName,counts,true,false, ignoreCase);
                 var f = DefaultForegroundCmd;
                 var elapsed = DateTime.Now - counts.BeginDateTime;
                 if (items.Count > 0) Out.Println();

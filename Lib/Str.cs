@@ -30,7 +30,7 @@ namespace DotNetConsoleAppToolkit.Lib
             if (h > 0) lst.Add($"{prefix}{h}{postfix} hours");
             if (m > 0) lst.Add($"{prefix}{m}{postfix} minutes");
             if (s > 0) lst.Add($"{prefix}{s}{postfix} seconds");
-            if (ms > 0) lst.Add($"{prefix}{ms}{postfix} milliseconds");
+            if (ms >= 0) lst.Add($"{prefix}{ms}{postfix} milliseconds");
             return string.Join(' ', lst);
         }
 
