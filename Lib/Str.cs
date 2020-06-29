@@ -41,9 +41,9 @@ namespace DotNetConsoleAppToolkit.Lib
             return string.Join(',', t.Select(x => DumpAsText(x)));
         }
 
-        public static bool MatchWildcard(String pattern, String input)
+        public static bool MatchWildcard(String pattern, String input, bool ignoreCase)
         {
-            if (String.Compare(pattern, input) == 0)
+            if (String.Compare(pattern, input, ignoreCase) == 0)
             {
                 return true;
             }
@@ -64,38 +64,39 @@ namespace DotNetConsoleAppToolkit.Lib
             }
             else if (pattern[0] == '?')
             {
-                return MatchWildcard(pattern.Substring(1), input.Substring(1));
+                return MatchWildcard(pattern.Substring(1), input.Substring(1), ignoreCase);
             }
             else if (pattern[pattern.Length - 1] == '?')
             {
                 return MatchWildcard(pattern.Substring(0, pattern.Length - 1),
-                                           input.Substring(0, input.Length - 1));
+                                           input.Substring(0, input.Length - 1),
+                                           ignoreCase);
             }
             else if (pattern[0] == '*')
             {
-                if (MatchWildcard(pattern.Substring(1), input))
+                if (MatchWildcard(pattern.Substring(1), input, ignoreCase))
                 {
                     return true;
                 }
                 else
                 {
-                    return MatchWildcard(pattern, input.Substring(1));
+                    return MatchWildcard(pattern, input.Substring(1), ignoreCase);
                 }
             }
             else if (pattern[pattern.Length - 1] == '*')
             {
-                if (MatchWildcard(pattern.Substring(0, pattern.Length - 1), input))
+                if (MatchWildcard(pattern.Substring(0, pattern.Length - 1), input, ignoreCase))
                 {
                     return true;
                 }
                 else
                 {
-                    return MatchWildcard(pattern, input.Substring(0, input.Length - 1));
+                    return MatchWildcard(pattern, input.Substring(0, input.Length - 1), ignoreCase);
                 }
             }
             else if (pattern[0] == input[0])
             {
-                return MatchWildcard(pattern.Substring(1), input.Substring(1));
+                return MatchWildcard(pattern.Substring(1), input.Substring(1), ignoreCase);
             }
             return false;
         }

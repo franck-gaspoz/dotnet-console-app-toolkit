@@ -12,6 +12,7 @@ using System.Reflection.Metadata;
 using static DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.Str;
 using cons = DotNetConsoleAppToolkit.DotNetConsole;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 {
@@ -158,7 +159,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                         foreach (var p in com.ParametersSpecifications.Values)
                         {
                             var ptype = (!p.IsOption && p.HasValue) ? $"of type: {Darkyellow}{p.ParameterInfo.ParameterType.Name}{f}" : "";
-                            var pdef = (!p.IsOption && p.HasValue) ? ($". default value: {Darkyellow}{DumpAsText(p.DefaultValue)}{f}") : "";
+                            var pdef = (p.HasValue && p.IsOptional && p.HasDefaultValue && p.DefaultValue!=null && (!p.IsOption || p.ParameterValueTypeName!=typeof(bool).Name )) ? ((ptype!=""?". ":"") + $"default value: {Darkyellow}{DumpAsText(p.DefaultValue)}{f}") : "";
                             var supdef = $"{ptype}{pdef}";
                             Out.Println($"{col}{Tab}{p.ToColorizedString(false)}{"".PadRight(mpl - p.Dump(false).Length, ' ')}{p.Description}");
                             if (!string.IsNullOrWhiteSpace(supdef)) Out.Println($"{col}{Tab}{" ".PadRight(mpl)}{supdef}");

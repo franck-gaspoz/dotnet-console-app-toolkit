@@ -1,22 +1,20 @@
-﻿using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
+﻿using DotNetConsoleAppToolkit.Component.CommandLine;
+using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 using DotNetConsoleAppToolkit.Component.CommandLine.Parsing;
 using DotNetConsoleAppToolkit.Console;
 using DotNetConsoleAppToolkit.Lib;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using static DotNetConsoleAppToolkit.Console.Interaction;
 using static DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.Str;
 using sc = System.Console;
-using static DotNetConsoleAppToolkit.Console.Interaction;
-using System.Text;
-using DotNetConsoleAppToolkit.Component.CommandLine;
-using System.Data;
-using static DotNetConsoleAppToolkit.Lib.FIleReader;
+using static DotNetConsoleAppToolkit.Lib.FileSystem;
 
 namespace DotNetConsoleAppToolkit.Commands.FileSystem
 {
@@ -28,21 +26,22 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
         [Command("search for files and/or folders")]
         public List<FileSystemPath> Find(
             [Parameter("search path")] DirectoryPath path,
-            [Option("p", "name that matches the pattern", true, true)] string pattern,
+            [Option("p", "select names that matches the pattern", true, true)] string pattern,
+            [Option("i", "if set and p is set, perform a non case sensisitive search")] bool ignoreCase,
             [Option("f","check pattern on fullname instead of name")] bool checkPatternOnFullName,
             [Option("c", "files that contains the string", true, true)] string contains,
             [Option("a", "print file system attributes")] bool attributes,
             [Option("s","print short pathes")] bool shortPathes,
             [Option("all", "select files and directories")] bool all,
             [Option("d", "select only directories")] bool dirs,
-            [Option("t", "top directory only")] bool top
+            [Option("t", "search in top directory only")] bool top
             )
         {
             if (path.CheckExists())
             {
                 var sp = string.IsNullOrWhiteSpace(pattern) ? "*" : pattern;
                 var counts = new FindCounts();
-                var items = FindItems(path.FullName, sp, top,all,dirs,attributes,shortPathes,contains, checkPatternOnFullName,counts,true);
+                var items = FindItems(path.FullName, sp, top,all,dirs,attributes,shortPathes,contains, checkPatternOnFullName,counts,true, ignoreCase);
                 var f = DefaultForegroundCmd;
                 var elapsed = DateTime.Now - counts.BeginDateTime;
                 if (items.Count > 0) Out.Println();
@@ -52,7 +51,8 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             return new List<FileSystemPath>();
         }
         
-        List<FileSystemPath> FindItems(string path, string pattern,bool top,bool all,bool dirs,bool attributes,bool shortPathes,string contains,bool checkPatternOnFullName,FindCounts counts,bool print,bool alwaysSelectDirs=false)
+        /*
+        public static List<FileSystemPath> FindItems(string path, string pattern,bool top,bool all,bool dirs,bool attributes,bool shortPathes,string contains,bool checkPatternOnFullName,FindCounts counts,bool print,bool alwaysSelectDirs=false)
         {
             var dinf = new DirectoryInfo(path);
             List<FileSystemPath> items = new List<FileSystemPath>();
@@ -123,6 +123,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                 return items;
             }
         }
+        */
 
         [Command("list files and folders in a path. eventually recurse in sub paths")]
         public List<FileSystemPath> Dir(
@@ -478,159 +479,5 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             }
             return r;
         }
-
-        [Command("file viewer")]
-        public void More(
-            [Parameter("file or folder path")] WildcardFilePath path,
-            [Option("h","hide line numbers")] bool hideLineNumbers
-            )
-        {
-            if (path.CheckExists())
-            {
-                var counts = new FindCounts();
-                var items = FindItems(path.FullName, path.WildCardFileName ?? "*", true, false, false, true, false, null, false, counts, false, false);
-                foreach (var item in items) PrintFile((FilePath)item,hideLineNumbers);
-                if (items.Count == 0)  Errorln($"more: no such file: {path.OriginalPath}");
-                Out.ShowCur();
-            }
-        }
-
-        [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
-        [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
-        void PrintFile(FilePath file, bool hideLineNumbers)
-        {
-            const int cl = -14;
-            string quit = $"{ColorSettings.ParameterName}{$"q|Q",cl}{ColorSettings.Default}quit";
-            string help = $"{ColorSettings.ParameterName}{$"h|H",cl}{ColorSettings.Default}print this help";
-            string scrollnext = $"{ColorSettings.ParameterName}{$"space",cl}{ColorSettings.Default}display next lines of text, according to current screen size";
-            string scrolllinedown = $"{ColorSettings.ParameterName}{$"down arrow",cl}{ColorSettings.Default}scroll one line down";
-            string scrolllineup = $"{ColorSettings.ParameterName}{$"up arrow",cl}{ColorSettings.Default}scroll one line up";
-            string pagedown = $"{ColorSettings.ParameterName}{$"right arrow",cl}{ColorSettings.Default}jump one page down, according to current screen size";
-            string pageup = $"{ColorSettings.ParameterName}{$"left arrow",cl}{ColorSettings.Default}jump one page up, according to current screen size";
-            string totop = $"{ColorSettings.ParameterName}{$"t|T",cl}{ColorSettings.Default}jump to the top of the file";
-            string toend = $"{ColorSettings.ParameterName}{$"e|E",cl}{ColorSettings.Default}jump to the end of the file";
-
-            var inputMaps = new List<InputMap>
-            {
-                new InputMap("q",quit),
-                new InputMap("h",help),
-                new InputMap(" ",scrollnext),
-                new InputMap((str,key)=>key.Key==ConsoleKey.DownArrow?InputMap.ExactMatch:InputMap.NoMatch,scrolllinedown),
-                new InputMap((str,key)=>key.Key==ConsoleKey.UpArrow?InputMap.ExactMatch:InputMap.NoMatch,scrolllineup),
-                new InputMap((str,key)=>key.Key==ConsoleKey.RightArrow?InputMap.ExactMatch:InputMap.NoMatch,pagedown),
-                new InputMap((str,key)=>key.Key==ConsoleKey.LeftArrow?InputMap.ExactMatch:InputMap.NoMatch,pageup),
-                new InputMap("t",totop),
-                new InputMap("e",toend)
-            };
-
-            var fileEncoding = file.GetEncoding(Encoding.Default);
-            //var lines = fileEncoding == null ? File.ReadAllLines(file.FullName, fileEncoding).ToArray() : File.ReadAllLines(file.FullName).ToArray();
-            var (rlines, filePlatform,_) = ReadAllLines(file.FullName);
-            var lines = rlines.ToArray();
-            var nblines = lines.Length;
-
-            var infos = $"    ({Plur("line", nblines)},encoding={(fileEncoding!=null?fileEncoding.EncodingName:"?")},eol={filePlatform})";
-            var n = file.Name.Length + TabLength + infos.Length;
-            var sep = "".PadRight(n+1, '-');
-            Out.Println($"{ColorSettings.TitleBar}{sep}");
-            Out.Println($"{ColorSettings.TitleBar} {file.Name}{ColorSettings.TitleDarkText}{infos.PadRight(n- file.Name.Length, ' ')}");
-            Out.Println($"{ColorSettings.TitleBar}{sep}{ColorSettings.Default}");
-
-            var preambleHeight = 3;
-            var linecollength = nblines.ToString().Length;
-            var pos = 0;
-            bool end = false;
-            int y =0,x=0;
-            var actualWorkArea = DotNetConsole.ActualWorkArea();
-            int maxk = actualWorkArea.Bottom - actualWorkArea.Top + 1;
-            int k = maxk;
-            bool endReached = false;
-            bool topReached = true;
-            bool skipPrint = false;
-            bool scroll1down = false;
-            bool forcePrintInputBar = false;
-            int decpos = 0;
-
-            while (!end)
-            {                
-                var h = k - 1 - preambleHeight;
-                var curNbLines = Math.Min(nblines, h );
-                var percent = nblines == 0 ? 100 : Math.Ceiling((double)(Math.Min(curNbLines+pos+decpos,nblines)) / (double)nblines*100d);
-                int i = 0;
-                if (!skipPrint)
-                    lock (ConsoleLock)
-                    {
-                        Out.HideCur();
-                        while (i < curNbLines && pos + decpos + i < nblines)
-                        {
-                            if (CommandLineProcessor.CancellationTokenSource.IsCancellationRequested) return;
-                            var prefix = hideLineNumbers ? "" : (ColorSettings.Dark + "  " + (pos + decpos + i + 1).ToString().PadRight(linecollength, ' ') + "  ");
-                            Out.Println(prefix + ColorSettings.Default + lines[pos + decpos + i]);
-                            i++;
-                        }
-                        Out.ShowCur();
-                        y = sc.CursorTop;
-                        x = sc.CursorLeft;
-                        endReached = pos + i >= nblines;
-                        topReached = pos == 0;
-                    }
-                var inputText = $"--more--({percent}%)";
-
-                var action = end? quit: InputBar(inputText,inputMaps);                
-                end = (string)action == quit;
-
-                var oldpos = pos;
-
-                if ((string)action == scrollnext) { k = maxk; pos += k - 1 - preambleHeight; }
-                if ((string)action == scrolllinedown && !endReached)
-                {
-                    if (!scroll1down)
-                    {
-                        scroll1down = true;
-                        decpos = k - 1 - preambleHeight - 1;
-                    }
-                    pos++;
-                    k = 2;
-                }
-                else
-                {
-                    scroll1down = false;
-                    decpos = 0;
-                }
-
-                if ((string)action == totop) { k = maxk; pos = 0; if (pos != oldpos) Out.ClearScreen(); }
-                if ((string)action == toend) { k = maxk; pos = Math.Max(0,nblines-maxk+1); if (pos != oldpos) Out.ClearScreen(); }
-
-                if ((string)action == scrolllineup && !topReached) {
-                    Out.ClearScreen(); k = maxk; pos = Math.Max(0, pos- 1); 
-                }
-                if ((string)action == pagedown && !endReached) { Out.ClearScreen(); k = maxk; pos+=k-1-preambleHeight; }
-                if ((string)action == pageup && !topReached) { Out.ClearScreen(); k = maxk; pos = Math.Max(0, pos - k+1); }
-
-                if ((string)action == help)
-                {
-                    var sepw = inputMaps.Select(x => ((string)x.Code).Length).Max();
-                    var hsep = "".PadRight(sepw + 10, '-');
-                    Out.Println(Br+hsep+Br);
-                    inputMaps.ForEach(x => Out.Println((string)x.Code+Br));
-                    Out.Println(hsep);
-                    forcePrintInputBar = true;
-                }
-
-                preambleHeight = 0;
-                skipPrint = oldpos == pos;
-
-                lock (ConsoleLock)
-                {
-                    sc.CursorLeft = x;
-                    if (forcePrintInputBar || !skipPrint || end)
-                    {
-                        Out.Print("".PadLeft(inputText.Length, ' '));
-                        sc.CursorLeft = x;
-                        forcePrintInputBar = false;
-                    }
-                }
-            }            
-        }        
     }
 }
