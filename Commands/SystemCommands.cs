@@ -16,7 +16,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 
         [Command("print a report of current processes")]
         public void Ps(
-            [Option("nb", "if set supress table borders")] bool noBorders,
+            [Option("b", "if set add table borders")] bool borders,
             [Option("sid", "filter by session id", true, true)] int fsid = -1,
             [Option("pid", "filter by process id", true, true)] int fpid = -1
             )
@@ -61,7 +61,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                 
                 if (select) table.Rows.Add(row);
             }
-            Print(table, noBorders);
+            Print(table, !borders);
         }
 
         [Command("get information about current user")]

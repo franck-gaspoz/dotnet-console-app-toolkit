@@ -242,7 +242,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
         [Command("print informations about drives/mount points")]
         public void Driveinfo(
             [Parameter("drive name for which informations must be printed. if no drive specified, list all drives",true)] string drive,
-            [Option("nb", "if set supress table borders")] bool noBorders
+            [Option("b", "if set add table borders")] bool borders
             )
         {
             var drives = DriveInfo.GetDrives().AsQueryable();
@@ -258,20 +258,34 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             foreach ( var di in drives )
             {
                 var f = DefaultForegroundCmd;
+                var row = table.NewRow();
                 try
                 {
-                    var row = table.NewRow();
                     row["name"] = $"{ColorSettings.Highlight}{di.Name}{f}";
                     row["label"] = $"{ColorSettings.Highlight}{di.VolumeLabel}{f}";
                     row["type"] = $"{ColorSettings.Name}{di.DriveType}{f}";
                     row["format"] = $"{ColorSettings.Name}{di.DriveFormat}{f}";
                     row["bytes"] = (di.TotalSize==0)?"": $"{HumanFormatOfSize(di.TotalFreeSpace, 2, " ", ColorSettings.Numeric.ToString(), f)}{f}/{ColorSettings.Numeric}{HumanFormatOfSize(di.TotalSize, 2, " ", ColorSettings.Numeric.ToString(), f)} {f}({ColorSettings.Highlight}{Math.Round((double)di.TotalFreeSpace / (double)di.TotalSize * 100d, 2)}{f} %)";
-                    table.Rows.Add(row);
                 } catch (UnauthorizedAccessException) {
                     Errorln($"unauthorized access to drive {di.Name}");
+                    row["name"] = $"{ColorSettings.Highlight}{di.Name}{f}";
+                    row["label"] = "?";
+                    row["type"] = "?";
+                    row["format"] = "?";
+                    row["bytes"] = "?";
                 }
+                catch (Exception ex)
+                {
+                    Errorln($"error when accessing drive {di.Name}: {ex.Message}");
+                    row["name"] = $"{ColorSettings.Highlight}{di.Name}{f}";
+                    row["label"] = "?";
+                    row["type"] = "?";
+                    row["format"] = "?";
+                    row["bytes"] = "?";
+                }
+                table.Rows.Add(row);
             }
-            table.Print(noBorders);
+            table.Print(!borders);
         }
 
         [Command("remove file(s) and/or the directory(ies)")]
