@@ -59,7 +59,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
         public IReadOnlyDictionary<string, CommandsModule> Modules => new ReadOnlyDictionary<string, CommandsModule>(_modules);
 
-        public IEnumerable<string> CommandDeclaringTypesNames => AllCommands.Select(x => x.DeclaringTypeShortName);
+        public IEnumerable<string> CommandDeclaringShortTypesNames => AllCommands.Select(x => x.DeclaringTypeShortName).Distinct();
+        public IEnumerable<string> CommandDeclaringTypesNames => AllCommands.Select(x => x.DeclaringTypeFullName).Distinct();
 
         public CommandsHistory CmdsHistory { get; protected set; }
 
@@ -164,7 +165,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
         public (int typesCount,int commandsCount) RegisterCommandsAssembly(Assembly assembly)
         {
-            if (_modules.ContainsKey(assembly.FullName))
+            if (_modules.ContainsKey(assembly.ManifestModule.Name))
             {
                 Errorln($"commands module already registered: '{assembly.FullName}'");
                 return (0,0);
@@ -186,7 +187,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
             {
                 var descAttr = assembly.GetCustomAttribute<AssemblyDescriptionAttribute>();
                 var description = (descAttr != null) ? descAttr.Description : "";
-                _modules.Add(assembly.FullName, new CommandsModule(Path.GetFileNameWithoutExtension(assembly.Location), description, assembly, typesCount, comTotCount));
+                _modules.Add(Path.GetFileNameWithoutExtension(assembly.ManifestModule.Name), new CommandsModule(Path.GetFileNameWithoutExtension(assembly.Location), description, assembly, typesCount, comTotCount));
             }
             return (typesCount,comTotCount);    
         }
@@ -204,7 +205,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
             var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             if (registerAsModule && _modules.ContainsKey(type.FullName))
             {
-                Errorln($"commands type '{type.FullName}' already registered");
+                Errorln($"a module with same name than commands type '{type.FullName}' is already registered");
                 return 0;
             }
             foreach ( var method in methods )

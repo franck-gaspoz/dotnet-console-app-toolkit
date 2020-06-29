@@ -25,9 +25,9 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
         public void Help(
             [Option("s", "set short view")] bool shortView,
             [Option("all","list all commands")] bool all,
-            [Option("t","filter commands list by command declaring type",true,true)] string type = "",
-            [Option("m", "filter commands list by module name", true,true)] string module = "",
-            [Parameter("prints help for this command name", true)] string commandName = ""
+            [Option("t","filter commands list by command declaring type. if t is * list types",true,true)] string type,
+            [Option("m", "filter commands list by module name. if m is * list modules", true,true)] string module,
+            [Parameter("prints help for this command name", true)] string commandName
             )
         {
             var hascn = !string.IsNullOrWhiteSpace(commandName);
@@ -40,21 +40,48 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             {
                 if (!string.IsNullOrWhiteSpace(type))
                 {
-                    if (!CommandLineProcessor.CommandDeclaringTypesNames.Contains(type))
+                    if (type!="*" && !CommandLineProcessor.CommandDeclaringShortTypesNames.Contains(type))
                     {
                         Errorln($"unknown command declaring type: '{type}'");
                         return;
                     }
-                    cmds = cmds.Where(x => x.DeclaringTypeShortName == type);
+                    if (type!="*")
+                        cmds = cmds.Where(x => x.DeclaringTypeShortName == type);
+                    else
+                    {
+                        var typenames = CommandLineProcessor.CommandDeclaringTypesNames;
+                        if (shortView) typenames = typenames.Select(x => x.Split('.').Last());
+                        var typelst = typenames.ToList();
+                        typelst.Sort();
+                        var maxtl = typenames.Select(x => x.Length).Max();
+                        foreach (var typename in typelst)
+                        {
+                            var typeobj = Type.GetType(typename);
+                            var cmdattr = typeobj.GetCustomAttribute<CommandsAttribute>();                            
+                            Out.Println(Darkcyan + typename.PadRight(maxtl+2) + Tab + White + cmdattr.Description);
+                        }
+                        return;
+                    }
                 }
                 if (cmds.Count()>0 && !string.IsNullOrWhiteSpace(module))
                 {
-                    if (!CommandLineProcessor.Modules.Values.Select(x => x.Name).Contains(module))
+                    if (module != "*" && !CommandLineProcessor.Modules.Values.Select(x => x.Name).Contains(module))
                     {
                         Errorln($"unknown command module: '{module}'");
                         return;
                     }
-                    cmds = cmds.Where(x => x.ModuleName == module);
+                    if (module!="*")
+                        cmds = cmds.Where(x => x.ModuleName == module);
+                    else
+                    {
+                        var mods = CommandLineProcessor.Modules;
+                        var modnames = mods.Values.Select(x => x.Name).ToList();
+                        modnames.Sort();
+                        var maxml = modnames.Select(x => x.Length).Max();
+                        foreach (var modname in modnames)
+                            Out.Println(Darkcyan+modname.PadRight(maxml)+Tab+White+mods[modname].Description);
+                        return;
+                    }
                 }
                 var ncmds = cmds.ToList();
                 ncmds.Sort(new Comparison<CommandSpecification>((x, y) => x.Name.CompareTo(y.Name)));
