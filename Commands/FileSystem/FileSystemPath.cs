@@ -110,7 +110,8 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                 var size = (IsDirectory) ? "" : HumanFormatOfSize(((FileInfo)FileSystemInfo).Length, 2);
                 var moddat = FileSystemInfo.LastWriteTime;
                 hidden = IsHidden ? "*" : "";
-                var smoddat = $"{moddat.ToString("MMM", CultureInfo.InvariantCulture),-3} {moddat.Day,-2} {moddat.Hour.ToString().PadLeft(2,'0')}:{moddat.Minute.ToString().PadLeft(2,'0')}";
+                var dat = (moddat.Year != System.DateTime.Now.Year) ? moddat.Year+"" : "";
+                var smoddat = $"{dat,4} {moddat.ToString("MMM", CultureInfo.InvariantCulture),-3} {moddat.Day,-2} {moddat.Hour.ToString().PadLeft(2,'0')}:{moddat.Minute.ToString().PadLeft(2,'0')}";
                 attr = $" {dir}{ro}{sys}{h}{a} {size,10} {smoddat}  ";
             }
             var name = shortPath ? FileSystemInfo.Name : FileSystemInfo.FullName;
