@@ -70,7 +70,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                         foreach (var typ in typelst)
                         {
                             var cmdattr = typ.GetCustomAttribute<CommandsAttribute>();                            
-                            Out.Println(Darkcyan + TypeName(typ).PadRight(maxtl) + Tab + White + cmdattr.Description);
+                            Out.Println(Darkcyan + TypeName(typ).PadRight(maxtl) + Tab + DefaultForegroundCmd + cmdattr.Description);
                         }
                         return;
                     }
@@ -94,7 +94,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                         modnames.Sort();
                         var maxml = modnames.Select(x => x.Length).Max();
                         foreach (var modname in modnames)
-                            Out.Println(Darkcyan+modname.PadRight(maxml)+Tab+White+mods[modname].Description);
+                            Out.Println(Darkcyan+modname.PadRight(maxml)+Tab+ DefaultForegroundCmd + mods[modname].Description);
                         return;
                     }
                 }
@@ -179,9 +179,9 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             if (list)
             {
                 if (!shortView)
-                    Out.Println($"{Darkcyan}{com.ModuleName.PadRight(maxmodlength, ' ')}   {com.DeclaringTypeShortName.PadRight(maxcmdtypelength, ' ')}{Tab}{f}{com.Name.PadRight(maxcnamelength, ' ')}{Tab}{com.Description}{ColorSettings.Default}");
+                    Out.Println($"{Darkcyan}{com.ModuleName.PadRight(maxmodlength, ' ')}   {com.DeclaringTypeShortName.PadRight(maxcmdtypelength, ' ')}{Tab}{ColorSettings.Highlight}{com.Name.PadRight(maxcnamelength, ' ')}{Tab}{f}{com.Description}{ColorSettings.Default}");
                 else
-                    Out.Println($"{com.Name.PadRight(maxcnamelength, ' ')}{Tab}{com.Description}{ColorSettings.Default}");
+                    Out.Println($"{ColorSettings.Highlight}{com.Name.PadRight(maxcnamelength, ' ')}{f}{Tab}{com.Description}{ColorSettings.Default}");
             }
             else
             {
