@@ -387,9 +387,9 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
                                 if (!errs.Contains(perr.Description))
                                     errs.Add(perr.Description);
                             }
-                            errorText += Br + string.Join(Br, errs);
+                            errorText += Br + Red + string.Join(Br+Red, errs);
                         }
-                        errorText += $"{Br}for syntax: {comSyntax}{Br}";
+                        errorText += $"{Br}{Red}for syntax: {comSyntax}{Br}";
                     }
 
                     errPositions.Sort();
