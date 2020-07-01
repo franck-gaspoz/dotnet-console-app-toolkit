@@ -23,8 +23,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 {
     public class CommandLineProcessor
     {
-        public const string AppName = "dnsh";
-        public const string AppLongName = "Dot Net Shell";
+        public const string AppName = "mupsh";
+        public const string AppLongName = "Dot Net Console Toolkit Multi-platform Shell";
         public const string AppEditor = "released on June 2020 under licence MIT";
 
         #region attributes
@@ -120,7 +120,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
         public void PrintInfo()
         {
-            Out.Println($"{ColorSettings.Label}{Uon} {AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}" + ("".PadRight(30,' ')) + Tdoff);
+            Out.Println($"{ColorSettings.Label}{Uon} {AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}" + ("".PadRight(8,' ')) + Tdoff);
             Out.Println($" {AppEditor}");
             Out.Println($" {RuntimeInformation.OSDescription} {RuntimeInformation.OSArchitecture} - {RuntimeInformation.FrameworkDescription}");
             Out.Println();

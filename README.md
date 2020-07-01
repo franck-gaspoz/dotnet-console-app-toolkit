@@ -6,7 +6,7 @@
 # Index
 
 - [Features](https://github.com/franck-gaspoz/dotnet-console-app-toolkit/blob/master/README.md#features)
-- [Example: the Dot Net Console Toolkit Shell (dnsh)](https://github.com/franck-gaspoz/dotnet-console-app-toolkit/blob/master/README.md#example--the-dot-net-console-toolkit-integrated-shell-dnsh)
+- [Example: the Dot Net Console Multi-plateform Toolkit Shell (mupsh)](https://github.com/franck-gaspoz/dotnet-console-app-toolkit/blob/master/README.md#example--the-dot-net-console-toolkit-integrated-shell-dnsh)
 - [Packages dependencies](https://github.com/franck-gaspoz/dotnet-console-app-toolkit/blob/master/README.md#packages-dependencies)
 
 # Features
@@ -21,7 +21,7 @@ The toolkit provides functionalities needed to build console applications runnin
     Println "(br,f=yellow,b=red)yellow text on red background(br)(f=cyan)current time is: (exec=System.DateTime.Now,br)"
     
     // 2) invoking the tookit:
-    dnsh.exe "(br,f=yellow,b=red)yellow text on red background(br)(f=cyan)current time is: (exec=System.DateTime.Now,br)"
+    mupsh.exe "(br,f=yellow,b=red)yellow text on red background(br)(f=cyan)current time is: (exec=System.DateTime.Now,br)"
     
     // 3) from C# using DotNetConsole.cs
     Println($"{Br}{Yellow}{BRed}yellow text on red background{Br}{Cyan}current time is: {System.DateTime.Now}{Br}");
@@ -55,7 +55,7 @@ The toolkit provides functionalities needed to build console applications runnin
         return r;
     }
     ```
-  - that will be auto documented like this by the integrated shell (dnsh):
+  - that will be auto documented like this by the integrated shell (mupsh):
   
     <image src="Doc/Images/2020-06-13 06_36_43-Window.png"/>
 
@@ -65,7 +65,7 @@ The toolkit provides functionalities needed to build console applications runnin
 
 - <b>shell commands</b> that allows to run a complete shell, containing the most usefull and usual commands of a traditional shell (dir/ls, cd, rm, mv, find, more, ...), with user session and extensibility (commands modules that can be installed and uninstalled from repositories)
 
-## Example : the Dot Net Console Toolkit integrated shell (dnsh)
+## Example : the Dot Net Console Toolkit Multi-plateform integrated shell (mupsh)
 
 <img src="Doc/Images/2020-06-13 02_34_57-Window-github.png"/>
 

@@ -1,5 +1,5 @@
-﻿using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
-using DotNetConsoleAppToolkit.Commands.FileSystem;
+﻿using DotNetConsoleAppToolkit.Commands.FileSystem;
+using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 using DotNetConsoleAppToolkit.Component.CommandLine.Parsing;
 using DotNetConsoleAppToolkit.Console;
 using System;
@@ -12,11 +12,10 @@ using System.Reflection.Metadata;
 using static DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.Str;
 using cons = DotNetConsoleAppToolkit.DotNetConsole;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 {
-    [Commands("commands related to the command line processor (dot net shell - dnsh)")]
+    [Commands("commands of the command line processor")]
     public class CommandLineProcessorCommands : CommandsType
     {
         public CommandLineProcessorCommands(CommandLineProcessor commandLineProcessor) : base(commandLineProcessor) { }
