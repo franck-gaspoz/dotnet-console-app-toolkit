@@ -21,13 +21,14 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
     {
         public CommandLineProcessorCommands(CommandLineProcessor commandLineProcessor) : base(commandLineProcessor) { }
 
-        [Command("print help about all commands or a specific command")]
+        [Command("print help about commands,commands types and modules")]
         public void Help(
-            [Option("s", "set short view")] bool shortView,
+            [Option("s", "set short view: decrase output details")] bool shortView,
+            [Option("v", "set verbose view: increase output details")] bool verboseView,
             [Option("all","list all commands")] bool all,
             [Option("t","filter commands list by command declaring type. if t is * list types",true,true)] string type,
             [Option("m", "filter commands list by module name. if m is * list modules", true,true)] string module,
-            [Parameter("prints help for this command name", true)] string commandName
+            [Parameter("output help for the command with name 'commandName'", true)] string commandName
             )
         {
             var hascn = !string.IsNullOrWhiteSpace(commandName);
@@ -45,20 +46,31 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                         Errorln($"unknown command declaring type: '{type}'");
                         return;
                     }
+
+                    shortView = !verboseView;
+
                     if (type!="*")
                         cmds = cmds.Where(x => x.DeclaringTypeShortName == type);
                     else
                     {
-                        var typenames = CommandLineProcessor.CommandDeclaringTypesNames;
-                        if (shortView) typenames = typenames.Select(x => x.Split('.').Last());
-                        var typelst = typenames.ToList();
-                        typelst.Sort();
-                        var maxtl = typenames.Select(x => x.Length).Max();
-                        foreach (var typename in typelst)
+                        var typenames = CommandLineProcessor.CommandDeclaringTypesNames.ToList();
+                        var typelst = typenames.Select(x => Type.GetType(x)).ToList();
+                        typelst.Sort((x, y) => x.Name.CompareTo(y.Name));
+                        
+                        var sfx = "Commands";
+                        string TypeName(Type type)
                         {
-                            var typeobj = Type.GetType(typename);
-                            var cmdattr = typeobj.GetCustomAttribute<CommandsAttribute>();                            
-                            Out.Println(Darkcyan + typename.PadRight(maxtl+2) + Tab + White + cmdattr.Description);
+                            var s = shortView ? type.Name : type.FullName;
+                            if (shortView && s.EndsWith(sfx))
+                                s = s.Substring(0, s.Length - sfx.Length);
+                            return s;
+                        }
+                        var maxtl = typelst.Select(x => TypeName(x).Length).Max();
+
+                        foreach (var typ in typelst)
+                        {
+                            var cmdattr = typ.GetCustomAttribute<CommandsAttribute>();                            
+                            Out.Println(Darkcyan + TypeName(typ).PadRight(maxtl) + Tab + White + cmdattr.Description);
                         }
                         return;
                     }
@@ -70,6 +82,9 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                         Errorln($"unknown command module: '{module}'");
                         return;
                     }
+
+                    shortView = !verboseView;
+
                     if (module!="*")
                         cmds = cmds.Where(x => x.ModuleName == module);
                     else
@@ -92,6 +107,9 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                     var maxcmdtypelength = cmds.Select(x => x.DeclaringTypeShortName.Length).Max() + 1;
                     var maxmodlength = cmds.Select(x => Path.GetFileNameWithoutExtension(x.MethodInfo.DeclaringType.Assembly.Location).Length).Max() + 1;
                     int n = 0;
+
+                    if (list) shortView = !verboseView;
+
                     foreach (var cmd in cmds)
                     {
                         if (!list && n > 0) Out.Println();
@@ -159,19 +177,24 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             var col = singleout? "": "".PadRight(maxcnamelength, ' ');
             var f = GetCmd(PrintDirectives.f + "", DefaultForeground.ToString().ToLower());
             if (list)
-                Out.Println($"{Darkcyan}{com.ModuleName.PadRight(maxmodlength, ' ')}   {com.DeclaringTypeShortName.PadRight(maxcmdtypelength, ' ')}{Tab}{f}{com.Name.PadRight(maxcnamelength, ' ')}{Tab}{com.Description}{ColorSettings.Default}");
+            {
+                if (!shortView)
+                    Out.Println($"{Darkcyan}{com.ModuleName.PadRight(maxmodlength, ' ')}   {com.DeclaringTypeShortName.PadRight(maxcmdtypelength, ' ')}{Tab}{f}{com.Name.PadRight(maxcnamelength, ' ')}{Tab}{com.Description}{ColorSettings.Default}");
+                else
+                    Out.Println($"{com.Name.PadRight(maxcnamelength, ' ')}{Tab}{com.Description}{ColorSettings.Default}");
+            }
             else
             {
                 if (singleout)
                 {
                     Out.Println(com.Description);
-                    if (com.ParametersCount > 0) Out.Print($"{Br}{col}{ColorSettings.Label}syntax: {f}{com.ToColorizedString()}{(!shortView?Br:"")}");
+                    if (com.ParametersCount > 0) Out.Print($"{Br}{col}{ColorSettings.Label}syntax: {f}{com.ToColorizedString()}{(!shortView ? Br : "")}");
                     Out.Println(GetPrintableDocText(com.LongDescription, list, shortView, 0));
                 }
                 else
                 {
                     Out.Println($"{com.Name.PadRight(maxcnamelength, ' ')}{com.Description}");
-                    if (com.ParametersCount>0) Out.Print($"{Br}{col}{ColorSettings.Label}syntax: {f}{com.ToColorizedString()}{(!shortView ? Br : "")}");
+                    if (com.ParametersCount > 0) Out.Print($"{Br}{col}{ColorSettings.Label}syntax: {f}{com.ToColorizedString()}{(!shortView ? Br : "")}");
                     Out.Print(GetPrintableDocText(com.LongDescription, list, shortView, maxcnamelength));
                 }
             }
