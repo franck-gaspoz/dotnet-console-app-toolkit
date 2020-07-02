@@ -538,7 +538,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
             };
             _inputReaderThread.Start();
             if (waitForReaderExited) _inputReaderThread.Join();
-            return ReturnCodeOK;
+            return (int)ReturnCode.OK;
         }
 
         public void WaitReadln()

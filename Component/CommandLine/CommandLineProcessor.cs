@@ -23,17 +23,17 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 {
     public class CommandLineProcessor
     {
-        public const string AppName = "mupsh";
-        public const string AppLongName = "Dot Net Console Toolkit Multi-platform Shell";
+        public const string AppName = "? sh";
+        public const string AppLongName = "? Shell";
         public const string AppEditor = "released on June 2020 under licence MIT";
 
         #region attributes
 
-        public /*static*/ CancellationTokenSource CancellationTokenSource;
+        public CancellationTokenSource CancellationTokenSource;
 
-        public const int ReturnCodeOK = 0;
+        /*public const int ReturnCodeOK = 0;
         public const int ReturnCodeError = 1;
-        public const int ReturnCodeNotDefined = 1;
+        public const int ReturnCodeNotDefined = 1;*/
 
         string[] _args;
         bool _isInitialized = false;
@@ -136,7 +136,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
         public void PrintInfo(CommandEvaluationContext context)
         {
-            context.Out.Println($"{ColorSettings.Label}{Uon} {AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}" + ("".PadRight(8,' ')) + Tdoff);
+            context.Out.Println($"{ColorSettings.Label}{Uon} {AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}" + ("".PadRight(18,' ')) + Tdoff);
             context.Out.Println($" {AppEditor}");
             context.Out.Println($" {RuntimeInformation.OSDescription} {RuntimeInformation.OSArchitecture} - {RuntimeInformation.FrameworkDescription}");
             context.Out.Println();
@@ -392,17 +392,17 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
                     {
                         var outputData = InvokeCommand(CommandEvaluationContext, syntaxParsingResult.CommandSyntax.CommandSpecification, syntaxParsingResult.MatchingParameters);
                         
-                        r = new ExpressionEvaluationResult(null, ParseResultType.Valid, outputData, ReturnCodeOK, null);
+                        r = new ExpressionEvaluationResult(null, ParseResultType.Valid, outputData, (int)ReturnCode.OK, null);
                     } catch (Exception commandInvokeError)
                     {
                         var commandError = commandInvokeError.InnerException ?? commandInvokeError;
                         Errorln(commandError.Message);
-                        return new ExpressionEvaluationResult(null, parseResult.ParseResultType, null, ReturnCodeError, commandError);
+                        return new ExpressionEvaluationResult(null, parseResult.ParseResultType, null, (int)ReturnCode.Error, commandError);
                     }
                     break;
 
                 case ParseResultType.Empty:
-                    r = new ExpressionEvaluationResult(null, parseResult.ParseResultType, null, ReturnCodeOK, null);
+                    r = new ExpressionEvaluationResult(null, parseResult.ParseResultType, null, (int)ReturnCode.OK, null);
                     break;
 
                 case ParseResultType.NotValid:
@@ -446,7 +446,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
                     Error(" ".PadLeft(outputX + 1) + serr);
 
                     Error(errorText);
-                    r = new ExpressionEvaluationResult(errorText, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);
+                    r = new ExpressionEvaluationResult(errorText, parseResult.ParseResultType, null, (int)ReturnCode.NotDefined, null);
                     break;
 
                 case ParseResultType.Ambiguous:
@@ -454,11 +454,11 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
                     foreach (var prs in parseResult.SyntaxParsingResults)
                         errorText += $"{Red}{prs.CommandSyntax}{Br}";
                     Error(errorText);
-                    r = new ExpressionEvaluationResult(errorText, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);
+                    r = new ExpressionEvaluationResult(errorText, parseResult.ParseResultType, null, (int)ReturnCode.NotDefined, null);
                     break;
 
                 case ParseResultType.NotIdentified:
-                    r = new ExpressionEvaluationResult(null, parseResult.ParseResultType, null, ReturnCodeNotDefined, null);
+                    r = new ExpressionEvaluationResult(null, parseResult.ParseResultType, null, (int)ReturnCode.NotDefined, null);
                     break;
             }
 

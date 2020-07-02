@@ -15,6 +15,7 @@ using static DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.Str;
 using sc = System.Console;
 using static DotNetConsoleAppToolkit.Lib.FileSystem;
+using System.Runtime.CompilerServices;
 
 namespace DotNetConsoleAppToolkit.Commands.FileSystem
 {
