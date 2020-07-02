@@ -11,6 +11,7 @@ namespace DotNetConsoleAppToolkit.Lib
     public static class FileSystem
     {
         public static List<FileSystemPath> FindItems(
+            CommandEvaluationContext context,
             string path,
             string pattern,
             bool top,
@@ -30,7 +31,7 @@ namespace DotNetConsoleAppToolkit.Lib
             bool hasPattern = !string.IsNullOrWhiteSpace(pattern);
             bool hasContains = !string.IsNullOrWhiteSpace(contains);
 
-            if (CommandLineProcessor.CancellationTokenSource.Token.IsCancellationRequested)
+            if (context.CommandLineProcessor.CancellationTokenSource.Token.IsCancellationRequested)
                 return items;
 
             try
@@ -54,7 +55,7 @@ namespace DotNetConsoleAppToolkit.Lib
                             sitem = null;
 
                         if (!top)
-                            items.AddRange(FindItems(fsinf.FullName, pattern, top, all, dirs, attributes, shortPathes, contains, checkPatternOnFullName, counts, print, alwaysSelectDirs, ignoreCase));
+                            items.AddRange(FindItems(context,fsinf.FullName, pattern, top, all, dirs, attributes, shortPathes, contains, checkPatternOnFullName, counts, print, alwaysSelectDirs, ignoreCase));
                     }
                     else
                     {
@@ -85,7 +86,7 @@ namespace DotNetConsoleAppToolkit.Lib
                             sitem = null;
                     }
 
-                    if (CommandLineProcessor.CancellationTokenSource.Token.IsCancellationRequested)
+                    if (context.CommandLineProcessor.CancellationTokenSource.Token.IsCancellationRequested)
                         return items;
                 }
                 return items;

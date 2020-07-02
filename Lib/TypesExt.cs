@@ -1,6 +1,8 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using DotNetConsoleAppToolkit.Console;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading;
 using static DotNetConsoleAppToolkit.DotNetConsole;
 using prim=DotNetConsoleAppToolkit.Console.PrintPrimitives;
 
@@ -21,7 +23,7 @@ namespace DotNetConsoleAppToolkit.Lib
                 table.Columns.Add(colName);
         }
 
-        public static void Print(this DataTable x,bool noBorders=false) => prim.Print(x,noBorders);
+        public static void Print(this DataTable x, ConsoleTextWriterWrapper @out, CancellationTokenSource cancellationTokenSource, bool noBorders = false) => prim.Print(@out, cancellationTokenSource, x, noBorders);
         public static void Print(this string x) => Print(x);
         public static void Print(this int x) => Print(x);
         public static void Print(this double x) => Print(x);

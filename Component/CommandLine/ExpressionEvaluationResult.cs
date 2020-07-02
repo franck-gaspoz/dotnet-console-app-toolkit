@@ -6,7 +6,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
     public class ExpressionEvaluationResult
     {
         public readonly string SyntaxError;
-        public readonly object Result;
+        public readonly object Result;      // output data
         public readonly int EvalResultCode;
         public readonly ParseResultType ParseResult;
         public readonly Exception EvalError;

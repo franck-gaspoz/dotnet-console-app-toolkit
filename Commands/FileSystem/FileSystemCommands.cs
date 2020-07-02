@@ -19,12 +19,11 @@ using static DotNetConsoleAppToolkit.Lib.FileSystem;
 namespace DotNetConsoleAppToolkit.Commands.FileSystem
 {
     [Commands("commands related to files,directories,mounts/filesystems and disks")]
-    public class FileSystemCommands : CommandsType
+    public class FileSystemCommands : ICommandsDeclaringType
     {
-        public FileSystemCommands(CommandLineProcessor commandLineProcessor) : base(commandLineProcessor) { }
-
         [Command("search for files and/or folders")]
         public List<FileSystemPath> Find(
+            CommandEvaluationContext context, 
             [Parameter("search path")] DirectoryPath path,
             [Option("p", "select names that matches the pattern", true, true)] string pattern,
             [Option("i", "if set and p is set, perform a non case sensisitive search")] bool ignoreCase,
@@ -41,92 +40,19 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             {
                 var sp = string.IsNullOrWhiteSpace(pattern) ? "*" : pattern;
                 var counts = new FindCounts();
-                var items = FindItems(path.FullName, sp, top,all,dirs,attributes,shortPathes,contains, checkPatternOnFullName,counts,true,false, ignoreCase);
+                var items = FindItems(context,path.FullName, sp, top,all,dirs,attributes,shortPathes,contains, checkPatternOnFullName,counts,true,false, ignoreCase);
                 var f = DefaultForegroundCmd;
                 var elapsed = DateTime.Now - counts.BeginDateTime;
-                if (items.Count > 0) Out.Println();
-                Out.Println($"found {ColorSettings.Numeric}{Plur("file",counts.FilesCount,f)} and {ColorSettings.Numeric}{Plur("folder",counts.FoldersCount,f)}. scanned {ColorSettings.Numeric}{Plur("file",counts.ScannedFilesCount,f)} in {ColorSettings.Numeric}{Plur("folder",counts.ScannedFoldersCount,f)} during {TimeSpanDescription(elapsed, ColorSettings.Numeric.ToString(), f)}");
+                if (items.Count > 0) context.Out.Println();
+                context.Out.Println($"found {ColorSettings.Numeric}{Plur("file",counts.FilesCount,f)} and {ColorSettings.Numeric}{Plur("folder",counts.FoldersCount,f)}. scanned {ColorSettings.Numeric}{Plur("file",counts.ScannedFilesCount,f)} in {ColorSettings.Numeric}{Plur("folder",counts.ScannedFoldersCount,f)} during {TimeSpanDescription(elapsed, ColorSettings.Numeric.ToString(), f)}");
                 return items;
             }
             return new List<FileSystemPath>();
         }
-        
-        /*
-        public static List<FileSystemPath> FindItems(string path, string pattern,bool top,bool all,bool dirs,bool attributes,bool shortPathes,string contains,bool checkPatternOnFullName,FindCounts counts,bool print,bool alwaysSelectDirs=false)
-        {
-            var dinf = new DirectoryInfo(path);
-            List<FileSystemPath> items = new List<FileSystemPath>();
-            bool hasPattern = !string.IsNullOrWhiteSpace(pattern);
-            bool hasContains = !string.IsNullOrWhiteSpace(contains);
-            
-            if (CommandLineProcessor.CancellationTokenSource.Token.IsCancellationRequested) 
-                return items;
-
-            try
-            {
-                counts.ScannedFoldersCount++;
-                var scan = dinf.GetFileSystemInfos();
-
-                foreach ( var fsinf in scan )
-                {
-                    var sitem = FileSystemPath.Get(fsinf);
-
-                    if (sitem.IsDirectory)
-                    {
-                        if ((dirs || all) && (alwaysSelectDirs || (!hasPattern || MatchWildcard(pattern, checkPatternOnFullName ? sitem.FileSystemInfo.FullName : sitem.FileSystemInfo.Name))))
-                        {
-                            items.Add(sitem);
-                            if (print) sitem.Print(attributes, shortPathes, "", Br);
-                            counts.FoldersCount++;
-                        }
-                        else
-                            sitem = null;
-
-                        if (!top)
-                            items.AddRange(FindItems(fsinf.FullName, pattern, top, all, dirs, attributes, shortPathes,contains, checkPatternOnFullName, counts, print));
-                    }
-                    else
-                    {
-                        counts.ScannedFilesCount++;
-                        if (!dirs && (!hasPattern || MatchWildcard(pattern, checkPatternOnFullName?sitem.FileSystemInfo.FullName:sitem.FileSystemInfo.Name)))
-                        {
-                            if (hasContains)
-                            {
-                                try
-                                {
-                                    var str = File.ReadAllText(sitem.FileSystemInfo.FullName);
-                                    if (!str.Contains(contains))
-                                        sitem = null;
-                                } catch (Exception ex)
-                                {
-                                    Errorln($"file read error: {ex.Message} when accessing file: {sitem.PrintableFullName}");
-                                }
-                            }
-                            if (sitem != null)
-                            {
-                                counts.FilesCount++;
-                                items.Add(sitem);
-                                if (print) sitem.Print(attributes, shortPathes, "", Br);
-                            }
-                        }
-                        else
-                            sitem = null;
-                    }
-
-                    if (CommandLineProcessor.CancellationTokenSource.Token.IsCancellationRequested) 
-                        return items;
-                }
-                return items;
-            } catch (UnauthorizedAccessException)
-            {
-                Errorln($"unauthorized access to {new DirectoryPath(path).PrintableFullName}");
-                return items;
-            }
-        }
-        */
-
+              
         [Command("list files and folders in a path. eventually recurse in sub paths")]
         public List<FileSystemPath> Dir(
+            CommandEvaluationContext context, 
             [Parameter("path where to list files and folders. if not specified is equal to the current directory. use wildcards * and ? to filter files and folders names",true)] WildcardFilePath path,
             [Option("na", "do not print file system attributes")] bool noattributes,
             [Option("r", "also list files and folders in sub directories. force display files full path")] bool recurse,
@@ -138,7 +64,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             if (path.CheckExists())
             {
                 var counts = new FindCounts();
-                var items = FindItems(path.FullName, path.WildCardFileName ?? "*", !recurse, true, false, !noattributes, !recurse, null, false, counts, false,false);
+                var items = FindItems(context,path.FullName, path.WildCardFileName ?? "*", !recurse, true, false, !noattributes, !recurse, null, false, counts, false,false);
                 var f = DefaultForegroundCmd;
                 long totFileSize = 0;
                 var cancellationTokenSource = new CancellationTokenSource();
@@ -146,8 +72,8 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                 void postCmd(object o, EventArgs e)
                 {
                     sc.CancelKeyPress -= cancelCmd;
-                    Out.Println($"{Tab}{ColorSettings.Numeric}{Plur("file", counts.FilesCount, f),-30}{HumanFormatOfSize(totFileSize, 2," ", ColorSettings.Numeric.ToString(), f)}");
-                    Out.Println($"{Tab}{ColorSettings.Numeric}{Plur("folder", counts.FoldersCount, f),-30}{Drives.GetDriveInfo(path.FileSystemInfo.FullName,false, ColorSettings.Numeric.ToString(), f," ",2)}");
+                    context.Out.Println($"{Tab}{ColorSettings.Numeric}{Plur("file", counts.FilesCount, f),-30}{HumanFormatOfSize(totFileSize, 2," ", ColorSettings.Numeric.ToString(), f)}");
+                    context.Out.Println($"{Tab}{ColorSettings.Numeric}{Plur("folder", counts.FoldersCount, f),-30}{Drives.GetDriveInfo(path.FileSystemInfo.FullName,false, ColorSettings.Numeric.ToString(), f," ",2)}");
                 }
                 void cancelCmd(object o, ConsoleCancelEventArgs e)
                 {
@@ -187,7 +113,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                         if (nocol == nbcols)
                             nocol = 0;
                     }
-                    if (!recurse && wide && nocol < nbcols && nocol>0) Out.Println();
+                    if (!recurse && wide && nocol < nbcols && nocol>0) context.Out.Println();
                     return i;
                 }
                 sc.CancelKeyPress += cancelCmd;
@@ -208,6 +134,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
        
         [Command("sets the path of the working directory")]
         public void Cd(
+            CommandEvaluationContext context, 
             [Parameter("path where to list files and folders. if not specified is equal to the current directory", true)] DirectoryPath path
             )
         {
@@ -241,6 +168,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
 
         [Command("print informations about drives/mount points")]
         public void Driveinfo(
+            CommandEvaluationContext context, 
             [Parameter("drive name for which informations must be printed. if no drive specified, list all drives",true)] string drive,
             [Option("b", "if set add table borders")] bool borders
             )
@@ -285,11 +213,12 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                 }
                 table.Rows.Add(row);
             }
-            table.Print(!borders);
+            table.Print(context.Out,context.CommandLineProcessor.CancellationTokenSource,!borders);
         }
 
         [Command("remove file(s) and/or the directory(ies)")]
         public List<string> Rm(
+            CommandEvaluationContext context, 
             [Parameter("file or folder path")] WildcardFilePath path,
             [Option("r", "also remove files and folders in sub directories")] bool recurse,
             [Option("i","prompt before any removal")] bool interactive,
@@ -303,7 +232,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             if (path.CheckExists())
             {
                 var counts = new FindCounts();
-                var items = FindItems(path.FullName, path.WildCardFileName ?? "*", !recurse, true, false, !noattributes, !recurse, null, false, counts, false, false);
+                var items = FindItems(context,path.FullName, path.WildCardFileName ?? "*", !recurse, true, false, !noattributes, !recurse, null, false, counts, false, false);
                 var cancellationTokenSource = new CancellationTokenSource();
                 verbose |= simulate;
                 void cancelCmd(object o, ConsoleCancelEventArgs e)
@@ -348,7 +277,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                                 if (dp.DirectoryInfo.Exists && !r.Contains(dp.FullName))
                                 {
                                     if (interactive)
-                                        r.Merge(RecurseInteractiveDeleteDir(dp, simulate, noattributes, verbose, cancellationTokenSource));
+                                        r.Merge(RecurseInteractiveDeleteDir(context,dp, simulate, noattributes, verbose, cancellationTokenSource));
                                     else
                                     {
                                         if (!simulate) dp.DirectoryInfo.Delete(recurse);
@@ -386,6 +315,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
 - if source and target are a file that exists remame the source and replace the dest
 - if dest doesn't exists rename the source that must be a file or a directory")]
         public void Mv(
+            CommandEvaluationContext context, 
             [Parameter("source: file/directory or several corresponding to a wildcarded path")] WildcardFilePath source,
             [Parameter(1,"destination: a file or a directory")] FileSystemPath dest,
             [Option("i","prompt before overwrite")] bool interactive,
@@ -395,7 +325,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             if (source.CheckExists())
             {
                 var counts = new FindCounts();
-                var items = FindItems(source.FullName, source.WildCardFileName ?? "*", true, true, false,true, false, null, false, counts, false, false);
+                var items = FindItems(context,source.FullName, source.WildCardFileName ?? "*", true, true, false,true, false, null, false, counts, false, false);
                 var sourceCount = items.Count;
                 if (sourceCount > 1)
                 {
@@ -415,7 +345,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                                         File.Move(item.FullName, Path.Combine(dest.FullName,item.Name));
                                     else
                                         Directory.Move(item.FullName, Path.Combine(dest.FullName, item.Name));
-                                    if (verbose) Out.Println(msg.Replace("move ", "moved "));
+                                    if (verbose) context.Out.Println(msg.Replace("move ", "moved "));
                                 }
                             }
                         }
@@ -434,7 +364,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                                     File.Move(source.FullNameWithWildcard, Path.Combine(dest.FullName, source.NameWithWildcard));
                                 else
                                     Directory.Move(source.FullName, Path.Combine(dest.FullName, source.NameWithWildcard));
-                                if (verbose) Out.Println(msg.Replace("move ", "moved "));
+                                if (verbose) context.Out.Println(msg.Replace("move ", "moved "));
                             }
                         } else
                         {
@@ -444,7 +374,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                             {
                                 dest.FileSystemInfo.Delete();
                                 File.Move(source.FullNameWithWildcard, dest.FullName );
-                                if (verbose) Out.Println(msg.Replace("rename ", "renamed "));
+                                if (verbose) context.Out.Println(msg.Replace("rename ", "renamed "));
                             }
                         }
                     } else
@@ -457,14 +387,20 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                                 File.Move(source.FullNameWithWildcard, dest.FullName);
                             else
                                 Directory.Move(source.FullName, dest.FullName);
-                            if (verbose) Out.Println(msg.Replace("rename ", "renamed "));
+                            if (verbose) context.Out.Println(msg.Replace("rename ", "renamed "));
                         }
                     }
                 }
             }
         }
 
-        List<string> RecurseInteractiveDeleteDir(DirectoryPath dir,bool simulate,bool noattributes,bool verbose,CancellationTokenSource cancellationTokenSource)
+        List<string> RecurseInteractiveDeleteDir(
+            CommandEvaluationContext context, 
+            DirectoryPath dir,
+            bool simulate,
+            bool noattributes,
+            bool verbose,
+            CancellationTokenSource cancellationTokenSource)
         {
             var fullname = true;
             var r = new List<string>();
@@ -473,7 +409,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             if (dir.IsEmpty || Confirm("rm: descend "+dir.GetPrintableName(fullname)))
             {
                 foreach ( var subdir in dir.DirectoryInfo.EnumerateDirectories())
-                    r.Merge(RecurseInteractiveDeleteDir(new DirectoryPath(subdir.FullName), simulate, noattributes, verbose, cancellationTokenSource));
+                    r.Merge(RecurseInteractiveDeleteDir(context,new DirectoryPath(subdir.FullName), simulate, noattributes, verbose, cancellationTokenSource));
                 foreach ( var subfile in dir.DirectoryInfo.EnumerateFiles())
                 {
                     var subfi = new FilePath(subfile.FullName);

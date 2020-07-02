@@ -2,25 +2,21 @@
 
 using DotNetConsoleAppToolkit.Component.UI;
 using DotNetConsoleAppToolkit.Console;
-using DotNetConsoleAppToolkit.Lib;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using static DotNetConsoleAppToolkit.Component.UI.UIElement;
-using static DotNetConsoleAppToolkit.Lib.Str;
 using RuntimeEnvironment = DotNetConsoleAppToolkit.Lib.RuntimeEnvironment;
 using sc = System.Console;
 
-[assembly: AssemblyDescription("Dot Net Console App Toolkit kernel commands module")]
+[assembly: AssemblyDescription("Dot Net Console App Toolkit")]
 [assembly: AssemblyCopyright("© June 2020")]
 [assembly: AssemblyTrademark("franck.gaspoz@gmail.com")]
 namespace DotNetConsoleAppToolkit

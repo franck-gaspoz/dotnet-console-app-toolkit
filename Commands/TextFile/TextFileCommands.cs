@@ -19,12 +19,11 @@ using System.IO;
 namespace DotNetConsoleAppToolkit.Commands.TextFile
 {
     [Commands("commands related to text files")]
-    public class TextFileCommands : CommandsType
+    public class TextFileCommands : ICommandsDeclaringType
     {
-        public TextFileCommands(CommandLineProcessor commandLineProcessor) : base(commandLineProcessor) { }
-
         [Command("file viewer")]
         public void More(
+            CommandEvaluationContext context,
             [Parameter("file or folder path")] WildcardFilePath path,
             [Option("h", "hide line numbers")] bool hideLineNumbers
             )
@@ -32,16 +31,19 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
             if (path.CheckExists())
             {
                 var counts = new FindCounts();
-                var items = FindItems(path.FullName, path.WildCardFileName ?? "*", true, false, false, true, false, null, false, counts, false, false);
-                foreach (var item in items) PrintFile((FilePath)item, hideLineNumbers);
+                var items = FindItems(context,path.FullName, path.WildCardFileName ?? "*", true, false, false, true, false, null, false, counts, false, false);
+                foreach (var item in items) PrintFile(context,(FilePath)item, hideLineNumbers);
                 if (items.Count == 0) Errorln($"more: no such file: {path.OriginalPath}");
-                Out.ShowCur();
+                context.Out.ShowCur();
             }
         }
 
         [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
         [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
-        void PrintFile(FilePath file, bool hideLineNumbers)
+        void PrintFile(
+            CommandEvaluationContext context, 
+            FilePath file, 
+            bool hideLineNumbers)
         {
             const int cl = -14;
             string quit = $"{ColorSettings.ParameterName}{$"q|Q",cl}{ColorSettings.Default}quit";
@@ -76,9 +78,9 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
             var infos = $"    ({Plur("line", nblines)},encoding={(fileEncoding != null ? fileEncoding.EncodingName : "?")},eol={filePlatform})";
             var n = file.Name.Length + TabLength + infos.Length;
             var sep = "".PadRight(n + 1, '-');
-            Out.Println($"{ColorSettings.TitleBar}{sep}");
-            Out.Println($"{ColorSettings.TitleBar} {file.Name}{ColorSettings.TitleDarkText}{infos.PadRight(n - file.Name.Length, ' ')}");
-            Out.Println($"{ColorSettings.TitleBar}{sep}{ColorSettings.Default}");
+            context.Out.Println($"{ColorSettings.TitleBar}{sep}");
+            context.Out.Println($"{ColorSettings.TitleBar} {file.Name}{ColorSettings.TitleDarkText}{infos.PadRight(n - file.Name.Length, ' ')}");
+            context.Out.Println($"{ColorSettings.TitleBar}{sep}{ColorSettings.Default}");
 
             var preambleHeight = 3;
             var linecollength = nblines.ToString().Length;
@@ -104,15 +106,15 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
                 if (!skipPrint)
                     lock (ConsoleLock)
                     {
-                        Out.HideCur();
+                        context.Out.HideCur();
                         while (i < curNbLines && pos + decpos + i < nblines)
                         {
-                            if (CommandLineProcessor.CancellationTokenSource.IsCancellationRequested) return;
+                            if (context.CommandLineProcessor.CancellationTokenSource.IsCancellationRequested) return;
                             var prefix = hideLineNumbers ? "" : (ColorSettings.Dark + "  " + (pos + decpos + i + 1).ToString().PadRight(linecollength, ' ') + "  ");
-                            Out.Println(prefix + ColorSettings.Default + lines[pos + decpos + i]);
+                            context.Out.Println(prefix + ColorSettings.Default + lines[pos + decpos + i]);
                             i++;
                         }
-                        Out.ShowCur();
+                        context.Out.ShowCur();
                         y = sc.CursorTop;
                         x = sc.CursorLeft;
                         endReached = pos + i >= nblines;
@@ -142,23 +144,23 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
                     decpos = 0;
                 }
 
-                if ((string)action == totop) { k = maxk; pos = 0; if (pos != oldpos) Out.ClearScreen(); }
-                if ((string)action == toend) { k = maxk; pos = Math.Max(0, nblines - maxk + 1); if (pos != oldpos) Out.ClearScreen(); }
+                if ((string)action == totop) { k = maxk; pos = 0; if (pos != oldpos) context.Out.ClearScreen(); }
+                if ((string)action == toend) { k = maxk; pos = Math.Max(0, nblines - maxk + 1); if (pos != oldpos) context.Out.ClearScreen(); }
 
                 if ((string)action == scrolllineup && !topReached)
                 {
-                    Out.ClearScreen(); k = maxk; pos = Math.Max(0, pos - 1);
+                    context.Out.ClearScreen(); k = maxk; pos = Math.Max(0, pos - 1);
                 }
-                if ((string)action == pagedown && !endReached) { Out.ClearScreen(); k = maxk; pos += k - 1 - preambleHeight; }
-                if ((string)action == pageup && !topReached) { Out.ClearScreen(); k = maxk; pos = Math.Max(0, pos - k + 1); }
+                if ((string)action == pagedown && !endReached) { context.Out.ClearScreen(); k = maxk; pos += k - 1 - preambleHeight; }
+                if ((string)action == pageup && !topReached) { context.Out.ClearScreen(); k = maxk; pos = Math.Max(0, pos - k + 1); }
 
                 if ((string)action == help)
                 {
                     var sepw = inputMaps.Select(x => ((string)x.Code).Length).Max();
                     var hsep = "".PadRight(sepw + 10, '-');
-                    Out.Println(Br + hsep + Br);
-                    inputMaps.ForEach(x => Out.Println((string)x.Code + Br));
-                    Out.Println(hsep);
+                    context.Out.Println(Br + hsep + Br);
+                    inputMaps.ForEach(x => context.Out.Println((string)x.Code + Br));
+                    context.Out.Println(hsep);
                     forcePrintInputBar = true;
                 }
 
@@ -170,7 +172,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
                     sc.CursorLeft = x;
                     if (forcePrintInputBar || !skipPrint || end)
                     {
-                        Out.Print("".PadLeft(inputText.Length, ' '));
+                        context.Out.Print("".PadLeft(inputText.Length, ' '));
                         sc.CursorLeft = x;
                         forcePrintInputBar = false;
                     }
@@ -180,6 +182,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
 
         [Command("check integrity of one or several text files","output a message for each corrupted file.\nThese command will declares a text file to be not integre as soon that it detects than the ratio of non printable caracters (excepted CR,LF) is geater than a fixed amount when reading the file")]
         public void FckIntegrity(
+            CommandEvaluationContext context,
             [Parameter( "path of a file to be checked or path from where find files to to be checked")] FileSystemPath fileOrDir,
             [Option("p", "select names that matches the pattern", true, true)] string pattern,
             [Option("i", "if set and p is set, perform a non case sensisitive search")] bool ignoreCase,
@@ -194,37 +197,38 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
             {
                 if (fileOrDir.IsFile)
                 {
-                    CheckIntegrity(new FilePath(fileOrDir.FullName),ratio,printAttr, minSeqLength,quiet);
+                    CheckIntegrity(context,new FilePath(fileOrDir.FullName),ratio,printAttr, minSeqLength,quiet);
                 }
                 else
                 {
                     var sp = string.IsNullOrWhiteSpace(pattern) ? "*" : pattern;
                     var counts = new FindCounts();
-                    var items = FindItems(fileOrDir.FullName, sp, top, false, false, printAttr, false, null, false, counts, false,false, ignoreCase);
+                    var items = FindItems(context,fileOrDir.FullName, sp, top, false, false, printAttr, false, null, false, counts, false,false, ignoreCase);
                     var f = ColorSettings.Default.ToString();
                     var elapsed = DateTime.Now - counts.BeginDateTime;
-                    Out.Println($"found {ColorSettings.Numeric}{Plur("file", counts.FilesCount, f)} and {ColorSettings.Numeric}{Plur("folder", counts.FoldersCount, f)}. scanned {ColorSettings.Numeric}{Plur("file", counts.ScannedFilesCount, f)} in {ColorSettings.Numeric}{Plur("folder", counts.ScannedFoldersCount, f)} during {TimeSpanDescription(elapsed, ColorSettings.Numeric.ToString(), f)}");
+                    context.Out.Println($"found {ColorSettings.Numeric}{Plur("file", counts.FilesCount, f)} and {ColorSettings.Numeric}{Plur("folder", counts.FoldersCount, f)}. scanned {ColorSettings.Numeric}{Plur("file", counts.ScannedFilesCount, f)} in {ColorSettings.Numeric}{Plur("folder", counts.ScannedFoldersCount, f)} during {TimeSpanDescription(elapsed, ColorSettings.Numeric.ToString(), f)}");
                     if (items.Count > 0)
                     {
-                        Out.Println($"analyzing files ({counts.FilesCount})...");
+                        context.Out.Println($"analyzing files ({counts.FilesCount})...");
                         int corruptedFilesCount = 0;
                         foreach (var item in items)
                         {
-                            if (CommandLineProcessor.CancellationTokenSource.Token.IsCancellationRequested)
+                            if (context.CommandLineProcessor.CancellationTokenSource.Token.IsCancellationRequested)
                                 break;
                             if (item.IsFile)
-                                if (!CheckIntegrity((FilePath)item, ratio, printAttr, minSeqLength,quiet))
+                                if (!CheckIntegrity(context,(FilePath)item, ratio, printAttr, minSeqLength,quiet))
                                     corruptedFilesCount++;
                         }
-                        if (corruptedFilesCount > 0) Out.Println();
+                        if (corruptedFilesCount > 0) context.Out.Println();
                         var crprt = (double)corruptedFilesCount / (double)counts.FilesCount * 100d;
-                        Out.Println($"found {ColorSettings.Numeric}{Plur("corrupted file",corruptedFilesCount,f)} in {ColorSettings.Numeric}{Plur("file",counts.FilesCount,f)} corruption ratio={Cyan}{crprt}%");
+                        context.Out.Println($"found {ColorSettings.Numeric}{Plur("corrupted file",corruptedFilesCount,f)} in {ColorSettings.Numeric}{Plur("file",counts.FilesCount,f)} corruption ratio={Cyan}{crprt}%");
                     }
                 }
             }
         }
 
         bool CheckIntegrity(
+            CommandEvaluationContext context,
             FilePath filePath,
             double maxRatio,
             bool printAttr,
@@ -254,7 +258,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
             if (!r)
             {
                 filePath.Print(printAttr, false, "", !quiet ? $"{Red} seems corrupted from index {cti}: bad chars ratio={rt}%":"");
-                Out.LineBreak();
+                context.Out.LineBreak();
             }
             return r;
         }

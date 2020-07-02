@@ -4,10 +4,8 @@ using static DotNetConsoleAppToolkit.DotNetConsole;
 namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 {
     [Commands("commands of the console")]
-    public class ConsoleCommands : CommandsType
+    public class ConsoleCommands : ICommandsDeclaringType
     {
-        public ConsoleCommands(CommandLineProcessor commandLineProcessor) : base(commandLineProcessor) { }
-
         const string _printDocText =
 @"text can contains (uon)print directives(tdoff) that changes the print behavior. 
 the print directive syntax is formed according to these pattern:
@@ -78,21 +76,23 @@ current print directives are:
         [Command("write text to the output stream",null,_printDocText
             )]
         public void Print(
+            CommandEvaluationContext context,
             [Parameter("text to be writen to output",true)] string expr = ""
-            ) => Out.Print(expr);
+            ) => context.Out.Print(expr);
 
         [Command("write text to the output stream followed by a line break",null, _printDocText)]
-        public void Println(
+        public void Println( 
+            CommandEvaluationContext context,
             [Parameter("text to be writen to output", true)] string expr = ""
-            ) => Out.Println(expr);
+            ) => context.Out.Println(expr);
 
         [Command("clear console screen")]
-        public void Cls() => Out.ClearScreen();
+        public void Cls( CommandEvaluationContext context ) => context.Out.ClearScreen();
 
         [Command("hide cursor")]
-        public void HideCursor() => Out.HideCur();
+        public void HideCursor( CommandEvaluationContext context ) => context.Out.HideCur();
 
         [Command("show cursor")]
-        public void ShowCursor() => Out.ShowCur();
+        public void ShowCursor(CommandEvaluationContext context) => context.Out.ShowCur();
     }
 }

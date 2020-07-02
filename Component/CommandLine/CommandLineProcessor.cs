@@ -29,7 +29,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
         #region attributes
 
-        public static CancellationTokenSource CancellationTokenSource;
+        public /*static*/ CancellationTokenSource CancellationTokenSource;
 
         public const int ReturnCodeOK = 0;
         public const int ReturnCodeError = 1;
@@ -177,7 +177,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
                 var comsAttr = type.GetCustomAttribute<CommandsAttribute>();
 
                 var comCount = 0;
-                if (comsAttr != null && type.InheritsFrom(typeof(CommandsType)))
+                if (comsAttr != null && type.InheritsFrom(typeof(ICommandsDeclaringType)))
                     comCount = RegisterCommandsClass(type,false);                
                 if (comCount > 0)
                     typesCount++;
@@ -198,8 +198,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
         int RegisterCommandsClass(Type type,bool registerAsModule)
         {
-            if (!type.InheritsFrom(typeof(CommandsType)))
-                throw new Exception($"the type '{type.FullName}' must be an instance of '{typeof(CommandsType).FullName}' to be registered as a command class");
+            if (!type.InheritsFrom(typeof(ICommandsDeclaringType)))
+                throw new Exception($"the type '{type.FullName}' must be an instance of '{typeof(ICommandsDeclaringType).FullName}' to be registered as a command class");
             var comsCount = 0;
             object instance = Activator.CreateInstance(type,new object[] { this });            
             var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
@@ -351,7 +351,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
                     var syntaxParsingResult = parseResult.SyntaxParsingResults.First();
                     try
                     {
-                        syntaxParsingResult.CommandSyntax.Invoke(syntaxParsingResult.MatchingParameters);
+                        var outputData = syntaxParsingResult.CommandSyntax.Invoke(syntaxParsingResult.MatchingParameters);
+                        r = new ExpressionEvaluationResult(null, ParseResultType.Valid, outputData, ReturnCodeOK, null);
                     } catch (Exception commandInvokeError)
                     {
                         var commandError = commandInvokeError.InnerException ?? commandInvokeError;

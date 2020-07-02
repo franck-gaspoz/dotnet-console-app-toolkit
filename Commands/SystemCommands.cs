@@ -10,12 +10,11 @@ using static DotNetConsoleAppToolkit.Lib.Str;
 namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 {
     [Commands("system commands")]
-    public class SystemCommands : CommandsType
+    public class SystemCommands : ICommandsDeclaringType
     {
-        public SystemCommands(CommandLineProcessor commandLineProcessor) : base(commandLineProcessor) { }
-
         [Command("print a report of current processes")]
         public void Ps(
+            CommandEvaluationContext context,
             [Option("b", "if set add table borders")] bool borders,
             [Option("sid", "filter by session id", true, true)] int fsid = -1,
             [Option("pid", "filter by process id", true, true)] int fpid = -1
@@ -61,13 +60,15 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                 
                 if (select) table.Rows.Add(row);
             }
-            Print(table, !borders);
+            Print(context.Out, context.CommandLineProcessor.CancellationTokenSource, table, !borders);
         }
 
         [Command("get information about current user")]
-        public void Whoami()
+        public void Whoami(
+            CommandEvaluationContext context
+            )
         {
-            Out.Println($"{Environment.UserName} [{ColorSettings.Highlight}{Environment.UserDomainName}{ColorSettings.Default}]");
+            context.Out.Println($"{Environment.UserName} [{ColorSettings.Highlight}{Environment.UserDomainName}{ColorSettings.Default}]");
         }
     }
 }
