@@ -13,8 +13,10 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
         public CommandEvaluationContext(
             CommandLineProcessor commandLineProcessor, 
-            ConsoleTextWriterWrapper @out, TextReader @in, 
-            TextWriterWrapper err, object inputData)
+            ConsoleTextWriterWrapper @out, 
+            TextReader @in, 
+            TextWriterWrapper err, 
+            object inputData)
         {
             CommandLineProcessor = commandLineProcessor;
             Out = @out;

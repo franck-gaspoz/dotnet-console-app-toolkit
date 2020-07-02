@@ -145,7 +145,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                 if (loadModulePath.CheckExists())
                 {
                     var a = Assembly.LoadFrom(loadModulePath.FileSystemInfo.FullName);
-                    var (typesCount, commandsCount) = context.CommandLineProcessor.RegisterCommandsAssembly(a);
+                    var (typesCount, commandsCount) = context.CommandLineProcessor.RegisterCommandsAssembly(context,a);
                     if (commandsCount == 0)
                         Errorln("no commands have been loaded");
                     else
@@ -156,7 +156,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             {
                 if (context.CommandLineProcessor.Modules.Values.Any(x => x.Name==unloadModuleName))
                 {
-                    var (typesCount, commandsCount) = context.CommandLineProcessor.UnregisterCommandsAssembly(unloadModuleName);
+                    var (typesCount, commandsCount) = context.CommandLineProcessor.UnregisterCommandsAssembly(context,unloadModuleName);
                     if (commandsCount == 0)
                         Errorln("no commands have been unloaded");
                     else
@@ -270,7 +270,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             CommandEvaluationContext context
             )
         {
-            context.CommandLineProcessor.PrintInfo();
+            context.CommandLineProcessor.PrintInfo(context);
         }
 
         [Command("displays the commands history list or manipulate it")]

@@ -66,6 +66,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
         public cmdlr.CommandLineReader CmdLineReader { get; set; }
 
+        public CommandEvaluationContext CommandEvaluationContext { get; protected set; }
+
         #endregion
 
         #region cli methods
@@ -88,12 +90,16 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
         #region command engine operations
 
-        public CommandLineProcessor(string[] args, bool printInfo = true)
+        public CommandLineProcessor(
+            string[] args, 
+            bool printInfo = true,
+            CommandEvaluationContext commandEvaluationContext = null
+            )
         {
-            InitializeCommandProcessor(args, printInfo);
+            InitializeCommandProcessor(args, printInfo, commandEvaluationContext);
         }
 
-        void InitializeCommandProcessor(string[] args, bool printInfo=true)
+        void InitializeCommandProcessor(string[] args, bool printInfo=true, CommandEvaluationContext commandEvaluationContext = null)
         {
             SetArgs(args);
             if (!_isInitialized)
@@ -102,14 +108,23 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
                 cons.ForegroundColor = DefaultForeground;
                 cons.BackgroundColor = DefaultBackground;
+                
+                if (printInfo) PrintInfo(CommandEvaluationContext);
 
                 CmdsHistory = new CommandsHistory(UserProfileFolder);
-
-                RegisterCommandsAssembly(Assembly.GetExecutingAssembly());
+                
+                CommandEvaluationContext = commandEvaluationContext ??
+                    new CommandEvaluationContext(
+                        this,
+                        Out,
+                        cons.In,
+                        Err,
+                        null
+                    );
+                RegisterCommandsAssembly(CommandEvaluationContext,Assembly.GetExecutingAssembly());
 #if enable_test_commands
                 RegisterCommandsClass<TestCommands>();
 #endif
-                if (printInfo) PrintInfo();
             }
         }
 
@@ -118,15 +133,18 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
             if (CmdLineReader == null) throw new Exception("a command line reader is required by the command line processor to perform this action");
         }
 
-        public void PrintInfo()
+        public void PrintInfo(CommandEvaluationContext context)
         {
-            Out.Println($"{ColorSettings.Label}{Uon} {AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}" + ("".PadRight(8,' ')) + Tdoff);
-            Out.Println($" {AppEditor}");
-            Out.Println($" {RuntimeInformation.OSDescription} {RuntimeInformation.OSArchitecture} - {RuntimeInformation.FrameworkDescription}");
-            Out.Println();
+            context.Out.Println($"{ColorSettings.Label}{Uon} {AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}" + ("".PadRight(8,' ')) + Tdoff);
+            context.Out.Println($" {AppEditor}");
+            context.Out.Println($" {RuntimeInformation.OSDescription} {RuntimeInformation.OSArchitecture} - {RuntimeInformation.FrameworkDescription}");
+            context.Out.Println();
         }
         
-        public (int typesCount,int commandsCount) UnregisterCommandsAssembly(string assemblyName)
+        public (int typesCount,int commandsCount) 
+            UnregisterCommandsAssembly(
+            CommandEvaluationContext context,
+            string assemblyName)
         {
             var module = _modules.Values.Where(x => x.Name == assemblyName).FirstOrDefault();
             if (module!=null)
@@ -157,13 +175,17 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
             return false;
         }
 
-        public (int typesCount, int commandsCount) RegisterCommandsAssembly(string assemblyPath)
+        public (int typesCount, int commandsCount) RegisterCommandsAssembly(
+            CommandEvaluationContext context,
+            string assemblyPath)
         {
             var assembly = Assembly.LoadFrom(assemblyPath);
-            return RegisterCommandsAssembly(assembly);
+            return RegisterCommandsAssembly(context,assembly);
         }
 
-        public (int typesCount,int commandsCount) RegisterCommandsAssembly(Assembly assembly)
+        public (int typesCount,int commandsCount) RegisterCommandsAssembly(
+            CommandEvaluationContext context,
+            Assembly assembly)
         {
             if (_modules.ContainsKey(assembly.ManifestModule.Name))
             {
@@ -178,7 +200,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
                 var comCount = 0;
                 if (comsAttr != null && type.InheritsFrom(typeof(ICommandsDeclaringType)))
-                    comCount = RegisterCommandsClass(type,false);                
+                    comCount = RegisterCommandsClass(context,type,false);                
                 if (comCount > 0)
                     typesCount++;
                 comTotCount += comCount;
@@ -192,11 +214,11 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
             return (typesCount,comTotCount);    
         }
 
-        public void RegisterCommandsClass<T>() => RegisterCommandsClass(typeof(T),true);
+        public void RegisterCommandsClass<T>(CommandEvaluationContext context) => RegisterCommandsClass(context,typeof(T),true);
 
-        public int RegisterCommandsClass(Type type) => RegisterCommandsClass(type, true);
+        public int RegisterCommandsClass(CommandEvaluationContext context, Type type) => RegisterCommandsClass(context,type, true);
 
-        int RegisterCommandsClass(Type type,bool registerAsModule)
+        int RegisterCommandsClass(CommandEvaluationContext context, Type type,bool registerAsModule)
         {
             if (!type.InheritsFrom(typeof(ICommandsDeclaringType)))
                 throw new Exception($"the type '{type.FullName}' must be an instance of '{typeof(ICommandsDeclaringType).FullName}' to be registered as a command class");

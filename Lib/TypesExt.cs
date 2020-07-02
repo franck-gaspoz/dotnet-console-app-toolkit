@@ -1,10 +1,8 @@
 ﻿using DotNetConsoleAppToolkit.Console;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading;
-using static DotNetConsoleAppToolkit.DotNetConsole;
-using prim=DotNetConsoleAppToolkit.Console.PrintPrimitives;
+using prim = DotNetConsoleAppToolkit.Console.PrintPrimitives;
 
 namespace DotNetConsoleAppToolkit.Lib
 {
