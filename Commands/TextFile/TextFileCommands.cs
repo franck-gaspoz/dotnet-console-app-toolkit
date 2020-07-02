@@ -21,8 +21,8 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
     [Commands("commands related to text files")]
     public class TextFileCommands : ICommandsDeclaringType
     {
-        [Command("file viewer")]
-        public void More(
+        [Command("output the content of one or several text files")]
+        public CommandResult<List<(FilePath filePath,List<string> textLines)>> More(
             CommandEvaluationContext context,
             [Parameter("file or folder path")] WildcardFilePath path,
             [Option("h", "hide line numbers")] bool hideLineNumbers
@@ -31,11 +31,23 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
             if (path.CheckExists())
             {
                 var counts = new FindCounts();
-                var items = FindItems(context,path.FullName, path.WildCardFileName ?? "*", true, false, false, true, false, null, false, counts, false, false);
-                foreach (var item in items) PrintFile(context,(FilePath)item, hideLineNumbers);
-                if (items.Count == 0) Errorln($"more: no such file: {path.OriginalPath}");
+                var items = FindItems(context, path.FullName, path.WildCardFileName ?? "*", true, false, false, true, false, null, false, counts, false, false);
+                var r = new List<(FilePath, List<string>)>();
+                foreach (var item in items)
+                {
+                    PrintFile(context, (FilePath)item, hideLineNumbers);
+                    r.Add(((FilePath)item, null));
+                }
+                if (items.Count == 0)
+                {
+                    Errorln($"more: no such file: {path.OriginalPath}");
+                    return new CommandResult<List<(FilePath,List<string>)>>(context, new List<(FilePath, List<string>)> { (new FilePath(path.OriginalPath), null) }, ReturnCode.Error);
+                }
                 context.Out.ShowCur();
+                return new CommandResult<List<(FilePath, List<string>)>>(context, r );
             }
+            else
+                return new CommandResult<List<(FilePath, List<string>)>>(context, new List<(FilePath, List<string>)> { (new FilePath(path.FullName), null) }, ReturnCode.Error);
         }
 
         [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
