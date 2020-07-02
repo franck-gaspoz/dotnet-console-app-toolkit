@@ -15,6 +15,7 @@ using static DotNetConsoleAppToolkit.Lib.Str;
 using sc = System.Console;
 using static DotNetConsoleAppToolkit.Lib.FileSystem;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace DotNetConsoleAppToolkit.Commands.TextFile
 {
@@ -22,7 +23,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
     public class TextFileCommands : ICommandsDeclaringType
     {
         [Command("output the content of one or several text files")]
-        public CommandResult<List<(FilePath filePath,List<string> textLines)>> More(
+        public CommandResult<List<TextFileInfo>> More(
             CommandEvaluationContext context,
             [Parameter("file or folder path")] WildcardFilePath path,
             [Option("h", "hide line numbers")] bool hideLineNumbers
@@ -32,27 +33,27 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
             {
                 var counts = new FindCounts();
                 var items = FindItems(context, path.FullName, path.WildCardFileName ?? "*", true, false, false, true, false, null, false, counts, false, false);
-                var r = new List<(FilePath, List<string>)>();
+                var r = new List<TextFileInfo>();
                 foreach (var item in items)
                 {
                     PrintFile(context, (FilePath)item, hideLineNumbers);
-                    r.Add(((FilePath)item, null));
+                    r.Add( new TextFileInfo((FilePath)item, null,OSPlatform.Create("?"),null));
                 }
                 if (items.Count == 0)
                 {
                     Errorln($"more: no such file: {path.OriginalPath}");
-                    return new CommandResult<List<(FilePath,List<string>)>>(context, new List<(FilePath, List<string>)> { (new FilePath(path.OriginalPath), null) }, ReturnCode.Error);
+                    return new CommandResult<List<TextFileInfo>>(context, new List<TextFileInfo> { new TextFileInfo( new FilePath(path.OriginalPath),null,OSPlatform.Create("?"),null) }, ReturnCode.Error);
                 }
                 context.Out.ShowCur();
-                return new CommandResult<List<(FilePath, List<string>)>>(context, r );
+                return new CommandResult<List<TextFileInfo>>(context, r );
             }
             else
-                return new CommandResult<List<(FilePath, List<string>)>>(context, new List<(FilePath, List<string>)> { (new FilePath(path.FullName), null) }, ReturnCode.Error);
+                return new CommandResult<List<TextFileInfo>>(context, new List<TextFileInfo> { new TextFileInfo( new FilePath(path.FullName), null, OSPlatform.Create("?"),null) }, ReturnCode.Error);
         }
 
         [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
         [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
-        void PrintFile(
+        TextFileInfo PrintFile(
             CommandEvaluationContext context, 
             FilePath file, 
             bool hideLineNumbers)
@@ -83,7 +84,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
 
             var fileEncoding = file.GetEncoding(Encoding.Default);
             //var lines = fileEncoding == null ? File.ReadAllLines(file.FullName, fileEncoding).ToArray() : File.ReadAllLines(file.FullName).ToArray();
-            var (rlines, filePlatform, _) = ReadAllLines(file.FullName);
+            var (rlines, filePlatform, eol) = ReadAllLines(file.FullName);
             var lines = rlines.ToArray();
             var nblines = lines.Length;
 
@@ -121,7 +122,8 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
                         context.Out.HideCur();
                         while (i < curNbLines && pos + decpos + i < nblines)
                         {
-                            if (context.CommandLineProcessor.CancellationTokenSource.IsCancellationRequested) return;
+                            if (context.CommandLineProcessor.CancellationTokenSource.IsCancellationRequested) 
+                                return new TextFileInfo(file, rlines, filePlatform, eol);
                             var prefix = hideLineNumbers ? "" : (ColorSettings.Dark + "  " + (pos + decpos + i + 1).ToString().PadRight(linecollength, ' ') + "  ");
                             context.Out.Println(prefix + ColorSettings.Default + lines[pos + decpos + i]);
                             i++;
@@ -190,6 +192,8 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
                     }
                 }
             }
+
+            return new TextFileInfo(file,rlines, filePlatform, eol);
         }
 
         [Command("check integrity of one or several text files","output a message for each corrupted file.\nThese command will declares a text file to be not integre as soon that it detects than the ratio of non printable caracters (excepted CR,LF) is geater than a fixed amount when reading the file")]
