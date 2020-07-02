@@ -13,5 +13,8 @@ namespace DotNetConsoleAppToolkit.Lib
             }
             return false;
         }
+
+        public static bool HasInterface(this Type type, Type interfaceType)
+            => type.GetInterface(interfaceType.FullName) != null;
     }
 }

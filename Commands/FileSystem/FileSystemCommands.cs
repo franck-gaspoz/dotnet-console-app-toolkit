@@ -156,7 +156,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
         }
 
         [Command("print the path of the current working directory")]
-        public void Pwd(
+        public CommandResult<DirectoryPath> Pwd(
             CommandEvaluationContext context,
             [Option("na", "do not print file system attributes")] bool noattributes
             )
@@ -165,7 +165,10 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             if (path.CheckExists())
             {
                 path.Print(!noattributes, false, "", Br);
+                return new CommandResult<DirectoryPath>(context, path );
             }
+            else
+                return new CommandResult<DirectoryPath>(context);
         }
 
         [Command("print informations about drives/mount points")]
