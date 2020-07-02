@@ -156,6 +156,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
 
         [Command("print the path of the current working directory")]
         public void Pwd(
+            CommandEvaluationContext context,
             [Option("na", "do not print file system attributes")] bool noattributes
             )
         {

@@ -170,21 +170,6 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
             return (parseErrors, null);
         }
 
-        public object Invoke(MatchingParameters matchingParameters)
-        {
-            var parameters = new List<object>();
-            foreach ( var parameter in CommandSpecification.MethodInfo.GetParameters() )
-            {
-                if (matchingParameters.TryGet(parameter.Name, out var matchingParameter))
-                    parameters.Add(matchingParameter.GetValue());
-                else 
-                    throw new InvalidOperationException($"parameter not found: '{parameter.Name}' when invoking command: {CommandSpecification}");
-            }
-            var r = CommandSpecification.MethodInfo
-                .Invoke(CommandSpecification.MethodOwner, parameters.ToArray());
-            return r;
-        }
-
         public override string ToString()
         {
             return CommandSpecification.ToString();

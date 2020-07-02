@@ -390,7 +390,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
                     var syntaxParsingResult = parseResult.SyntaxParsingResults.First();
                     try
                     {
-                        var outputData = syntaxParsingResult.CommandSyntax.Invoke(syntaxParsingResult.MatchingParameters);
+                        var outputData = InvokeCommand(CommandEvaluationContext, syntaxParsingResult.CommandSyntax.CommandSpecification, syntaxParsingResult.MatchingParameters);
+                        
                         r = new ExpressionEvaluationResult(null, ParseResultType.Valid, outputData, ReturnCodeOK, null);
                     } catch (Exception commandInvokeError)
                     {
@@ -463,7 +464,30 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
             return r;
         }
-        
+
+        object InvokeCommand(
+            CommandEvaluationContext context,
+            CommandSpecification commandSpecification,
+            MatchingParameters matchingParameters)
+        {
+            var parameters = new List<object>() { context };
+            var pindex = 0;
+            foreach (var parameter in commandSpecification.MethodInfo.GetParameters())
+            {
+                if (pindex > 0)
+                {
+                    if (matchingParameters.TryGet(parameter.Name, out var matchingParameter))
+                        parameters.Add(matchingParameter.GetValue());
+                    else
+                        throw new InvalidOperationException($"parameter not found: '{parameter.Name}' when invoking command: {commandSpecification}");
+                }
+                pindex++;
+            }
+            var r = commandSpecification.MethodInfo
+                .Invoke(commandSpecification.MethodOwner, parameters.ToArray());
+            return r;
+        }
+                
         #endregion
     }
 }
