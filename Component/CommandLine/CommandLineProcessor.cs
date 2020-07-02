@@ -108,11 +108,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
                 cons.ForegroundColor = DefaultForeground;
                 cons.BackgroundColor = DefaultBackground;
-                
-                if (printInfo) PrintInfo(CommandEvaluationContext);
-
-                CmdsHistory = new CommandsHistory(UserProfileFolder);
-                
+                                
                 CommandEvaluationContext = commandEvaluationContext ??
                     new CommandEvaluationContext(
                         this,
@@ -121,6 +117,11 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
                         Err,
                         null
                     );
+
+                if (printInfo) PrintInfo(CommandEvaluationContext);
+
+                CmdsHistory = new CommandsHistory(UserProfileFolder);
+
                 RegisterCommandsAssembly(CommandEvaluationContext,Assembly.GetExecutingAssembly());
 #if enable_test_commands
                 RegisterCommandsClass<TestCommands>();
@@ -199,7 +200,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
                 var comsAttr = type.GetCustomAttribute<CommandsAttribute>();
 
                 var comCount = 0;
-                if (comsAttr != null && type.InheritsFrom(typeof(ICommandsDeclaringType)))
+                if (comsAttr != null && type.GetInterface(typeof(ICommandsDeclaringType).FullName)!=null )
                     comCount = RegisterCommandsClass(context,type,false);                
                 if (comCount > 0)
                     typesCount++;
@@ -220,10 +221,10 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
         int RegisterCommandsClass(CommandEvaluationContext context, Type type,bool registerAsModule)
         {
-            if (!type.InheritsFrom(typeof(ICommandsDeclaringType)))
-                throw new Exception($"the type '{type.FullName}' must be an instance of '{typeof(ICommandsDeclaringType).FullName}' to be registered as a command class");
+            if (type.GetInterface(typeof(ICommandsDeclaringType).FullName)==null)
+                throw new Exception($"the type '{type.FullName}' must implements interface '{typeof(ICommandsDeclaringType).FullName}' to be registered as a command class");
             var comsCount = 0;
-            object instance = Activator.CreateInstance(type,new object[] { this });            
+            object instance = Activator.CreateInstance(type,new object[] { });            
             var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             if (registerAsModule && _modules.ContainsKey(type.FullName))
             {
@@ -237,57 +238,73 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
                 {
                     var paramspecs = new List<CommandParameterSpecification>();
                     bool syntaxError = false;
+                    var pindex = 0;
                     foreach ( var parameter in method.GetParameters())
                     {
-                        CommandParameterSpecification pspec = null;
-                        var paramAttr = parameter.GetCustomAttribute<ParameterAttribute>();
-                        object defval = null;
-                        if (!parameter.HasDefaultValue && parameter.ParameterType.IsValueType)
-                            defval = Activator.CreateInstance(parameter.ParameterType);
-
-                        if (paramAttr != null)
+                        if (pindex == 0)
                         {
-                            // TODO: validate command specification (eg. indexs validity)
-                            pspec = new CommandParameterSpecification(
-                                parameter.Name,
-                                paramAttr.Description,
-                                paramAttr.IsOptional,
-                                paramAttr.Index,
-                                null,
-                                true,
-                                parameter.HasDefaultValue,
-                                (parameter.HasDefaultValue) ? parameter.DefaultValue : defval,
-                                parameter);
-                        }
-                        var optAttr = parameter.GetCustomAttribute<OptionAttribute>();
-                        if (optAttr!=null)
-                        {
-                            var reqParamAttr = parameter.GetCustomAttribute<OptionRequireParameterAttribute>();
-                            try
+                            // manadatory: param 0 is CommandEvaluationContext
+                            if (parameter.ParameterType != typeof(CommandEvaluationContext))
                             {
-                                pspec = new CommandParameterSpecification(
-                                    parameter.Name,
-                                    optAttr.Description,
-                                    optAttr.IsOptional,
-                                    -1,
-                                    optAttr.OptionName ?? parameter.Name,
-                                    optAttr.HasValue,
-                                    parameter.HasDefaultValue,
-                                    (parameter.HasDefaultValue) ? parameter.DefaultValue : defval,
-                                    parameter,
-                                    reqParamAttr?.RequiredParameterName);
-                            } catch (Exception ex)
-                            {
-                                Errorln(ex.Message);
+                                Errorln($"class={type.FullName} method={method.Name} parameter 0 ('{parameter.Name}') should be of type '{typeof(CommandEvaluationContext).FullName}', but is of type: {parameter.ParameterType.FullName}");
+                                syntaxError = true;
+                                break;
                             }
                         }
-                        if (pspec == null)
-                        {
-                            syntaxError = true;
-                            Errorln($"invalid parameter: class={type.FullName} method={method.Name} name={parameter.Name}");
-                        }
                         else
-                            paramspecs.Add(pspec);
+                        {
+                            CommandParameterSpecification pspec = null;
+                            var paramAttr = parameter.GetCustomAttribute<ParameterAttribute>();
+                            object defval = null;
+                            if (!parameter.HasDefaultValue && parameter.ParameterType.IsValueType)
+                                defval = Activator.CreateInstance(parameter.ParameterType);
+
+                            if (paramAttr != null)
+                            {
+                                // TODO: validate command specification (eg. indexs validity)
+                                pspec = new CommandParameterSpecification(
+                                    parameter.Name,
+                                    paramAttr.Description,
+                                    paramAttr.IsOptional,
+                                    paramAttr.Index,
+                                    null,
+                                    true,
+                                    parameter.HasDefaultValue,
+                                    (parameter.HasDefaultValue) ? parameter.DefaultValue : defval,
+                                    parameter);
+                            }
+                            var optAttr = parameter.GetCustomAttribute<OptionAttribute>();
+                            if (optAttr != null)
+                            {
+                                var reqParamAttr = parameter.GetCustomAttribute<OptionRequireParameterAttribute>();
+                                try
+                                {
+                                    pspec = new CommandParameterSpecification(
+                                        parameter.Name,
+                                        optAttr.Description,
+                                        optAttr.IsOptional,
+                                        -1,
+                                        optAttr.OptionName ?? parameter.Name,
+                                        optAttr.HasValue,
+                                        parameter.HasDefaultValue,
+                                        (parameter.HasDefaultValue) ? parameter.DefaultValue : defval,
+                                        parameter,
+                                        reqParamAttr?.RequiredParameterName);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Errorln(ex.Message);
+                                }
+                            }
+                            if (pspec == null)
+                            {
+                                syntaxError = true;
+                                Errorln($"invalid parameter: class={type.FullName} method={method.Name} name={parameter.Name}");
+                            }
+                            else
+                                paramspecs.Add(pspec);
+                        }
+                        pindex++;
                     }
 
                     if (!syntaxError)
