@@ -94,7 +94,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 DisplayEditor();
                 WaitAndProcessKeyPress();
             }
-            return new CommandVoidResult(context);
+            return new CommandVoidResult();
         }
 
         void Init()

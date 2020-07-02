@@ -46,9 +46,9 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                 counts.Elapsed = DateTime.Now - counts.BeginDateTime;
                 if (items.Count > 0) context.Out.Println();
                 context.Out.Println($"found {ColorSettings.Numeric}{Plur("file",counts.FilesCount,f)} and {ColorSettings.Numeric}{Plur("folder",counts.FoldersCount,f)}. scanned {ColorSettings.Numeric}{Plur("file",counts.ScannedFilesCount,f)} in {ColorSettings.Numeric}{Plur("folder",counts.ScannedFoldersCount,f)} during {TimeSpanDescription(counts.Elapsed, ColorSettings.Numeric.ToString(), f)}");
-                return new CommandResult<(List<FileSystemPath>, FindCounts)>( context, (items,counts));
+                return new CommandResult<(List<FileSystemPath>, FindCounts)>( (items,counts));
             }
-            return new CommandResult<(List<FileSystemPath>, FindCounts)>(context, (new List<FileSystemPath>(),new FindCounts()) , ReturnCode.Error);
+            return new CommandResult<(List<FileSystemPath>, FindCounts)>( (new List<FileSystemPath>(),new FindCounts()) , ReturnCode.Error);
         }
               
         [Command("list files and folders in a path. eventually recurse in sub paths")]
@@ -129,9 +129,9 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                     var res = task.Result;
                 }
                 postCmd(null,null);
-                return new CommandResult<(List<FileSystemPath>, FindCounts)>(context, (items, counts));
+                return new CommandResult<(List<FileSystemPath>, FindCounts)>( (items, counts));
             }
-            return new CommandResult<(List<FileSystemPath>, FindCounts)>(context,(r,new FindCounts()),ReturnCode.Error);
+            return new CommandResult<(List<FileSystemPath>, FindCounts)>((r,new FindCounts()),ReturnCode.Error);
         }
        
         [Command("sets the path of the working directory")]
@@ -152,12 +152,12 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                 {
                     Errorln($"unauthorized access to {path.PrintableFullName}");
                     Environment.CurrentDirectory = bkpath;
-                    return new CommandResult<DirectoryPath>(context, path, ReturnCode.Error);
+                    return new CommandResult<DirectoryPath>( path, ReturnCode.Error);
                 }
-                return new CommandResult<DirectoryPath>(context, path, ReturnCode.OK);
+                return new CommandResult<DirectoryPath>( path, ReturnCode.OK);
             }
             else
-                return new CommandResult<DirectoryPath>(context, path, ReturnCode.Error);
+                return new CommandResult<DirectoryPath>( path, ReturnCode.Error);
         }
 
         [Command("print the path of the current working directory")]
@@ -170,10 +170,10 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             if (path.CheckExists())
             {
                 path.Print(!noattributes, false, "", Br);
-                return new CommandResult<DirectoryPath>(context, path );
+                return new CommandResult<DirectoryPath>( path );
             }
             else
-                return new CommandResult<DirectoryPath>(context);
+                return new CommandResult<DirectoryPath>();
         }
 
         [Command("print informations about drives/mount points")]
@@ -224,7 +224,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                 table.Rows.Add(row);
             }
             table.Print(context.Out,context.CommandLineProcessor.CancellationTokenSource,!borders);
-            return new CommandResult<List<DriveInfo>>(context, drives.ToList());
+            return new CommandResult<List<DriveInfo>>( drives.ToList());
         }
 
         [Command("remove file(s) and/or the directory(ies)")]
@@ -316,10 +316,10 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                     r = task.Result;
                 }
                 postCmd(null, null);
-                return new CommandResult<(List<FileSystemPath>, FindCounts)>(context, (r, counts), ReturnCode.OK);
+                return new CommandResult<(List<FileSystemPath>, FindCounts)>( (r, counts), ReturnCode.OK);
             }
             else
-                return new CommandResult<(List<FileSystemPath>, FindCounts)>(context,(r,counts),ReturnCode.Error);
+                return new CommandResult<(List<FileSystemPath>, FindCounts)>((r,counts),ReturnCode.Error);
         }
 
         [Command("move or rename files and directories" ,
@@ -349,7 +349,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                         {
                             Errorln("dest must be a directory");
                             return new CommandResult<(List<(FileSystemPath, FileSystemPath)> items, FindCounts counts)>(
-                                context, ( new List<(FileSystemPath, FileSystemPath)> { (source, dest) }, counts), ReturnCode.Error
+                                 ( new List<(FileSystemPath, FileSystemPath)> { (source, dest) }, counts), ReturnCode.Error
                                 );
                         }
                         else
@@ -437,11 +437,11 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                     }
                 }
                 return new CommandResult<(List<(FileSystemPath source, FileSystemPath target)> items, FindCounts counts)>
-                    ( context, (r, counts));
+                    ( (r, counts));
             }
             else
                 return new CommandResult<(List<(FileSystemPath, FileSystemPath)> items, FindCounts counts)>
-                    (context, (new List<(FileSystemPath, FileSystemPath)> { (source, null) }, new FindCounts()));
+                    ( (new List<(FileSystemPath, FileSystemPath)> { (source, null) }, new FindCounts()));
         }
 
         List<FileSystemPath> RecurseInteractiveDeleteDir(

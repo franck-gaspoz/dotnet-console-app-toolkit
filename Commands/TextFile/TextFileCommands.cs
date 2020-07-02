@@ -42,13 +42,13 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
                 if (items.Count == 0)
                 {
                     Errorln($"more: no such file: {path.OriginalPath}");
-                    return new CommandResult<List<TextFileInfo>>(context, new List<TextFileInfo> { new TextFileInfo( new FilePath(path.OriginalPath),null,OSPlatform.Create("?"),null) }, ReturnCode.Error);
+                    return new CommandResult<List<TextFileInfo>>( new List<TextFileInfo> { new TextFileInfo( new FilePath(path.OriginalPath),null,OSPlatform.Create("?"),null) }, ReturnCode.Error);
                 }
                 context.Out.ShowCur();
-                return new CommandResult<List<TextFileInfo>>(context, r );
+                return new CommandResult<List<TextFileInfo>>( r );
             }
             else
-                return new CommandResult<List<TextFileInfo>>(context, new List<TextFileInfo> { new TextFileInfo( new FilePath(path.FullName), null, OSPlatform.Create("?"),null) }, ReturnCode.Error);
+                return new CommandResult<List<TextFileInfo>>( new List<TextFileInfo> { new TextFileInfo( new FilePath(path.FullName), null, OSPlatform.Create("?"),null) }, ReturnCode.Error);
         }
 
         [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
@@ -216,7 +216,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
                 {
                     var (isValid,filePath) = CheckIntegrity(context, new FilePath(fileOrDir.FullName), ratio, printAttr, minSeqLength, quiet);
                     if (!isValid) r.Add(filePath);
-                    return new CommandResult<List<FilePath>>(context, r);
+                    return new CommandResult<List<FilePath>>( r);
                 }
                 else
                 {
@@ -244,12 +244,12 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
                         if (corruptedFilesCount > 0) context.Out.Println();
                         var crprt = (double)corruptedFilesCount / (double)counts.FilesCount * 100d;
                         context.Out.Println($"found {ColorSettings.Numeric}{Plur("corrupted file", corruptedFilesCount, f)} in {ColorSettings.Numeric}{Plur("file", counts.FilesCount, f)} corruption ratio={Cyan}{crprt}%");
-                        return new CommandResult<List<FilePath>>(context, r);
+                        return new CommandResult<List<FilePath>>( r);
                     } else
-                        return new CommandResult<List<FilePath>>(context,r);
+                        return new CommandResult<List<FilePath>>(r);
                 }
             } else
-                return new CommandResult<List<FilePath>>(context, new List<FilePath> { new FilePath(fileOrDir.FullName) }, ReturnCode.Error);
+                return new CommandResult<List<FilePath>>( new List<FilePath> { new FilePath(fileOrDir.FullName) }, ReturnCode.Error);
         }
 
         (bool isValid,FilePath filePath) CheckIntegrity(

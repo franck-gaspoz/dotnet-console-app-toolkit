@@ -20,7 +20,7 @@ namespace DotNetConsoleAppToolkit.Commands.Test
         {
             int x = sc.CursorLeft, y = sc.CursorTop;
             context.Out.Println($"crx={x} cry={y}");
-            return new CommandResult<Point>(context, new Point(x, y));
+            return new CommandResult<Point>( new Point(x, y));
         }
 
         [Command("check end of line symbols of a file")]
@@ -38,9 +38,9 @@ namespace DotNetConsoleAppToolkit.Commands.Test
                     r.Add(s);
                     context.Out.Println(s);
                 }
-                return new CommandResult<List<string>>(context, r);
+                return new CommandResult<List<string>>( r);
             }
-            else return new CommandResult<List<string>>(context, r, ReturnCode.Error);
+            else return new CommandResult<List<string>>( r, ReturnCode.Error);
         }
 
         [Command("show current colors support and current colors map using ANSI escape codes")]
@@ -157,7 +157,7 @@ namespace DotNetConsoleAppToolkit.Commands.Test
                 r += cl(cb, cb, cb);
             context.Out.Println(r);
 
-            return new CommandVoidResult(context);
+            return new CommandVoidResult();
         }
     }
 }

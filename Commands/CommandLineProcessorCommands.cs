@@ -19,7 +19,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
     public class CommandLineProcessorCommands : ICommandsDeclaringType
     {
         [Command("print help about commands,commands types and modules")]
-        public void Help(
+        public CommandVoidResult Help(
             CommandEvaluationContext context,
             [Option("s", "set short view: decrase output details")] bool shortView,
             [Option("v", "set verbose view: increase output details")] bool verboseView,
@@ -39,22 +39,22 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             {
                 if (!string.IsNullOrWhiteSpace(type))
                 {
-                    if (type!="*" && !context.CommandLineProcessor.CommandDeclaringShortTypesNames.Contains(type))
+                    if (type != "*" && !context.CommandLineProcessor.CommandDeclaringShortTypesNames.Contains(type))
                     {
                         Errorln($"unknown command declaring type: '{type}'");
-                        return;
+                        return new CommandVoidResult( ReturnCode.Error);
                     }
 
                     shortView = !verboseView;
 
-                    if (type!="*")
+                    if (type != "*")
                         cmds = cmds.Where(x => x.DeclaringTypeShortName == type);
                     else
                     {
                         var typenames = context.CommandLineProcessor.CommandDeclaringTypesNames.ToList();
                         var typelst = typenames.Select(x => Type.GetType(x)).ToList();
                         typelst.Sort((x, y) => x.Name.CompareTo(y.Name));
-                        
+
                         var sfx = "Commands";
                         string TypeName(Type type)
                         {
@@ -67,23 +67,23 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 
                         foreach (var typ in typelst)
                         {
-                            var cmdattr = typ.GetCustomAttribute<CommandsAttribute>();                            
+                            var cmdattr = typ.GetCustomAttribute<CommandsAttribute>();
                             context.Out.Println(Darkcyan + TypeName(typ).PadRight(maxtl) + Tab + DefaultForegroundCmd + cmdattr.Description);
                         }
-                        return;
+                        return new CommandVoidResult();
                     }
                 }
-                if (cmds.Count()>0 && !string.IsNullOrWhiteSpace(module))
+                if (cmds.Count() > 0 && !string.IsNullOrWhiteSpace(module))
                 {
                     if (module != "*" && !context.CommandLineProcessor.Modules.Values.Select(x => x.Name).Contains(module))
                     {
                         Errorln($"unknown command module: '{module}'");
-                        return;
+                        return new CommandVoidResult( ReturnCode.Error);
                     }
 
                     shortView = !verboseView;
 
-                    if (module!="*")
+                    if (module != "*")
                         cmds = cmds.Where(x => x.ModuleName == module);
                     else
                     {
@@ -92,8 +92,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                         modnames.Sort();
                         var maxml = modnames.Select(x => x.Length).Max();
                         foreach (var modname in modnames)
-                            context.Out.Println(Darkcyan+modname.PadRight(maxml)+Tab+ DefaultForegroundCmd + mods[modname].Description);
-                        return;
+                            context.Out.Println(Darkcyan + modname.PadRight(maxml) + Tab + DefaultForegroundCmd + mods[modname].Description);
+                        return new CommandVoidResult();
                     }
                 }
                 var ncmds = cmds.ToList();
@@ -111,19 +111,23 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                     foreach (var cmd in cmds)
                     {
                         if (!list && n > 0) context.Out.Println();
-                        PrintCommandHelp(context,cmd, shortView, list, maxcmdlength, maxcmdtypelength, maxmodlength, !string.IsNullOrWhiteSpace(commandName));
+                        PrintCommandHelp(context, cmd, shortView, list, maxcmdlength, maxcmdtypelength, maxmodlength, !string.IsNullOrWhiteSpace(commandName));
                         n++;
                     }
                 }
             }
             else
+            {
                 Errorln($"Command not found: '{commandName}'");
+                return new CommandVoidResult( ReturnCode.Error);
+            }
+            return new CommandVoidResult();
         }
 
         [Command("list modules of commands if no option specified, else load or unload modules of commands")]
         [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
         [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
-        public void Module(
+        public CommandResult<List<CommandsModule>> Module(
             CommandEvaluationContext context, 
             [Option("l", "load a module from the given path", true, true)] FilePath loadModulePath = null,
             [Option("u","unload the module having the given name ",true,true)] string unloadModuleName = null
@@ -139,37 +143,56 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                     context.Out.Println($"{"".PadRight(col1length, ' ')}{ColorSettings.Label}assembly:{ColorSettings.HalfDark}{kvp.Value.Assembly.FullName}");
                     context.Out.Println($"{"".PadRight(col1length, ' ')}{ColorSettings.Label}path:    {ColorSettings.HalfDark}{kvp.Value.Assembly.Location}");
                 }
+                return new CommandResult<List<CommandsModule>>( context.CommandLineProcessor.Modules.Values.ToList());
             }
             if (loadModulePath!=null)
             {
                 if (loadModulePath.CheckExists())
                 {
                     var a = Assembly.LoadFrom(loadModulePath.FileSystemInfo.FullName);
-                    var (typesCount, commandsCount) = context.CommandLineProcessor.RegisterCommandsAssembly(context,a);
+                    var (typesCount, commandsCount) = context.CommandLineProcessor.RegisterCommandsAssembly(context, a);
                     if (commandsCount == 0)
+                    {
                         Errorln("no commands have been loaded");
+                        return new CommandResult<List<CommandsModule>>( ReturnCode.Error);
+                    }
                     else
-                        context.Out.Println($"loaded {ColorSettings.Numeric}{Plur("command",commandsCount,f)} in {ColorSettings.Numeric}{Plur("type", typesCount, f)}");
+                        context.Out.Println($"loaded {ColorSettings.Numeric}{Plur("command", commandsCount, f)} in {ColorSettings.Numeric}{Plur("type", typesCount, f)}");
                 }
+                else
+                    return new CommandResult<List<CommandsModule>>( ReturnCode.Error);
             }
             if (unloadModuleName!=null)
             {
-                if (context.CommandLineProcessor.Modules.Values.Any(x => x.Name==unloadModuleName))
+                if (context.CommandLineProcessor.Modules.Values.Any(x => x.Name == unloadModuleName))
                 {
-                    var (typesCount, commandsCount) = context.CommandLineProcessor.UnregisterCommandsAssembly(context,unloadModuleName);
+                    var (typesCount, commandsCount) = context.CommandLineProcessor.UnregisterCommandsAssembly(context, unloadModuleName);
                     if (commandsCount == 0)
+                    {
                         Errorln("no commands have been unloaded");
+                        return new CommandResult<List<CommandsModule>>( ReturnCode.Error);
+                    }
                     else
                         context.Out.Println($"unloaded {ColorSettings.Numeric}{Plur("command", commandsCount, f)} in {ColorSettings.Numeric}{Plur("type", typesCount, f)}");
                 }
                 else
+                {
                     Errorln($"commands module '{unloadModuleName}' not registered");
+                    return new CommandResult<List<CommandsModule>>( ReturnCode.Error);
+                }
             }
+            return new CommandResult<List<CommandsModule>>();
         }
 
         void PrintCommandHelp(
             CommandEvaluationContext context,
-            CommandSpecification com, bool shortView = false, bool list = false, int maxcnamelength=-1, int maxcmdtypelength=-1, int maxmodlength=-1, bool singleout=false)
+            CommandSpecification com, 
+            bool shortView = false, 
+            bool list = false, 
+            int maxcnamelength=-1, 
+            int maxcmdtypelength=-1, 
+            int maxmodlength=-1, 
+            bool singleout=false)
         {
 #pragma warning disable IDE0071 // Simplifier l’interpolation
 #pragma warning disable IDE0071WithoutSuggestion // Simplifier l’interpolation
@@ -248,35 +271,38 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
         }
 
         [Command("set the command line prompt")]
-        public void Prompt(
+        public CommandResult<string> Prompt(
             CommandEvaluationContext context, 
             [Parameter("text of the prompt", false)] string prompt
             )
         {
             context.CommandLineProcessor.AssertCommandLineProcessorHasACommandLineReader();
             context.CommandLineProcessor.CmdLineReader.SetPrompt(prompt);
+            return new CommandResult<string>( prompt);
         }
 
         [Command("exit the shell")]
-        public void Exit(
+        public CommandResult<int> Exit(
             CommandEvaluationContext context
             )
         {
             cons.Exit();
+            return new CommandResult<int>( 0);
         }
 
         [Command("print command processor infos")]
-        public void Cpinfo(
+        public CommandVoidResult Cpinfo(
             CommandEvaluationContext context
             )
         {
             context.CommandLineProcessor.PrintInfo(context);
+            return new CommandVoidResult();
         }
 
         [Command("displays the commands history list or manipulate it")]
         [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
         [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
-        public List<string> History(
+        public CommandVoidResult History(
             CommandEvaluationContext context, 
             [Option("i", "invoke the command at the entry number in the history list", true, true)] int num,
             [Option("c", "clear the loaded history list")] bool clear,
@@ -301,17 +327,17 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                 if (num<1 || num>hist.Count)
                 {
                     Errorln($"history entry number out of range (1..{hist.Count})");
-                    return context.CommandLineProcessor.CmdsHistory.History;
+                    return new CommandVoidResult(ReturnCode.Error);
                 }
                 var h = hist[num-1];
                 context.CommandLineProcessor.CmdLineReader.SendNextInput(h);
-                return context.CommandLineProcessor.CmdsHistory.History;
+                return new CommandVoidResult();
             }
 
             if (clear)
             {
-                context.CommandLineProcessor.CmdsHistory.ClearHistory();                
-                return context.CommandLineProcessor.CmdsHistory.History;
+                context.CommandLineProcessor.CmdsHistory.ClearHistory();
+                return new CommandVoidResult();
             }
 
             if (appendToFile || readFromFile || appendFromFile || writeToFile)
@@ -338,7 +364,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                         context.CommandLineProcessor.CmdsHistory.HistorySetIndex(-1,false);
                     }
                 }
-                return context.CommandLineProcessor.CmdsHistory.History;
+                return new CommandVoidResult();
             }
 
             foreach ( var h in hist )
@@ -350,40 +376,43 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                 Out.ConsolePrint(h, true);
                 i++;
             }
-            return context.CommandLineProcessor.CmdsHistory.History;
+            return new CommandVoidResult();
         }
 
         [Command("repeat the previous command if there is one, else does nothing")]
         [CommandName("!!")]
-        public string HistoryPreviousCommand(
+        public CommandResult<string> HistoryPreviousCommand(
             CommandEvaluationContext context
             )
         {
             var lastCmd = context.CommandLineProcessor.CmdsHistory.History.LastOrDefault();
             context.CommandLineProcessor.AssertCommandLineProcessorHasACommandLineReader();
             if (lastCmd != null) context.CommandLineProcessor.CmdLineReader.SendNextInput(lastCmd);
-            return lastCmd;
+            return new CommandResult<string>(lastCmd);
         }
 
         [Command("repeat the command specified by absolute or relative line number in command history list")]
         [CommandName("!")]        
-        public string HistoryPreviousCommand(
+        public CommandResult<string> HistoryPreviousCommand(
             CommandEvaluationContext context,
             [Parameter("line number in the command history list if positive, else current command minus n if negative (! -1 equivalent to !!)")] int n
             )
         {
             var h = context.CommandLineProcessor.CmdsHistory.History;
-            string lastCmd = null;
-            var index = (n < 0) ? h.Count + n : n-1;
+            var index = (n < 0) ? h.Count + n : n - 1;
+            string lastCmd;
             if (index < 0 || index >= h.Count)
+            {
                 Errorln($"line number out of bounds of commands history list (1..{h.Count})");
+                return new CommandResult<string>(ReturnCode.Error);
+            }
             else
             {
                 lastCmd = h[index];
                 context.CommandLineProcessor.AssertCommandLineProcessorHasACommandLineReader();
                 context.CommandLineProcessor.CmdLineReader.SendNextInput(lastCmd);
             }
-            return lastCmd;
+            return new CommandResult<string>(lastCmd);
         }
     }
 }

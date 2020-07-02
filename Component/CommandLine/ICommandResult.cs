@@ -4,6 +4,5 @@
     {
         object GetOuputData();
         int ReturnCode { get; }
-        CommandEvaluationContext CommandEvaluationContext { get; }
     }
 }
