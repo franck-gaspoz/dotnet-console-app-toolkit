@@ -23,7 +23,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
     public class FileSystemCommands : ICommandsDeclaringType
     {
         [Command("search for files and/or folders")]
-        public List<FileSystemPath> Find(
+        public CommandResult<(List<FileSystemPath> items,FindCounts counts)> Find(
             CommandEvaluationContext context, 
             [Parameter("search path")] DirectoryPath path,
             [Option("p", "select names that matches the pattern", true, true)] string pattern,
@@ -43,16 +43,16 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                 var counts = new FindCounts();
                 var items = FindItems(context,path.FullName, sp, top,all,dirs,attributes,shortPathes,contains, checkPatternOnFullName,counts,true,false, ignoreCase);
                 var f = DefaultForegroundCmd;
-                var elapsed = DateTime.Now - counts.BeginDateTime;
+                counts.Elapsed = DateTime.Now - counts.BeginDateTime;
                 if (items.Count > 0) context.Out.Println();
-                context.Out.Println($"found {ColorSettings.Numeric}{Plur("file",counts.FilesCount,f)} and {ColorSettings.Numeric}{Plur("folder",counts.FoldersCount,f)}. scanned {ColorSettings.Numeric}{Plur("file",counts.ScannedFilesCount,f)} in {ColorSettings.Numeric}{Plur("folder",counts.ScannedFoldersCount,f)} during {TimeSpanDescription(elapsed, ColorSettings.Numeric.ToString(), f)}");
-                return items;
+                context.Out.Println($"found {ColorSettings.Numeric}{Plur("file",counts.FilesCount,f)} and {ColorSettings.Numeric}{Plur("folder",counts.FoldersCount,f)}. scanned {ColorSettings.Numeric}{Plur("file",counts.ScannedFilesCount,f)} in {ColorSettings.Numeric}{Plur("folder",counts.ScannedFoldersCount,f)} during {TimeSpanDescription(counts.Elapsed, ColorSettings.Numeric.ToString(), f)}");
+                return new CommandResult<(List<FileSystemPath>, FindCounts)>( context, (items,counts));
             }
-            return new List<FileSystemPath>();
+            return new CommandResult<(List<FileSystemPath>, FindCounts)>(context, (new List<FileSystemPath>(),new FindCounts()) , ReturnCode.Error);
         }
               
         [Command("list files and folders in a path. eventually recurse in sub paths")]
-        public List<FileSystemPath> Dir(
+        public CommandResult<(List<FileSystemPath> items,FindCounts counts)> Dir(
             CommandEvaluationContext context, 
             [Parameter("path where to list files and folders. if not specified is equal to the current directory. use wildcards * and ? to filter files and folders names",true)] WildcardFilePath path,
             [Option("na", "do not print file system attributes")] bool noattributes,
@@ -129,12 +129,13 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                     var res = task.Result;
                 }
                 postCmd(null,null);
+                return new CommandResult<(List<FileSystemPath>, FindCounts)>(context, (items, counts));
             }
-            return r;
+            return new CommandResult<(List<FileSystemPath>, FindCounts)>(context,(r,new FindCounts()),ReturnCode.Error);
         }
        
         [Command("sets the path of the working directory")]
-        public void Cd(
+        public CommandResult<DirectoryPath> Cd(
             CommandEvaluationContext context, 
             [Parameter("path where to list files and folders. if not specified is equal to the current directory", true)] DirectoryPath path
             )
@@ -146,13 +147,17 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                 try
                 {
                     Environment.CurrentDirectory = path.FullName;
-
-                } catch (UnauthorizedAccessException)
+                }
+                catch (UnauthorizedAccessException)
                 {
                     Errorln($"unauthorized access to {path.PrintableFullName}");
                     Environment.CurrentDirectory = bkpath;
+                    return new CommandResult<DirectoryPath>(context, path, ReturnCode.Error);
                 }
+                return new CommandResult<DirectoryPath>(context, path, ReturnCode.OK);
             }
+            else
+                return new CommandResult<DirectoryPath>(context, path, ReturnCode.Error);
         }
 
         [Command("print the path of the current working directory")]

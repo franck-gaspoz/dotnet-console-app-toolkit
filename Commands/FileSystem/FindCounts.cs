@@ -11,6 +11,8 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
         public int ScannedFoldersCount;
         public int ScannedFilesCount;
         public DateTime BeginDateTime;
+        public TimeSpan Elapsed;
+
         public FindCounts()
         {
             BeginDateTime = DateTime.Now;
