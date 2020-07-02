@@ -1,6 +1,7 @@
 ﻿using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 using DotNetConsoleAppToolkit.Console;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using static DotNetConsoleAppToolkit.Console.PrintPrimitives;
@@ -13,13 +14,14 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
     public class SystemCommands : ICommandsDeclaringType
     {
         [Command("print a report of current processes")]
-        public void Ps(
+        public CommandResult<List<Process>> Ps(
             CommandEvaluationContext context,
             [Option("b", "if set add table borders")] bool borders,
             [Option("sid", "filter by session id", true, true)] int fsid = -1,
             [Option("pid", "filter by process id", true, true)] int fpid = -1
             )
         {
+            var r = new List<Process>();
             var maxnamel = 40;
             var processes = Process.GetProcesses();
             var table = new DataTable();
@@ -57,18 +59,24 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                 row[cbp] = process.BasePriority;
                 //row[ctpt] = process.TotalProcessorTime+" %";
                 //row[ctitle] = process.MainWindowTitle;
-                
-                if (select) table.Rows.Add(row);
+
+                if (select)
+                {
+                    table.Rows.Add(row);
+                    r.Add(process);
+                }
             }
             Print(context.Out, context.CommandLineProcessor.CancellationTokenSource, table, !borders);
+            return new CommandResult<List<Process>>(r);
         }
 
         [Command("get information about current user")]
-        public void Whoami(
+        public CommandResult<(string userName,string userDomainName)> Whoami(
             CommandEvaluationContext context
             )
         {
             context.Out.Println($"{Environment.UserName} [{ColorSettings.Highlight}{Environment.UserDomainName}{ColorSettings.Default}]");
+            return new CommandResult<(string,string)>((Environment.UserName,Environment.UserDomainName));
         }
     }
 }
