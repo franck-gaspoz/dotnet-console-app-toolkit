@@ -2,6 +2,8 @@
 using DotNetConsoleAppToolkit.Component.CommandLine;
 using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 using DotNetConsoleAppToolkit.Console;
+using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using static DotNetConsoleAppToolkit.Console.ANSI;
 using static DotNetConsoleAppToolkit.DotNetConsole;
@@ -14,23 +16,35 @@ namespace DotNetConsoleAppToolkit.Commands.Test
     public class TestCommands : ICommandsDeclaringType
     {
         [Command("print cursor info")]
-        public void CursorInfo(CommandEvaluationContext context) => context.Out.Println($"crx={sc.CursorLeft} cry={sc.CursorTop}");
+        public CommandResult<Point> CursorInfo(CommandEvaluationContext context)
+        {
+            int x = sc.CursorLeft, y = sc.CursorTop;
+            context.Out.Println($"crx={x} cry={y}");
+            return new CommandResult<Point>(context, new Point(x, y));
+        }
 
         [Command("check end of line symbols of a file")]
-        public void Fileeol(
+        public CommandResult<List<string>> Fileeol(
             CommandEvaluationContext context,
             [Parameter("file path")] FilePath file)
         {
+            var r = new List<string>();
             if (file.CheckExists())
             {
                 var (_, eolCounts, _) = GetEOLCounts(File.ReadAllText(file.FullName));
                 foreach (var eol in eolCounts)
-                    context.Out.Println($"{eol.eol}={eol.count}");
+                {
+                    var s = $"{eol.eol}={eol.count}";
+                    r.Add(s);
+                    context.Out.Println(s);
+                }
+                return new CommandResult<List<string>>(context, r);
             }
+            else return new CommandResult<List<string>>(context, r, ReturnCode.Error);
         }
 
         [Command("show current colors support and current colors map using ANSI escape codes")]
-        public void ANSIColorTest(
+        public CommandVoidResult ANSIColorTest(
             CommandEvaluationContext context
             )
         {
@@ -143,6 +157,7 @@ namespace DotNetConsoleAppToolkit.Commands.Test
                 r += cl(cb, cb, cb);
             context.Out.Println(r);
 
+            return new CommandVoidResult(context);
         }
     }
 }
