@@ -425,7 +425,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                             if (source.IsFile)
                             {
                                 File.Move(source.FullNameWithWildcard, dest.FullName);
-                                r.Add((new FilePath(source.FullNameWithWildcard), dest)));
+                                r.Add((new FilePath(source.FullNameWithWildcard), dest));
                             }
                             else
                             {
