@@ -177,7 +177,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
         }
 
         [Command("print informations about drives/mount points")]
-        public void Driveinfo(
+        public CommandResult<List<DriveInfo>> Driveinfo(
             CommandEvaluationContext context, 
             [Parameter("drive name for which informations must be printed. if no drive specified, list all drives",true)] string drive,
             [Option("b", "if set add table borders")] bool borders
@@ -224,10 +224,11 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                 table.Rows.Add(row);
             }
             table.Print(context.Out,context.CommandLineProcessor.CancellationTokenSource,!borders);
+            return new CommandResult<List<DriveInfo>>(context, drives.ToList());
         }
 
         [Command("remove file(s) and/or the directory(ies)")]
-        public List<string> Rm(
+        public CommandResult<(List<FileSystemPath> items,FindCounts counts)> Rm(
             CommandEvaluationContext context, 
             [Parameter("file or folder path")] WildcardFilePath path,
             [Option("r", "also remove files and folders in sub directories")] bool recurse,
@@ -238,10 +239,10 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             [Option("s", "don't remove any file/or folder, just simulate the operation (enable verbose)")] bool simulate
         )
         {
-            var r = new List<string>();
+            var r = new List<FileSystemPath>();
+            var counts = new FindCounts();
             if (path.CheckExists())
             {
-                var counts = new FindCounts();
                 var items = FindItems(context,path.FullName, path.WildCardFileName ?? "*", !recurse, true, false, !noattributes, !recurse, null, false, counts, false, false);
                 var cancellationTokenSource = new CancellationTokenSource();
                 verbose |= simulate;
@@ -254,16 +255,16 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                 {
                     sc.CancelKeyPress -= cancelCmd;
                 }
-                List<string> processRemove()
+                List<FileSystemPath> processRemove()
                 {
-                    var r = new List<string>();
+                    var r = new List<FileSystemPath>();
                     foreach ( var item in items )
                     {
                         if (cancellationTokenSource.IsCancellationRequested) return r;
                         bool deleted = false;
                         if (item.IsFile)
                         {
-                            if (item.FileSystemInfo.Exists && !r.Contains(item.FullName))
+                            if (item.FileSystemInfo.Exists && !r.Contains(item))
                             {
                                 if (interactive)
                                 {
@@ -284,7 +285,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                             var dp = (DirectoryPath)item;
                             if ((rmEmptyDirs && dp.IsEmpty) || recurse)
                             {
-                                if (dp.DirectoryInfo.Exists && !r.Contains(dp.FullName))
+                                if (dp.DirectoryInfo.Exists && !r.Contains(dp))
                                 {
                                     if (interactive)
                                         r.Merge(RecurseInteractiveDeleteDir(context,dp, simulate, noattributes, verbose, cancellationTokenSource));
@@ -299,13 +300,13 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                         if (deleted)
                         {
                             if (verbose) item.Print(!noattributes, !recurse, "", Br, -1, "removed ");
-                            r.Add(item.FullName);
+                            r.Add(item);
                         }
                     }
                     return r;
                 };
                 sc.CancelKeyPress += cancelCmd;
-                var task = Task.Run<List<string>>(() => processRemove(), cancellationTokenSource.Token);
+                var task = Task.Run(() => processRemove(), cancellationTokenSource.Token);
                 try
                 {
                     task.Wait(cancellationTokenSource.Token);
@@ -315,8 +316,10 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                     r = task.Result;
                 }
                 postCmd(null, null);
+                return new CommandResult<(List<FileSystemPath>, FindCounts)>(context, (r, counts), ReturnCode.OK);
             }
-            return r;
+            else
+                return new CommandResult<(List<FileSystemPath>, FindCounts)>(context,(r,counts),ReturnCode.Error);
         }
 
         [Command("move or rename files and directories" ,
@@ -324,7 +327,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
 - if source is a file or a directory and dest is an existing directory move the source
 - if source and target are a file that exists remame the source and replace the dest
 - if dest doesn't exists rename the source that must be a file or a directory")]
-        public void Mv(
+        public CommandResult<(List<(FileSystemPath source,FileSystemPath target)> items,FindCounts counts)> Mv(
             CommandEvaluationContext context, 
             [Parameter("source: file/directory or several corresponding to a wildcarded path")] WildcardFilePath source,
             [Parameter(1,"destination: a file or a directory")] FileSystemPath dest,
@@ -335,32 +338,47 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             if (source.CheckExists())
             {
                 var counts = new FindCounts();
-                var items = FindItems(context,source.FullName, source.WildCardFileName ?? "*", true, true, false,true, false, null, false, counts, false, false);
+                var items = FindItems(context, source.FullName, source.WildCardFileName ?? "*", true, true, false, true, false, null, false, counts, false, false);
                 var sourceCount = items.Count;
+                List<(FileSystemPath src, FileSystemPath tgt)> r = new List<(FileSystemPath src, FileSystemPath tgt)>();
                 if (sourceCount > 1)
                 {
                     if (dest.CheckExists())
                     {
                         if (!dest.IsDirectory)
+                        {
                             Errorln("dest must be a directory");
+                            return new CommandResult<(List<(FileSystemPath, FileSystemPath)> items, FindCounts counts)>(
+                                context, ( new List<(FileSystemPath, FileSystemPath)> { (source, dest) }, counts), ReturnCode.Error
+                                );
+                        }
                         else
                         {
                             // move multiple source to dest
-                            foreach ( var item in items )
+                            foreach (var item in items)
                             {
                                 var msg = $"move {item.GetPrintableName()} to {dest.GetPrintableName()}";
                                 if (!interactive || Confirm("mv: " + msg))
                                 {
                                     if (source.IsFile)
-                                        File.Move(item.FullName, Path.Combine(dest.FullName,item.Name));
+                                    {
+                                        var newdest = Path.Combine(dest.FullName, item.Name);
+                                        r.Add((item, new FileSystemPath(newdest)));
+                                        File.Move(item.FullName, newdest);
+                                    }
                                     else
-                                        Directory.Move(item.FullName, Path.Combine(dest.FullName, item.Name));
+                                    {
+                                        var newdest = Path.Combine(dest.FullName, item.Name);
+                                        Directory.Move(item.FullName, newdest );
+                                        r.Add((item, new DirectoryPath(newdest)));
+                                    }
                                     if (verbose) context.Out.Println(msg.Replace("move ", "moved "));
                                 }
                             }
                         }
                     }
-                } else
+                }
+                else
                 {
                     if (dest.CheckExists(false))
                     {
@@ -371,40 +389,62 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                             if (!interactive || Confirm("mv: " + msg))
                             {
                                 if (source.IsFile)
-                                    File.Move(source.FullNameWithWildcard, Path.Combine(dest.FullName, source.NameWithWildcard));
+                                {
+                                    var newdest = Path.Combine(dest.FullName, source.NameWithWildcard);
+                                    File.Move(source.FullNameWithWildcard, newdest);
+                                    r.Add((new FilePath(source.FullNameWithWildcard), new FilePath(newdest)));
+                                }
                                 else
-                                    Directory.Move(source.FullName, Path.Combine(dest.FullName, source.NameWithWildcard));
+                                {
+                                    var newdest = Path.Combine(dest.FullName, source.NameWithWildcard);
+                                    Directory.Move(source.FullName,newdest);
+                                    r.Add((source, new DirectoryPath(newdest)));
+                                }
                                 if (verbose) context.Out.Println(msg.Replace("move ", "moved "));
                             }
-                        } else
+                        }
+                        else
                         {
                             // rename source (file) to dest (overwrite dest)
                             var msg = $"rename {source.GetPrintableNameWithWlidCard()} to {dest.GetPrintableName()}";
-                            if (!interactive || Confirm("mv: "+msg))
+                            if (!interactive || Confirm("mv: " + msg))
                             {
                                 dest.FileSystemInfo.Delete();
-                                File.Move(source.FullNameWithWildcard, dest.FullName );
+                                File.Move(source.FullNameWithWildcard, dest.FullName);
+                                r.Add((new FilePath(source.FullNameWithWildcard),dest));
                                 if (verbose) context.Out.Println(msg.Replace("rename ", "renamed "));
                             }
                         }
-                    } else
+                    }
+                    else
                     {
                         // rename source to dest
                         var msg = $"rename {source.GetPrintableNameWithWlidCard()} to {dest.GetPrintableName()}";
                         if (!interactive || Confirm("mv: " + msg))
                         {
                             if (source.IsFile)
+                            {
                                 File.Move(source.FullNameWithWildcard, dest.FullName);
+                                r.Add((new FilePath(source.FullNameWithWildcard), dest)));
+                            }
                             else
+                            {
                                 Directory.Move(source.FullName, dest.FullName);
+                                r.Add((source, dest));
+                            }
                             if (verbose) context.Out.Println(msg.Replace("rename ", "renamed "));
                         }
                     }
                 }
+                return new CommandResult<(List<(FileSystemPath source, FileSystemPath target)> items, FindCounts counts)>
+                    ( context, (r, counts));
             }
+            else
+                return new CommandResult<(List<(FileSystemPath, FileSystemPath)> items, FindCounts counts)>
+                    (context, (new List<(FileSystemPath, FileSystemPath)> { (source, null) }, new FindCounts()));
         }
 
-        List<string> RecurseInteractiveDeleteDir(
+        List<FileSystemPath> RecurseInteractiveDeleteDir(
             CommandEvaluationContext context, 
             DirectoryPath dir,
             bool simulate,
@@ -413,7 +453,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             CancellationTokenSource cancellationTokenSource)
         {
             var fullname = true;
-            var r = new List<string>();
+            var r = new List<FileSystemPath>();
             verbose |= simulate;
             if (cancellationTokenSource.IsCancellationRequested) return r;
             if (dir.IsEmpty || Confirm("rm: descend "+dir.GetPrintableName(fullname)))
@@ -427,14 +467,14 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                     {
                         if (!simulate) subfi.FileSystemInfo.Delete();
                         if (verbose) subfi.Print(!noattributes, false, "", Br, -1, "removed ");
-                        r.Add(subfi.FullName);
+                        r.Add(subfi);
                     }
                 }
                 if (Confirm("rm: remove directory "+dir.GetPrintableName(fullname)))
                 {
                     if (!simulate) dir.DirectoryInfo.Delete(true);
                     if (verbose) dir.Print(!noattributes, false, "", Br, -1, "removed ");
-                    r.Add(dir.FullName);
+                    r.Add(dir);
                 }
             }
             return r;
