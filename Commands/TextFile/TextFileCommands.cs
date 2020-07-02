@@ -197,7 +197,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
         }
 
         [Command("check integrity of one or several text files","output a message for each corrupted file.\nThese command will declares a text file to be not integre as soon that it detects than the ratio of non printable caracters (excepted CR,LF) is geater than a fixed amount when reading the file")]
-        public void FckIntegrity(
+        public CommandResult<List<FilePath>> FckIntegrity(
             CommandEvaluationContext context,
             [Parameter( "path of a file to be checked or path from where find files to to be checked")] FileSystemPath fileOrDir,
             [Option("p", "select names that matches the pattern", true, true)] string pattern,
@@ -209,17 +209,20 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
             [Option("s", "minimum size of analysed part of the text",true,true)] int minSeqLength = 1024
             )
         {
+            var r = new List<FilePath>();
             if (fileOrDir.CheckExists())
             {
                 if (fileOrDir.IsFile)
                 {
-                    CheckIntegrity(context,new FilePath(fileOrDir.FullName),ratio,printAttr, minSeqLength,quiet);
+                    var (isValid,filePath) = CheckIntegrity(context, new FilePath(fileOrDir.FullName), ratio, printAttr, minSeqLength, quiet);
+                    if (!isValid) r.Add(filePath);
+                    return new CommandResult<List<FilePath>>(context, r);
                 }
                 else
                 {
                     var sp = string.IsNullOrWhiteSpace(pattern) ? "*" : pattern;
                     var counts = new FindCounts();
-                    var items = FindItems(context,fileOrDir.FullName, sp, top, false, false, printAttr, false, null, false, counts, false,false, ignoreCase);
+                    var items = FindItems(context, fileOrDir.FullName, sp, top, false, false, printAttr, false, null, false, counts, false, false, ignoreCase);
                     var f = ColorSettings.Default.ToString();
                     var elapsed = DateTime.Now - counts.BeginDateTime;
                     context.Out.Println($"found {ColorSettings.Numeric}{Plur("file", counts.FilesCount, f)} and {ColorSettings.Numeric}{Plur("folder", counts.FoldersCount, f)}. scanned {ColorSettings.Numeric}{Plur("file", counts.ScannedFilesCount, f)} in {ColorSettings.Numeric}{Plur("folder", counts.ScannedFoldersCount, f)} during {TimeSpanDescription(elapsed, ColorSettings.Numeric.ToString(), f)}");
@@ -232,18 +235,24 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
                             if (context.CommandLineProcessor.CancellationTokenSource.Token.IsCancellationRequested)
                                 break;
                             if (item.IsFile)
-                                if (!CheckIntegrity(context,(FilePath)item, ratio, printAttr, minSeqLength,quiet))
+                                if (!CheckIntegrity(context, (FilePath)item, ratio, printAttr, minSeqLength, quiet).isValid)
+                                {
                                     corruptedFilesCount++;
+                                    r.Add((FilePath)item);
+                                }
                         }
                         if (corruptedFilesCount > 0) context.Out.Println();
                         var crprt = (double)corruptedFilesCount / (double)counts.FilesCount * 100d;
-                        context.Out.Println($"found {ColorSettings.Numeric}{Plur("corrupted file",corruptedFilesCount,f)} in {ColorSettings.Numeric}{Plur("file",counts.FilesCount,f)} corruption ratio={Cyan}{crprt}%");
-                    }
+                        context.Out.Println($"found {ColorSettings.Numeric}{Plur("corrupted file", corruptedFilesCount, f)} in {ColorSettings.Numeric}{Plur("file", counts.FilesCount, f)} corruption ratio={Cyan}{crprt}%");
+                        return new CommandResult<List<FilePath>>(context, r);
+                    } else
+                        return new CommandResult<List<FilePath>>(context,r);
                 }
-            }
+            } else
+                return new CommandResult<List<FilePath>>(context, new List<FilePath> { new FilePath(fileOrDir.FullName) }, ReturnCode.Error);
         }
 
-        bool CheckIntegrity(
+        (bool isValid,FilePath filePath) CheckIntegrity(
             CommandEvaluationContext context,
             FilePath filePath,
             double maxRatio,
@@ -276,7 +285,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
                 filePath.Print(printAttr, false, "", !quiet ? $"{Red} seems corrupted from index {cti}: bad chars ratio={rt}%":"");
                 context.Out.LineBreak();
             }
-            return r;
+            return (r,filePath);
         }
     }
 }
