@@ -75,7 +75,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         #endregion
 
         [Command("text editor")]
-        public void Edit(
+        public CommandVoidResult Edit(
             CommandEvaluationContext context,
             [Parameter("path of an existing or of a new file. the path directory must exists",true)] FilePath filePath
             )
@@ -94,6 +94,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 DisplayEditor();
                 WaitAndProcessKeyPress();
             }
+            return new CommandVoidResult(context);
         }
 
         void Init()
