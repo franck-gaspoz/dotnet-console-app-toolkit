@@ -531,29 +531,40 @@ namespace DotNetConsoleAppToolkit.Console
             }
         }
 
-        public override void FileEcho(
+        /// <summary>
+        /// debug echo to file
+        /// </summary>
+        /// <param name="s"></param>
+        /// <param name="lineBreak"></param>
+        /// <param name="callerMemberName"></param>
+        /// <param name="callerLineNumber"></param>
+        public override void EchoDebug(
             string s,
             bool lineBreak = false,
             [CallerMemberName]string callerMemberName = "",
             [CallerLineNumber]int callerLineNumber = -1)
         {
-            if (!FileEchoEnabled) return;
-            if (FileEchoDumpDebugInfo)
+            if (!FileEchoDebugEnabled) return;
+            if (FileEchoDebugDumpDebugInfo)
             {
                 if (IsBufferEnabled)
-                    _echoStreamWriter?.Write($"x={CursorLeft},y={CursorTop},l={s.Length}, bw={_cachedBufferSize},bh={_cachedBufferSize},br={lineBreak} [{callerMemberName}:{callerLineNumber}] :");
+                    _debugEchoStreamWriter?.Write($"x={CursorLeft},y={CursorTop},l={s.Length}, bw={_cachedBufferSize},bh={_cachedBufferSize},br={lineBreak} [{callerMemberName}:{callerLineNumber}] :");
                 else
-                    _echoStreamWriter?.Write($"x={CursorLeft},y={CursorTop},l={s.Length},w={sc.WindowWidth},h={sc.WindowHeight},wtop={sc.WindowTop} bw={sc.BufferWidth},bh={sc.BufferHeight},br={lineBreak} [{callerMemberName}:{callerLineNumber}] :");
+                    _debugEchoStreamWriter?.Write($"x={CursorLeft},y={CursorTop},l={s.Length},w={sc.WindowWidth},h={sc.WindowHeight},wtop={sc.WindowTop} bw={sc.BufferWidth},bh={sc.BufferHeight},br={lineBreak} [{callerMemberName}:{callerLineNumber}] :");
             }
-            _echoStreamWriter?.Write(s);
-            if (lineBreak | FileEchoAutoLineBreak) _echoStreamWriter?.WriteLine(string.Empty);
-            if (FileEchoAutoFlush) _echoStreamWriter?.Flush();
+            _debugEchoStreamWriter?.Write(s);
+            if (lineBreak | FileEchoDebugAutoLineBreak) _debugEchoStreamWriter?.WriteLine(string.Empty);
+            if (FileEchoDebugAutoFlush) _debugEchoStreamWriter?.Flush();
         }
 
         public override void Write(string s)
         {
             if (RedirecToErr)
+            {
+                if (IsEchoEnabled)
+                    _echoStreamWriter.Write(s);
                 Err.Write(s);
+            }
             else
                 base.Write(s);
         }
@@ -718,8 +729,8 @@ namespace DotNetConsoleAppToolkit.Console
                     }
                     if (!doNotEvalutatePrintDirectives) result = cmd.Value.Value(value);
                     
-                    if (FileEchoEnabled && FileEchoCommands)
-                        FileEcho(CommandBlockBeginChar + cmd.Value.Key + value + CommandBlockEndChar);
+                    if (FileEchoDebugEnabled && FileEchoDebugCommands)
+                        EchoDebug(CommandBlockBeginChar + cmd.Value.Key + value + CommandBlockEndChar);
 
                     printSequences?.Add(new PrintSequence(cmd.Value.Key.Substring(0, cmd.Value.Key.Length - 1), i, j, value, null, startIndex));
                 }
@@ -727,8 +738,8 @@ namespace DotNetConsoleAppToolkit.Console
                 {
                     if (!doNotEvalutatePrintDirectives) result = cmd.Value.Value(null);
                     
-                    if (FileEchoEnabled && FileEchoCommands)
-                        FileEcho(CommandBlockBeginChar + cmd.Value.Key + CommandBlockEndChar);
+                    if (FileEchoDebugEnabled && FileEchoDebugCommands)
+                        EchoDebug(CommandBlockBeginChar + cmd.Value.Key + CommandBlockEndChar);
                     
                     printSequences?.Add(new PrintSequence(cmd.Value.Key, i, j, value, null, startIndex));
                 }
@@ -784,7 +795,7 @@ namespace DotNetConsoleAppToolkit.Console
                             Write(line);
                             x0 += line.Length;
                             SetCursorPosConstraintedInWorkArea(ref x0, ref y0);
-                            FileEcho(line);
+                            EchoDebug(line);
                         }
                         if (lineBreak)
                         {
@@ -798,7 +809,7 @@ namespace DotNetConsoleAppToolkit.Console
                         Write(s);
                         x0 += s.Length;
                         SetCursorPosConstraintedInWorkArea(ref x0, ref y0);
-                        FileEcho(s);
+                        EchoDebug(s);
                         if (lineBreak)
                         {
                             x0 = x;
@@ -819,7 +830,7 @@ namespace DotNetConsoleAppToolkit.Console
                     else
                         Write(s);
                     
-                    FileEcho(s);
+                    EchoDebug(s);
                     
                     if (lineBreak)
                     {
@@ -832,7 +843,7 @@ namespace DotNetConsoleAppToolkit.Console
                             _textWriter.WriteLine(string.Empty);
                         }
 
-                        FileEcho(string.Empty, true);
+                        EchoDebug(string.Empty, true);
 
                         if (!IsRedirected)
                         {

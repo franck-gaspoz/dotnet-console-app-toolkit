@@ -22,14 +22,24 @@ namespace DotNetConsoleAppToolkit.Console
 
         #region echo to filestream
 
-        public bool FileEchoDumpDebugInfo = true;
-        public bool FileEchoCommands = true;
-        public bool FileEchoAutoFlush = true;
-        public bool FileEchoAutoLineBreak = true;
-        public bool FileEchoEnabled => _echoStreamWriter != null;
+        public bool FileEchoDebugDumpDebugInfo = true;
+        public bool FileEchoDebugCommands = true;
+        public bool FileEchoDebugAutoFlush = true;
+        public bool FileEchoDebugAutoLineBreak = true;
+        public bool FileEchoDebugEnabled => _debugEchoStreamWriter != null;
+        protected StreamWriter _debugEchoStreamWriter;
+        protected FileStream _debugEchoFileStream;
+
+        #endregion
+
+        #region echo to memory
+
+        public bool EchoAutoFlush = true;
+        public bool IsEchoEnabled => _echoStreamWriter != null;
         protected StreamWriter _echoStreamWriter;
+        protected MemoryStream _echoMemoryStream;
         protected FileStream _echoFileStream;
-                
+
         #endregion
 
         #endregion
@@ -86,25 +96,44 @@ namespace DotNetConsoleAppToolkit.Console
             }
         }
 
+        /// <summary>
+        /// echo Out to a memory stream
+        /// </summary>
+        /// <param name="autoFlush"></param>
         public void EchoOn(
-            string filepath,
-            bool autoFlush = true,
-            bool autoLineBreak = true,
-            bool echoCommands = true,
-            bool echoDebugInfo = false)
+            bool autoFlush = false
+            )
         {
-            if (!string.IsNullOrWhiteSpace(filepath) && _echoFileStream == null)
+            lock (this)
             {
-                FileEchoAutoFlush = autoFlush;
-                FileEchoAutoLineBreak = autoLineBreak;
-                FileEchoCommands = echoCommands;
-                FileEchoDumpDebugInfo = echoDebugInfo;
-                _echoFileStream = new FileStream(filepath, FileMode.Append, FileAccess.Write);
-                _echoStreamWriter = new StreamWriter(_echoFileStream);
+                EchoOff();
+                EchoAutoFlush = autoFlush;
+                _echoMemoryStream = new MemoryStream();
+                _echoStreamWriter = new StreamWriter(_echoMemoryStream);
             }
         }
 
-        public void EchoOff()
+        /// <summary>
+        /// echo Out to a file
+        /// </summary>
+        /// <param name="filepath">file path where to echo Out</param>
+        /// <param name="autoFlush">if set, flush Out before each echo</param>
+        public void EchoOn(
+            string filepath,
+            bool autoFlush = false)
+        {
+            lock (this)
+            {
+                if (!string.IsNullOrWhiteSpace(filepath) && _debugEchoFileStream == null)
+                {
+                    EchoAutoFlush = autoFlush;
+                    _echoFileStream = new FileStream(filepath, FileMode.Append, FileAccess.Write);
+                    _echoStreamWriter = new StreamWriter(_echoFileStream);
+                }
+            }
+        }
+
+        public string EchoOff()
         {
             if (_echoFileStream != null)
             {
@@ -112,7 +141,19 @@ namespace DotNetConsoleAppToolkit.Console
                 _echoStreamWriter.Close();
                 _echoFileStream = null;
                 _echoStreamWriter = null;
+                return null;
             }
+            if (_echoMemoryStream!=null)
+            {
+                _echoStreamWriter.Flush();
+                _echoMemoryStream.Position = 0;
+                var str = Encoding.Default.GetString(_echoMemoryStream.ToArray());
+                _echoStreamWriter.Close();
+                _echoMemoryStream = null;
+                _echoStreamWriter = null;
+                return str;
+            }
+            return null;
         }
 
         #endregion
@@ -152,6 +193,8 @@ namespace DotNetConsoleAppToolkit.Console
         /// <param name="s">string to be written to the stream</param>
         public virtual void Write(string s)
         {
+            if (IsEchoEnabled)
+                _echoStreamWriter.Write(s);
             if (IsBufferEnabled)
             {
                 _bufferWriter.Write(s);
@@ -178,18 +221,18 @@ namespace DotNetConsoleAppToolkit.Console
             }
         }
 
-        public virtual void FileEcho(
+        public virtual void EchoDebug(
             string s, 
             bool lineBreak = false, 
             [CallerMemberName]string callerMemberName = "", 
             [CallerLineNumber]int callerLineNumber = -1)
         {
-            if (!FileEchoEnabled) return;
-            if (FileEchoDumpDebugInfo)
-                _echoStreamWriter?.Write($"l={s.Length},br={lineBreak} [{callerMemberName}:{callerLineNumber}] :");
-            _echoStreamWriter?.Write(s);
-            if (lineBreak | FileEchoAutoLineBreak) _echoStreamWriter?.WriteLine(string.Empty);
-            if (FileEchoAutoFlush) _echoStreamWriter?.Flush();
+            if (!FileEchoDebugEnabled) return;
+            if (FileEchoDebugDumpDebugInfo)
+                _debugEchoStreamWriter?.Write($"l={s.Length},br={lineBreak} [{callerMemberName}:{callerLineNumber}] :");
+            _debugEchoStreamWriter?.Write(s);
+            if (lineBreak | FileEchoDebugAutoLineBreak) _debugEchoStreamWriter?.WriteLine(string.Empty);
+            if (FileEchoDebugAutoFlush) _debugEchoStreamWriter?.Flush();
         }
 
         #endregion

@@ -73,26 +73,55 @@ current print directives are:
     (f=darkyellow)ConsoleColor := darkblue|darkgreen|darkcyan|darkred|darkmagenta|darkyellow|gray|darkgray|blue|green|cyan|red|magenta|yellow|white(rdc) (not case sensitive)
 ";
 
-        [Command("write text to the output stream",null,_printDocText
-            )]
-        public void Print(
-            CommandEvaluationContext context,
-            [Parameter("text to be writen to output",true)] string expr = ""
-            ) => context.Out.Print(expr);
-
-        [Command("write text to the output stream followed by a line break",null, _printDocText)]
-        public void Println( 
+        [Command("write text to the output stream", null, _printDocText)]
+        public CommandResult<string> Print(
             CommandEvaluationContext context,
             [Parameter("text to be writen to output", true)] string expr = ""
-            ) => context.Out.Println(expr);
+            )
+        {
+            lock (context.Out.Lock)
+            {
+                context.Out.EchoOn();
+                context.Out.Print(expr);
+                var str = context.Out.EchoOff();
+                return new CommandResult<string>(str);
+            }
+        }
+
+        [Command("write text to the output stream followed by a line break", null, _printDocText)]
+        public CommandResult<string> Println(
+            CommandEvaluationContext context,
+            [Parameter("text to be writen to output", true)] string expr = ""
+            )
+        {
+            lock (context.Out.Lock)
+            {
+                context.Out.EchoOn();
+                context.Out.Println(expr);
+                var str = context.Out.EchoOff();
+                return new CommandResult<string>(str);
+            }
+        }
 
         [Command("clear console screen")]
-        public void Cls( CommandEvaluationContext context ) => context.Out.ClearScreen();
+        public CommandVoidResult Cls(CommandEvaluationContext context)
+        {
+            context.Out.ClearScreen();
+            return new CommandVoidResult();
+        }
 
         [Command("hide cursor")]
-        public void HideCursor( CommandEvaluationContext context ) => context.Out.HideCur();
+        public CommandVoidResult HideCursor(CommandEvaluationContext context)
+        {
+            context.Out.HideCur();
+            return new CommandVoidResult();
+        }
 
         [Command("show cursor")]
-        public void ShowCursor(CommandEvaluationContext context) => context.Out.ShowCur();
+        public CommandVoidResult ShowCursor(CommandEvaluationContext context)
+        {
+            context.Out.ShowCur();
+            return new CommandVoidResult();
+        }
     }
 }
