@@ -22,15 +22,15 @@ namespace DotNetConsoleAppToolkit.Lib
         }
 
         public static void Print(this DataTable x, ConsoleTextWriterWrapper @out, CancellationTokenSource cancellationTokenSource, bool noBorders = false) => prim.Print(@out, cancellationTokenSource, x, noBorders);
-        public static void Print(this string x) => Print(x);
-        public static void Print(this int x) => Print(x);
-        public static void Print(this double x) => Print(x);
-        public static void Print(this float x) => Print(x);
-        public static void Print(this bool x) => Print(x);
-        public static void Println(this string x) => Println(x);
-        public static void Println(this int x) => Println(x);
-        public static void Println(this double x) => Println(x);
-        public static void Println(this float x) => Println(x);
-        public static void Println(this bool x) => Println(x);
+        public static void Print(this string x, ConsoleTextWriterWrapper @out) => @out.Print(x);
+        public static void Print(this int x, ConsoleTextWriterWrapper @out) => @out.Print(x);
+        public static void Print(this double x, ConsoleTextWriterWrapper @out) => @out.Print(x);
+        public static void Print(this float x, ConsoleTextWriterWrapper @out) => @out.Print(x);
+        public static void Print(this bool x, ConsoleTextWriterWrapper @out) => @out.Print(x);
+        public static void Println(this string x, ConsoleTextWriterWrapper @out) => @out.Println(x);
+        public static void Println(this int x, ConsoleTextWriterWrapper @out) => @out.Println(x+"");
+        public static void Println(this double x, ConsoleTextWriterWrapper @out) => @out.Println(x+"");
+        public static void Println(this float x, ConsoleTextWriterWrapper @out) => @out.Println(x+"");
+        public static void Println(this bool x, ConsoleTextWriterWrapper @out) => @out.Println(x+"");
     }
 }
