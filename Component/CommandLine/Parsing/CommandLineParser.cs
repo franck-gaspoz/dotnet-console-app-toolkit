@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DotNetConsoleAppToolkit.Component.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,6 +7,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
 {
     public static class CommandLineParser
     {
+        public static char VariablePrefixCharacter = '$';
+
         public static StringComparison SyntaxMatchingRule = StringComparison.InvariantCultureIgnoreCase;
 
         public static string[] SplitExpr(string expr)
@@ -59,13 +62,38 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
             return n;
         }
 
+        public static string SubstituteVariables(
+            CommandEvaluationContext context,
+            string expr
+            )
+        {
+            var t = expr.ToCharArray();
+            var i = 0;
+            while (i<t.Length)
+            {
+                var c = t[i];
+                if (c==VariablePrefixCharacter && (i==0 || t[i-1]!='\\' ))
+                {
+                    var j = ArithmeticExpression.FindEndOfVariableName(t, i+1);
+                }
+                i++;
+            }
+            return expr;
+        }
+
         public static ParseResult Parse(SyntaxAnalyser syntaxAnalyzer, string expr)
         {
             if (expr == null) return new ParseResult(ParseResultType.Empty,null);
             
             expr = expr.Trim();
             if (string.IsNullOrEmpty(expr)) return new ParseResult(ParseResultType.Empty,null);
+
+            // substitute variables values
             
+
+
+            // TODO: parse & evaluate to be executed expressions (run syntax to be added)
+
             var splits = SplitExpr(expr);
             var segments = splits.Skip(1).ToArray();
             var token = splits.First();
