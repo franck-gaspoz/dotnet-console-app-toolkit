@@ -4,12 +4,12 @@ using System.Text;
 
 namespace DotNetConsoleAppToolkit.Console
 {
-    public class PrintSequences : IEnumerable<PrintSequence>
+    public class EchoSequences : IEnumerable<EchoSequence>
     {
-        public readonly List<PrintSequence> List
-            = new List<PrintSequence>();
+        public readonly List<EchoSequence> List
+            = new List<EchoSequence>();
 
-        public void Add(PrintSequence printSequence) => List.Add(printSequence);
+        public void Add(EchoSequence printSequence) => List.Add(printSequence);
 
         public override string ToString()
         {
@@ -27,7 +27,7 @@ namespace DotNetConsoleAppToolkit.Console
             return r.ToString();
         }
 
-        public IEnumerator<PrintSequence> GetEnumerator()
+        public IEnumerator<EchoSequence> GetEnumerator()
         {
             return List.GetEnumerator();
         }

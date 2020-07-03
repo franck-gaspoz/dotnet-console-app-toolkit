@@ -44,8 +44,8 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                 var items = FindItems(context,path.FullName, sp, top,all,dirs,attributes,shortPathes,contains, checkPatternOnFullName,counts,true,false, ignoreCase);
                 var f = DefaultForegroundCmd;
                 counts.Elapsed = DateTime.Now - counts.BeginDateTime;
-                if (items.Count > 0) context.Out.Println();
-                context.Out.Println($"found {ColorSettings.Numeric}{Plur("file",counts.FilesCount,f)} and {ColorSettings.Numeric}{Plur("folder",counts.FoldersCount,f)}. scanned {ColorSettings.Numeric}{Plur("file",counts.ScannedFilesCount,f)} in {ColorSettings.Numeric}{Plur("folder",counts.ScannedFoldersCount,f)} during {TimeSpanDescription(counts.Elapsed, ColorSettings.Numeric.ToString(), f)}");
+                if (items.Count > 0) context.Out.Echoln();
+                context.Out.Echoln($"found {ColorSettings.Numeric}{Plur("file",counts.FilesCount,f)} and {ColorSettings.Numeric}{Plur("folder",counts.FoldersCount,f)}. scanned {ColorSettings.Numeric}{Plur("file",counts.ScannedFilesCount,f)} in {ColorSettings.Numeric}{Plur("folder",counts.ScannedFoldersCount,f)} during {TimeSpanDescription(counts.Elapsed, ColorSettings.Numeric.ToString(), f)}");
                 return new CommandResult<(List<FileSystemPath>, FindCounts)>( (items,counts));
             }
             return new CommandResult<(List<FileSystemPath>, FindCounts)>( (new List<FileSystemPath>(),new FindCounts()) , ReturnCode.Error);
@@ -73,8 +73,8 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                 void postCmd(object o, EventArgs e)
                 {
                     sc.CancelKeyPress -= cancelCmd;
-                    context.Out.Println($"{Tab}{ColorSettings.Numeric}{Plur("file", counts.FilesCount, f),-30}{HumanFormatOfSize(totFileSize, 2," ", ColorSettings.Numeric.ToString(), f)}");
-                    context.Out.Println($"{Tab}{ColorSettings.Numeric}{Plur("folder", counts.FoldersCount, f),-30}{Drives.GetDriveInfo(path.FileSystemInfo.FullName,false, ColorSettings.Numeric.ToString(), f," ",2)}");
+                    context.Out.Echoln($"{Tab}{ColorSettings.Numeric}{Plur("file", counts.FilesCount, f),-30}{HumanFormatOfSize(totFileSize, 2," ", ColorSettings.Numeric.ToString(), f)}");
+                    context.Out.Echoln($"{Tab}{ColorSettings.Numeric}{Plur("folder", counts.FoldersCount, f),-30}{Drives.GetDriveInfo(path.FileSystemInfo.FullName,false, ColorSettings.Numeric.ToString(), f," ",2)}");
                 }
                 void cancelCmd(object o, ConsoleCancelEventArgs e)
                 {
@@ -114,7 +114,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                         if (nocol == nbcols)
                             nocol = 0;
                     }
-                    if (!recurse && wide && nocol < nbcols && nocol>0) context.Out.Println();
+                    if (!recurse && wide && nocol < nbcols && nocol>0) context.Out.Echoln();
                     return i;
                 }
                 sc.CancelKeyPress += cancelCmd;
@@ -372,7 +372,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                                         Directory.Move(item.FullName, newdest );
                                         r.Add((item, new DirectoryPath(newdest)));
                                     }
-                                    if (verbose) context.Out.Println(msg.Replace("move ", "moved "));
+                                    if (verbose) context.Out.Echoln(msg.Replace("move ", "moved "));
                                 }
                             }
                         }
@@ -400,7 +400,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                                     Directory.Move(source.FullName,newdest);
                                     r.Add((source, new DirectoryPath(newdest)));
                                 }
-                                if (verbose) context.Out.Println(msg.Replace("move ", "moved "));
+                                if (verbose) context.Out.Echoln(msg.Replace("move ", "moved "));
                             }
                         }
                         else
@@ -412,7 +412,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                                 dest.FileSystemInfo.Delete();
                                 File.Move(source.FullNameWithWildcard, dest.FullName);
                                 r.Add((new FilePath(source.FullNameWithWildcard),dest));
-                                if (verbose) context.Out.Println(msg.Replace("rename ", "renamed "));
+                                if (verbose) context.Out.Echoln(msg.Replace("rename ", "renamed "));
                             }
                         }
                     }
@@ -432,7 +432,7 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
                                 Directory.Move(source.FullName, dest.FullName);
                                 r.Add((source, dest));
                             }
-                            if (verbose) context.Out.Println(msg.Replace("rename ", "renamed "));
+                            if (verbose) context.Out.Echoln(msg.Replace("rename ", "renamed "));
                         }
                     }
                 }

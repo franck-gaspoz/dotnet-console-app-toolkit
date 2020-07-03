@@ -3,17 +3,17 @@ using static DotNetConsoleAppToolkit.DotNetConsole;
 
 namespace DotNetConsoleAppToolkit.Console
 {
-    public class PrintSequence
+    public class EchoSequence
     {
-        public readonly PrintDirectives? PrintDirective;
+        public readonly EchoDirectives? PrintDirective;
         public readonly int FirstIndex;
         public readonly int LastIndex;
         public readonly string Value;
         public readonly string Text;
         public int Length => LastIndex - FirstIndex + 1;
 
-        public PrintSequence(
-            PrintDirectives? printDirective,
+        public EchoSequence(
+            EchoDirectives? printDirective,
             int firstIndex,
             int lastIndex,
             string value,
@@ -27,7 +27,7 @@ namespace DotNetConsoleAppToolkit.Console
             Text = text;
         }
 
-        public PrintSequence(
+        public EchoSequence(
             string printDirective,
             int firstIndex,
             int lastIndex,
@@ -36,7 +36,7 @@ namespace DotNetConsoleAppToolkit.Console
             int relIndex=0)
         {
             if (printDirective != null)
-                if (Enum.TryParse<PrintDirectives>(printDirective, out var pr))
+                if (Enum.TryParse<EchoDirectives>(printDirective, out var pr))
                     PrintDirective = pr;
 
             FirstIndex = firstIndex+relIndex;

@@ -28,8 +28,8 @@ namespace DotNetConsoleAppToolkit.Console
 
         public override string ToString()
         {
-            return (!_foreground.HasValue ? "" : GetCmd(PrintDirectives.f + "", _foreground.Value.ToString().ToLower()))
-                + (!_background.HasValue ? "" : GetCmd(PrintDirectives.b + "", _background.Value.ToString().ToLower()));
+            return (!_foreground.HasValue ? "" : GetCmd(EchoDirectives.f + "", _foreground.Value.ToString().ToLower()))
+                + (!_background.HasValue ? "" : GetCmd(EchoDirectives.b + "", _background.Value.ToString().ToLower()));
         }
 
         public static ConsoleColor GetColor(string colorName)

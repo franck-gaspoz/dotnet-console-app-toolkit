@@ -1,7 +1,7 @@
 ﻿namespace DotNetConsoleAppToolkit.Console
 {
     /*
-    * print directives global syntax:
+    * echo directives global syntax:
     *      commandBlockBegin command commandValueAssignationChar value (commandSeparatorChar command commandValueAssignationChar value)* commandBlockEnd
     *      commandBlockBegin := (
     *      commandBlockEnd := )
@@ -42,7 +42,7 @@
     *      blon: blinkon
     *      bon: boldon
     */
-    public enum PrintDirectives
+    public enum EchoDirectives
     {
         bkf,
         bkb,

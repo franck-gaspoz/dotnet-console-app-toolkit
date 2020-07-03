@@ -6,7 +6,7 @@ namespace DotNetConsoleAppToolkit.Console
     {
         public readonly List<StringSegment> Splits;
 
-        public readonly PrintSequences PrintSequences;
+        public readonly EchoSequences PrintSequences;
 
         public readonly int CursorIndex;
 
@@ -14,7 +14,7 @@ namespace DotNetConsoleAppToolkit.Console
 
         public LineSplits(
             List<StringSegment> splits,
-            PrintSequences printSequences,
+            EchoSequences printSequences,
             int cursorIndex=-1,
             int cursorLineIndex=-1)
         {

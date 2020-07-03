@@ -72,56 +72,56 @@ namespace DotNetConsoleAppToolkit.Console
             _cachedBackgroundColor = DefaultBackground;
 
             _drtvs = new Dictionary<string, CommandDelegate>() {
-                { PrintDirectives.bkf+""   , (x) => RelayCall(BackupForeground) },
-                { PrintDirectives.bkb+""   , (x) => RelayCall(BackupBackground) },
-                { PrintDirectives.rsf+""   , (x) => RelayCall(RestoreForeground) },
-                { PrintDirectives.rsb+""   , (x) => RelayCall(RestoreBackground) },
+                { EchoDirectives.bkf+""   , (x) => RelayCall(BackupForeground) },
+                { EchoDirectives.bkb+""   , (x) => RelayCall(BackupBackground) },
+                { EchoDirectives.rsf+""   , (x) => RelayCall(RestoreForeground) },
+                { EchoDirectives.rsb+""   , (x) => RelayCall(RestoreBackground) },
 
-                { PrintDirectives.f+"="    , (x) => RelayCall(() => SetForeground( TextColor.ParseColor(x))) },
-                { PrintDirectives.f8+"="   , (x) => RelayCall(() => SetForeground( TextColor.Parse8BitColor(x))) },
-                { PrintDirectives.f24+"="  , (x) => RelayCall(() => SetForeground( TextColor.Parse24BitColor(x))) },
-                { PrintDirectives.b+"="    , (x) => RelayCall(() => SetBackground( TextColor.ParseColor(x))) },
-                { PrintDirectives.b8+"="   , (x) => RelayCall(() => SetBackground( TextColor.Parse8BitColor(x))) },
-                { PrintDirectives.b24+"="  , (x) => RelayCall(() => SetBackground( TextColor.Parse24BitColor(x))) },
+                { EchoDirectives.f+"="    , (x) => RelayCall(() => SetForeground( TextColor.ParseColor(x))) },
+                { EchoDirectives.f8+"="   , (x) => RelayCall(() => SetForeground( TextColor.Parse8BitColor(x))) },
+                { EchoDirectives.f24+"="  , (x) => RelayCall(() => SetForeground( TextColor.Parse24BitColor(x))) },
+                { EchoDirectives.b+"="    , (x) => RelayCall(() => SetBackground( TextColor.ParseColor(x))) },
+                { EchoDirectives.b8+"="   , (x) => RelayCall(() => SetBackground( TextColor.Parse8BitColor(x))) },
+                { EchoDirectives.b24+"="  , (x) => RelayCall(() => SetBackground( TextColor.Parse24BitColor(x))) },
 
-                { PrintDirectives.df+"="   , (x) => RelayCall(() => SetDefaultForeground( TextColor.ParseColor(x))) },
-                { PrintDirectives.db+"="   , (x) => RelayCall(() => SetDefaultBackground( TextColor.ParseColor(x))) },
-                { PrintDirectives.rdc+""   , (x) => RelayCall(RestoreDefaultColors)},
+                { EchoDirectives.df+"="   , (x) => RelayCall(() => SetDefaultForeground( TextColor.ParseColor(x))) },
+                { EchoDirectives.db+"="   , (x) => RelayCall(() => SetDefaultBackground( TextColor.ParseColor(x))) },
+                { EchoDirectives.rdc+""   , (x) => RelayCall(RestoreDefaultColors)},
 
-                { PrintDirectives.cls+""   , (x) => RelayCall(() => ClearScreen()) },
-                { PrintDirectives.br+""    , (x) => RelayCall(LineBreak) },
-                { PrintDirectives.inf+""   , (x) => RelayCall(Infos) },
-                { PrintDirectives.bkcr+""  , (x) => RelayCall(BackupCursorPos) },
-                { PrintDirectives.rscr+""  , (x) => RelayCall(RestoreCursorPos) },
-                { PrintDirectives.crh+""   , (x) => RelayCall(HideCur) },
-                { PrintDirectives.crs+""   , (x) => RelayCall(ShowCur) },
-                { PrintDirectives.crx+"="  , (x) => RelayCall(() => CursorLeft = GetCursorX(x)) },
-                { PrintDirectives.cry+"="  , (x) => RelayCall(() => CursorTop = GetCursorY(x)) },
-                { PrintDirectives.exit+""  , (x) => RelayCall(() => Exit()) },
-                { PrintDirectives.exec+"=" , (x) => ExecCSharp((string)x) },
+                { EchoDirectives.cls+""   , (x) => RelayCall(() => ClearScreen()) },
+                { EchoDirectives.br+""    , (x) => RelayCall(LineBreak) },
+                { EchoDirectives.inf+""   , (x) => RelayCall(Infos) },
+                { EchoDirectives.bkcr+""  , (x) => RelayCall(BackupCursorPos) },
+                { EchoDirectives.rscr+""  , (x) => RelayCall(RestoreCursorPos) },
+                { EchoDirectives.crh+""   , (x) => RelayCall(HideCur) },
+                { EchoDirectives.crs+""   , (x) => RelayCall(ShowCur) },
+                { EchoDirectives.crx+"="  , (x) => RelayCall(() => CursorLeft = GetCursorX(x)) },
+                { EchoDirectives.cry+"="  , (x) => RelayCall(() => CursorTop = GetCursorY(x)) },
+                { EchoDirectives.exit+""  , (x) => RelayCall(() => Exit()) },
+                { EchoDirectives.exec+"=" , (x) => ExecCSharp((string)x) },
 
-                { PrintDirectives.invon+"" , (x) => RelayCall(EnableInvert) },
-                { PrintDirectives.lion+"" , (x) => RelayCall(EnableLowIntensity) },
-                { PrintDirectives.uon+"" , (x) => RelayCall(EnableUnderline) },
-                { PrintDirectives.bon+"" , (x) => RelayCall(EnableBold) },
-                { PrintDirectives.blon+"" , (x) => RelayCall(EnableBlink) },
-                { PrintDirectives.tdoff+"" , (x) => RelayCall(DisableTextDecoration) },
+                { EchoDirectives.invon+"" , (x) => RelayCall(EnableInvert) },
+                { EchoDirectives.lion+"" , (x) => RelayCall(EnableLowIntensity) },
+                { EchoDirectives.uon+"" , (x) => RelayCall(EnableUnderline) },
+                { EchoDirectives.bon+"" , (x) => RelayCall(EnableBold) },
+                { EchoDirectives.blon+"" , (x) => RelayCall(EnableBlink) },
+                { EchoDirectives.tdoff+"" , (x) => RelayCall(DisableTextDecoration) },
 
-                { PrintDirectives.cl+"" , (x) => RelayCall(ClearLine) },
-                { PrintDirectives.clright+"" , (x) => RelayCall(ClearLineFromCursorRight) },
-                { PrintDirectives.fillright+"" , (x) => RelayCall(() => FillFromCursorRight()) },
-                { PrintDirectives.clleft+"" , (x) => RelayCall(ClearLineFromCursorLeft) },
+                { EchoDirectives.cl+"" , (x) => RelayCall(ClearLine) },
+                { EchoDirectives.clright+"" , (x) => RelayCall(ClearLineFromCursorRight) },
+                { EchoDirectives.fillright+"" , (x) => RelayCall(() => FillFromCursorRight()) },
+                { EchoDirectives.clleft+"" , (x) => RelayCall(ClearLineFromCursorLeft) },
 
-                { PrintDirectives.cup+"" , (x) => RelayCall(() => MoveCursorTop(1)) },
-                { PrintDirectives.cdown+"" , (x) => RelayCall(() => MoveCursorDown(1)) },
-                { PrintDirectives.cleft+"" , (x) => RelayCall(() => MoveCursorLeft(1)) },
-                { PrintDirectives.cright+"" , (x) => RelayCall(() => MoveCursorRight(1)) },
-                { PrintDirectives.chome+"" , (x) => RelayCall(CursorHome) },
+                { EchoDirectives.cup+"" , (x) => RelayCall(() => MoveCursorTop(1)) },
+                { EchoDirectives.cdown+"" , (x) => RelayCall(() => MoveCursorDown(1)) },
+                { EchoDirectives.cleft+"" , (x) => RelayCall(() => MoveCursorLeft(1)) },
+                { EchoDirectives.cright+"" , (x) => RelayCall(() => MoveCursorRight(1)) },
+                { EchoDirectives.chome+"" , (x) => RelayCall(CursorHome) },
 
-                { PrintDirectives.cnup+"=" , (x) => RelayCall(() => MoveCursorTop(Convert.ToInt32(x))) },
-                { PrintDirectives.cndown+"=" , (x) => RelayCall(() => MoveCursorDown(Convert.ToInt32(x))) },
-                { PrintDirectives.cnleft+"=" , (x) => RelayCall(() => MoveCursorLeft(Convert.ToInt32(x))) },
-                { PrintDirectives.cnright+"=" , (x) => RelayCall(() => MoveCursorRight(Convert.ToInt32(x))) },
+                { EchoDirectives.cnup+"=" , (x) => RelayCall(() => MoveCursorTop(Convert.ToInt32(x))) },
+                { EchoDirectives.cndown+"=" , (x) => RelayCall(() => MoveCursorDown(Convert.ToInt32(x))) },
+                { EchoDirectives.cnleft+"=" , (x) => RelayCall(() => MoveCursorLeft(Convert.ToInt32(x))) },
+                { EchoDirectives.cnright+"=" , (x) => RelayCall(() => MoveCursorRight(Convert.ToInt32(x))) },
             };
         }
 
@@ -464,7 +464,7 @@ namespace DotNetConsoleAppToolkit.Console
             bool lineBreak = false,
             bool doNotEvaluatePrintDirectives = false,      // TODO: remove this parameter
             bool ignorePrintDirectives = false,
-            PrintSequences printSequences = null)
+            EchoSequences printSequences = null)
         {
             lock (Lock)
             {
@@ -474,7 +474,7 @@ namespace DotNetConsoleAppToolkit.Console
                 RedirectOut(sw);
                 var e = EnableConstraintConsolePrintInsideWorkArea;
                 EnableConstraintConsolePrintInsideWorkArea = false;
-                Print(s, lineBreak, false, !ignorePrintDirectives, true, printSequences);
+                Echo(s, lineBreak, false, !ignorePrintDirectives, true, printSequences);
                 EnableConstraintConsolePrintInsideWorkArea = e;
                 sw.Flush();
                 ms.Position = 0;
@@ -496,7 +496,7 @@ namespace DotNetConsoleAppToolkit.Console
                 RedirectOut(sw);
                 var e = EnableConstraintConsolePrintInsideWorkArea;
                 EnableConstraintConsolePrintInsideWorkArea = false;
-                Print(s, lineBreak);
+                Echo(s, lineBreak);
                 EnableConstraintConsolePrintInsideWorkArea = e;
                 sw.Flush();
                 ms.Position = 0;
@@ -569,25 +569,25 @@ namespace DotNetConsoleAppToolkit.Console
                 base.Write(s);
         }
 
-        public void Println(IEnumerable<string> ls, bool ignorePrintDirectives = false) { foreach (var s in ls) Println(s, ignorePrintDirectives); }
+        public void Echoln(IEnumerable<string> ls, bool ignorePrintDirectives = false) { foreach (var s in ls) Echoln(s, ignorePrintDirectives); }
         
-        public void Print(IEnumerable<string> ls, bool lineBreak = false, bool ignorePrintDirectives = false) { foreach (var s in ls) Print(s, lineBreak, ignorePrintDirectives); }
+        public void Echo(IEnumerable<string> ls, bool lineBreak = false, bool ignorePrintDirectives = false) { foreach (var s in ls) Echo(s, lineBreak, ignorePrintDirectives); }
         
-        public void Println(string s = "", bool ignorePrintDirectives = false) => Print(s, true, false, !ignorePrintDirectives);
+        public void Echoln(string s = "", bool ignorePrintDirectives = false) => Echo(s, true, false, !ignorePrintDirectives);
         
-        public void Print(string s = "", bool lineBreak = false, bool ignorePrintDirectives = false) => Print(s, lineBreak, false, !ignorePrintDirectives);
+        public void Echo(string s = "", bool lineBreak = false, bool ignorePrintDirectives = false) => Echo(s, lineBreak, false, !ignorePrintDirectives);
         
-        public void Println(char s, bool ignorePrintDirectives = false) => Print(s + "", true, false, !ignorePrintDirectives);
+        public void Echoln(char s, bool ignorePrintDirectives = false) => Echo(s + "", true, false, !ignorePrintDirectives);
         
-        public void Print(char s, bool lineBreak = false, bool ignorePrintDirectives = false) => Print(s + "", lineBreak, !ignorePrintDirectives);
+        public void Echo(char s, bool lineBreak = false, bool ignorePrintDirectives = false) => Echo(s + "", lineBreak, !ignorePrintDirectives);
 
-        public void Print(
+        public void Echo(
             object s,
             bool lineBreak = false,
             bool preserveColors = false,        // TODO: remove this parameter + SaveColors property
             bool parseCommands = true,
             bool doNotEvalutatePrintDirectives = false,
-            PrintSequences printSequences = null)
+            EchoSequences printSequences = null)
         {
             lock (Lock)
             {
@@ -613,7 +613,7 @@ namespace DotNetConsoleAppToolkit.Console
             bool lineBreak = false,
             string tmps = "",
             bool doNotEvalutatePrintDirectives = false,
-            PrintSequences printSequences = null,
+            EchoSequences printSequences = null,
             int startIndex = 0)
         {
             lock (Lock)
@@ -642,7 +642,7 @@ namespace DotNetConsoleAppToolkit.Console
                 {
                     ConsolePrint(tmps, false);
 
-                    printSequences?.Add(new PrintSequence((string)null, 0, i - 1, null, tmps, startIndex));
+                    printSequences?.Add(new EchoSequence((string)null, 0, i - 1, null, tmps, startIndex));
                     return;
                 }
                 else i = cmdindex;
@@ -651,7 +651,7 @@ namespace DotNetConsoleAppToolkit.Console
                 {
                     ConsolePrint(tmps);
 
-                    printSequences?.Add(new PrintSequence((string)null, 0, i - 1, null, tmps, startIndex));
+                    printSequences?.Add(new EchoSequence((string)null, 0, i - 1, null, tmps, startIndex));
                 }
 
                 int firstCommandEndIndex = 0;
@@ -679,7 +679,7 @@ namespace DotNetConsoleAppToolkit.Console
                             {
                                 ConsolePrint(s);
 
-                                printSequences?.Add(new PrintSequence((string)null, i, s.Length - 1, null, s, startIndex));
+                                printSequences?.Add(new EchoSequence((string)null, i, s.Length - 1, null, s, startIndex));
                                 return;
                             }
                         }
@@ -711,7 +711,7 @@ namespace DotNetConsoleAppToolkit.Console
                 {
                     ConsolePrint(s);
 
-                    printSequences?.Add(new PrintSequence((string)null, i, j, null, s, startIndex));
+                    printSequences?.Add(new EchoSequence((string)null, i, j, null, s, startIndex));
                     return;
                 }
 
@@ -732,7 +732,7 @@ namespace DotNetConsoleAppToolkit.Console
                     if (FileEchoDebugEnabled && FileEchoDebugCommands)
                         EchoDebug(CommandBlockBeginChar + cmd.Value.Key + value + CommandBlockEndChar);
 
-                    printSequences?.Add(new PrintSequence(cmd.Value.Key.Substring(0, cmd.Value.Key.Length - 1), i, j, value, null, startIndex));
+                    printSequences?.Add(new EchoSequence(cmd.Value.Key.Substring(0, cmd.Value.Key.Length - 1), i, j, value, null, startIndex));
                 }
                 else
                 {
@@ -741,10 +741,10 @@ namespace DotNetConsoleAppToolkit.Console
                     if (FileEchoDebugEnabled && FileEchoDebugCommands)
                         EchoDebug(CommandBlockBeginChar + cmd.Value.Key + CommandBlockEndChar);
                     
-                    printSequences?.Add(new PrintSequence(cmd.Value.Key, i, j, value, null, startIndex));
+                    printSequences?.Add(new EchoSequence(cmd.Value.Key, i, j, value, null, startIndex));
                 }
                 if (result != null)
-                    Print(result, false);
+                    Echo(result, false);
 
                 if (firstCommandSeparatorCharIndex > -1)
                 {
@@ -973,7 +973,7 @@ namespace DotNetConsoleAppToolkit.Console
         {
             var originalString = s;
             var r = new List<StringSegment>();
-            PrintSequences printSequences = null;
+            EchoSequences printSequences = null;
             if (cursorX == -1) cursorX = origin.X;
             if (cursorY == -1) cursorY = origin.Y;
             int cursorLineIndex = -1;
@@ -992,7 +992,7 @@ namespace DotNetConsoleAppToolkit.Console
                 if (doNotEvaluatePrintDirectives)
                 {
                     pds = s;
-                    printSequences = new PrintSequences();
+                    printSequences = new EchoSequences();
                     s = GetPrint(s, false, doNotEvaluatePrintDirectives, ignorePrintDirectives, printSequences);
                 }
                 var xr = x0 + s.Length - 1;
@@ -1103,8 +1103,8 @@ namespace DotNetConsoleAppToolkit.Console
 
             if (!doNotEvaluatePrintDirectives)
             {
-                printSequences = new PrintSequences();
-                printSequences.Add(new PrintSequence((string)null, 0, originalString.Length - 1, null, originalString));
+                printSequences = new EchoSequences();
+                printSequences.Add(new EchoSequence((string)null, 0, originalString.Length - 1, null, originalString));
             }
 
             return new LineSplits(r, printSequences, cursorIndex, cursorLineIndex);

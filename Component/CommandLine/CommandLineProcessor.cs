@@ -137,10 +137,10 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
         public void PrintInfo(CommandEvaluationContext context)
         {
-            context.Out.Println($"{ColorSettings.Label}{Uon} {AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}" + ("".PadRight(18,' ')) + Tdoff);
-            context.Out.Println($" {AppEditor}");
-            context.Out.Println($" {RuntimeInformation.OSDescription} {RuntimeInformation.OSArchitecture} - {RuntimeInformation.FrameworkDescription}");
-            context.Out.Println();
+            context.Out.Echoln($"{ColorSettings.Label}{Uon} {AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}" + ("".PadRight(18,' ')) + Tdoff);
+            context.Out.Echoln($" {AppEditor}");
+            context.Out.Echoln($" {RuntimeInformation.OSDescription} {RuntimeInformation.OSArchitecture} - {RuntimeInformation.FrameworkDescription}");
+            context.Out.Echoln();
         }
         
         public (int typesCount,int commandsCount) 

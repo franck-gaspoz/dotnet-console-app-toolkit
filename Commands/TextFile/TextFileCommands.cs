@@ -91,9 +91,9 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
             var infos = $"    ({Plur("line", nblines)},encoding={(fileEncoding != null ? fileEncoding.EncodingName : "?")},eol={filePlatform})";
             var n = file.Name.Length + TabLength + infos.Length;
             var sep = "".PadRight(n + 1, '-');
-            context.Out.Println($"{ColorSettings.TitleBar}{sep}");
-            context.Out.Println($"{ColorSettings.TitleBar} {file.Name}{ColorSettings.TitleDarkText}{infos.PadRight(n - file.Name.Length, ' ')}");
-            context.Out.Println($"{ColorSettings.TitleBar}{sep}{ColorSettings.Default}");
+            context.Out.Echoln($"{ColorSettings.TitleBar}{sep}");
+            context.Out.Echoln($"{ColorSettings.TitleBar} {file.Name}{ColorSettings.TitleDarkText}{infos.PadRight(n - file.Name.Length, ' ')}");
+            context.Out.Echoln($"{ColorSettings.TitleBar}{sep}{ColorSettings.Default}");
 
             var preambleHeight = 3;
             var linecollength = nblines.ToString().Length;
@@ -125,7 +125,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
                             if (context.CommandLineProcessor.CancellationTokenSource.IsCancellationRequested) 
                                 return new TextFileInfo(file, rlines, filePlatform, eol);
                             var prefix = hideLineNumbers ? "" : (ColorSettings.Dark + "  " + (pos + decpos + i + 1).ToString().PadRight(linecollength, ' ') + "  ");
-                            context.Out.Println(prefix + ColorSettings.Default + lines[pos + decpos + i]);
+                            context.Out.Echoln(prefix + ColorSettings.Default + lines[pos + decpos + i]);
                             i++;
                         }
                         context.Out.ShowCur();
@@ -172,9 +172,9 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
                 {
                     var sepw = inputMaps.Select(x => ((string)x.Code).Length).Max();
                     var hsep = "".PadRight(sepw + 10, '-');
-                    context.Out.Println(Br + hsep + Br);
-                    inputMaps.ForEach(x => context.Out.Println((string)x.Code + Br));
-                    context.Out.Println(hsep);
+                    context.Out.Echoln(Br + hsep + Br);
+                    inputMaps.ForEach(x => context.Out.Echoln((string)x.Code + Br));
+                    context.Out.Echoln(hsep);
                     forcePrintInputBar = true;
                 }
 
@@ -186,7 +186,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
                     sc.CursorLeft = x;
                     if (forcePrintInputBar || !skipPrint || end)
                     {
-                        context.Out.Print("".PadLeft(inputText.Length, ' '));
+                        context.Out.Echo("".PadLeft(inputText.Length, ' '));
                         sc.CursorLeft = x;
                         forcePrintInputBar = false;
                     }
@@ -225,10 +225,10 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
                     var items = FindItems(context, fileOrDir.FullName, sp, top, false, false, printAttr, false, null, false, counts, false, false, ignoreCase);
                     var f = ColorSettings.Default.ToString();
                     var elapsed = DateTime.Now - counts.BeginDateTime;
-                    context.Out.Println($"found {ColorSettings.Numeric}{Plur("file", counts.FilesCount, f)} and {ColorSettings.Numeric}{Plur("folder", counts.FoldersCount, f)}. scanned {ColorSettings.Numeric}{Plur("file", counts.ScannedFilesCount, f)} in {ColorSettings.Numeric}{Plur("folder", counts.ScannedFoldersCount, f)} during {TimeSpanDescription(elapsed, ColorSettings.Numeric.ToString(), f)}");
+                    context.Out.Echoln($"found {ColorSettings.Numeric}{Plur("file", counts.FilesCount, f)} and {ColorSettings.Numeric}{Plur("folder", counts.FoldersCount, f)}. scanned {ColorSettings.Numeric}{Plur("file", counts.ScannedFilesCount, f)} in {ColorSettings.Numeric}{Plur("folder", counts.ScannedFoldersCount, f)} during {TimeSpanDescription(elapsed, ColorSettings.Numeric.ToString(), f)}");
                     if (items.Count > 0)
                     {
-                        context.Out.Println($"analyzing files ({counts.FilesCount})...");
+                        context.Out.Echoln($"analyzing files ({counts.FilesCount})...");
                         int corruptedFilesCount = 0;
                         foreach (var item in items)
                         {
@@ -241,9 +241,9 @@ namespace DotNetConsoleAppToolkit.Commands.TextFile
                                     r.Add((FilePath)item);
                                 }
                         }
-                        if (corruptedFilesCount > 0) context.Out.Println();
+                        if (corruptedFilesCount > 0) context.Out.Echoln();
                         var crprt = (double)corruptedFilesCount / (double)counts.FilesCount * 100d;
-                        context.Out.Println($"found {ColorSettings.Numeric}{Plur("corrupted file", corruptedFilesCount, f)} in {ColorSettings.Numeric}{Plur("file", counts.FilesCount, f)} corruption ratio={Cyan}{crprt}%");
+                        context.Out.Echoln($"found {ColorSettings.Numeric}{Plur("corrupted file", corruptedFilesCount, f)} in {ColorSettings.Numeric}{Plur("file", counts.FilesCount, f)} corruption ratio={Cyan}{crprt}%");
                         return new CommandResult<List<FilePath>>( r);
                     } else
                         return new CommandResult<List<FilePath>>(r);

@@ -88,8 +88,8 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
 
         public void Print(bool printAttributes=false,bool shortPath=false,string prefix="",string postfix="",int paddingRight=-1,string linePrefix="")
         {
-            var bg = GetCmd(PrintDirectives.b + "", DefaultBackground.ToString().ToLower());
-            var fg = GetCmd(PrintDirectives.f + "", DefaultForeground.ToString().ToLower());
+            var bg = GetCmd(EchoDirectives.b + "", DefaultBackground.ToString().ToLower());
+            var fg = GetCmd(EchoDirectives.f + "", DefaultForeground.ToString().ToLower());
             var color = (IsDirectory) ? NormalDirectoryColorization : FileColorization;
             if (!IsSystem && IsDirectory && !IsReadOnly) color += WritableDirectoryColorization;
             if (IsSystem && !IsDirectory) color += SystemColorization + bg;
@@ -120,9 +120,9 @@ namespace DotNetConsoleAppToolkit.Commands.FileSystem
             if (!string.IsNullOrWhiteSpace(quote)) pdr -= 2;
             var rightspace = (paddingRight > -1) ? endcolor+"".PadRight(pdr>0?pdr:1, ' ') : "";
             r += $"{linePrefix}{attr}{color}{prefix}{quote}{name}{quote}{hidden}{rightspace}{postfix}";
-            Out.Print(r+ColorSettings.Default);
+            Out.Echo(r+ColorSettings.Default);
             if (HasError)
-                Out.Print($" {ErrorColorization}{GetError()}");
+                Out.Echo($" {ErrorColorization}{GetError()}");
         }
 
         public override string ToString()

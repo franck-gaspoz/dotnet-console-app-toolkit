@@ -129,7 +129,7 @@ namespace DotNetConsoleAppToolkit.Component.UI
                     {
                         Out.SetCursorPos(x, y + i);
                         Out.CropX = x + w - 1;
-                        Out.Print(content[i]);
+                        Out.Echo(content[i]);
                         Out.CropX = -1;
                     }
                 }

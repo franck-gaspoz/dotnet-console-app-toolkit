@@ -19,7 +19,7 @@ namespace DotNetConsoleAppToolkit.Commands.Test
         public CommandResult<Point> CursorInfo(CommandEvaluationContext context)
         {
             int x = sc.CursorLeft, y = sc.CursorTop;
-            context.Out.Println($"crx={x} cry={y}");
+            context.Out.Echoln($"crx={x} cry={y}");
             return new CommandResult<Point>( new Point(x, y));
         }
 
@@ -36,7 +36,7 @@ namespace DotNetConsoleAppToolkit.Commands.Test
                 {
                     var s = $"{eol.eol}={eol.count}";
                     r.Add(s);
-                    context.Out.Println(s);
+                    context.Out.Echoln(s);
                 }
                 return new CommandResult<List<string>>( r);
             }
@@ -56,10 +56,10 @@ namespace DotNetConsoleAppToolkit.Commands.Test
             string r;
             int x2 = 0;
 
-            context.Out.Println("3 bits (8 color mode)");
-            context.Out.Println();
-            context.Out.Println("Background | Foreground colors");
-            context.Out.Println(hsep);
+            context.Out.Echoln("3 bits (8 color mode)");
+            context.Out.Echoln();
+            context.Out.Echoln("Background | Foreground colors");
+            context.Out.Echoln(hsep);
             for (int j = 0; j <= 7; j++)
             {
                 var str1 = $" ESC[4{j}m   | {esc}[4{j}m";
@@ -70,16 +70,16 @@ namespace DotNetConsoleAppToolkit.Commands.Test
                     str2 += Set3BitsColors(i | 0b1000, j) + $" [3{i}m   ";
                 }
 
-                context.Out.Println(str1 + ColorSettings.Default);
-                context.Out.Println(str2 + ColorSettings.Default);
-                context.Out.Println(hsep);
+                context.Out.Echoln(str1 + ColorSettings.Default);
+                context.Out.Echoln(str2 + ColorSettings.Default);
+                context.Out.Echoln(hsep);
             }
-            context.Out.Println(ColorSettings.Default + "");
+            context.Out.Echoln(ColorSettings.Default + "");
 
             // 8 bits colors
-            context.Out.Println("8 bits (256 color mode)");
-            context.Out.Println();
-            context.Out.Println("216 colors: 16 + 36 × r + 6 × g + b (0 <= r, g, b <= 5)(br)");
+            context.Out.Echoln("8 bits (256 color mode)");
+            context.Out.Echoln();
+            context.Out.Echoln("216 colors: 16 + 36 × r + 6 × g + b (0 <= r, g, b <= 5)(br)");
             int n = 16;
             for (int y = 0; y < 6; y++)
             {
@@ -95,11 +95,11 @@ namespace DotNetConsoleAppToolkit.Commands.Test
                     x2++;
                     if (x2 >= 6) { r += Br; x2 = 0; }
                 }
-                context.Out.Print(r);
+                context.Out.Echo(r);
             }
 
-            context.Out.Println(ColorSettings.Default + "");
-            context.Out.Println("grayscale colors (24 colors) : 232 + l (0 <= l <= 24)(br)");
+            context.Out.Echoln(ColorSettings.Default + "");
+            context.Out.Echoln("grayscale colors (24 colors) : 232 + l (0 <= l <= 24)(br)");
             r = White;
             x2 = 0;
             for (int x = 232; x <= 255; x++)
@@ -110,10 +110,10 @@ namespace DotNetConsoleAppToolkit.Commands.Test
                 x2++;
                 if (x2 >= 6) { r += Out.LNBRK; x2 = 0; }
             }
-            context.Out.Print(r);
+            context.Out.Echo(r);
 
-            context.Out.Println(ColorSettings.Default + "");
-            context.Out.Println("24 bits (16777216 colors): 0 <= r,g,b <= 255 (br) ");
+            context.Out.Echoln(ColorSettings.Default + "");
+            context.Out.Echoln("24 bits (16777216 colors): 0 <= r,g,b <= 255 (br) ");
 
             string cl(int r, int v, int b) =>
                 esc + "[48;2;" + r + ";" + v + ";" + b + "m ";
@@ -123,39 +123,39 @@ namespace DotNetConsoleAppToolkit.Commands.Test
             int cr, cb = 0, cv = 0;
             for (cr = 0; cr < 255; cr += stp)
                 r += cl(cr, cv, cb);
-            context.Out.Println(r);
+            context.Out.Echoln(r);
 
             r = "";
             cr = 0;
             for (cv = 0; cv < 255; cv += stp)
                 r += cl(cr, cv, cb);
-            context.Out.Println(r);
+            context.Out.Echoln(r);
 
             cv = 0;
             r = "";
             for (cb = 0; cb < 255; cb += stp)
                 r += cl(cr, cv, cb);
-            context.Out.Println(r);
+            context.Out.Echoln(r);
 
             r = "";
             for (cb = 0; cb < 255; cb += stp)
                 r += cl(cb, cb, 0);
-            context.Out.Println(r);
+            context.Out.Echoln(r);
 
             r = "";
             for (cb = 0; cb < 255; cb += stp)
                 r += cl(cb, 0, cb);
-            context.Out.Println(r);
+            context.Out.Echoln(r);
 
             r = "";
             for (cb = 0; cb < 255; cb += stp)
                 r += cl(0, cb, cb);
-            context.Out.Println(r);
+            context.Out.Echoln(r);
 
             r = "";
             for (cb = 0; cb < 255; cb += stp)
                 r += cl(cb, cb, cb);
-            context.Out.Println(r);
+            context.Out.Echoln(r);
 
             return new CommandVoidResult();
         }

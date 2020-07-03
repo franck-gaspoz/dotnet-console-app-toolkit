@@ -552,7 +552,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                 if (Char.IsLetterOrDigit(c.KeyChar))
                 {
                     Context.Out.EnableInvert();
-                    Context.Out.Print(c + "");
+                    Context.Out.Echo(c + "");
                 }
                 Context.Out.DisableTextDecoration();
                 var s = c.KeyChar.ToString().ToLower();
@@ -565,7 +565,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             Context.Out.SetCursorPos(1, _barY);
             Context.Out.EnableInvert();
-            Context.Out.Print(text);
+            Context.Out.Echo(text);
             Context.Out.DisableTextDecoration();
         }
 
@@ -911,8 +911,8 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
 
         void PrintLineSplit(string s,bool eol)
         {
-            Context.Out.Print(s, false, _rawMode);
-            if (!_rawMode) Context.Out.Print(ColorSettings.Default.ToString());
+            Context.Out.Echo(s, false, _rawMode);
+            if (!_rawMode) Context.Out.Echo(ColorSettings.Default.ToString());
         }
 
         List<StringSegment> GetLineSplits(int lineIndex, int x,int y) => Context.Out.GetWorkAreaStringSplits(_text[lineIndex], new Point(x, y), true, false, !_rawMode).Splits;
@@ -964,20 +964,20 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
                     if (_statusText == null)
                     {                   // added { } has remove a bug of the print (disapear cmd line above when window less large than text on linux wsl ?!)
                         Context.Out.SetCursorPos(1, _barY);
-                        Context.Out.Print(GetFileInfo());
+                        Context.Out.Echo(GetFileInfo());
                     }
                     else
                     {
                         EmptyInfoBar();
                         Context.Out.SetCursorPos(1, _barY);
                         Context.Out.EnableInvert();
-                        Context.Out.Print(_statusText);
+                        Context.Out.Echo(_statusText);
                     }
 
                     if (_cmdInput)
                     {
                         Context.Out.SetCursorPos(0, _barY + 1);
-                        Context.Out.Print(GetCmdsInfo());
+                        Context.Out.Echo(GetCmdsInfo());
                     }
                 }
 
@@ -996,7 +996,7 @@ namespace DotNetConsoleAppToolkit.Commands.TextEditor
         {
             Context.Out.SetCursorPos(1, _barY+ 1 );
             Context.Out.EnableInvert();
-            Context.Out.Print($"{GetPositionInfo()} | {_splitedLineIndex} | {GetCursorInfo()} | {GetLastKeyInfo()}               ");            
+            Context.Out.Echo($"{GetPositionInfo()} | {_splitedLineIndex} | {GetCursorInfo()} | {GetLastKeyInfo()}               ");            
         }
 
         string GetBarIndex() => $"({_cmdBarIndex}/{_maxCmdBarIndex})";

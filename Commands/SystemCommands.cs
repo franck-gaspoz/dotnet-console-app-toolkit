@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
-using static DotNetConsoleAppToolkit.Console.PrintPrimitives;
+using static DotNetConsoleAppToolkit.Console.EchoPrimitives;
 using static DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.Str;
 
@@ -75,7 +75,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             CommandEvaluationContext context
             )
         {
-            context.Out.Println($"{Environment.UserName} [{ColorSettings.Highlight}{Environment.UserDomainName}{ColorSettings.Default}]");
+            context.Out.Echoln($"{Environment.UserName} [{ColorSettings.Highlight}{Environment.UserDomainName}{ColorSettings.Default}]");
             return new CommandResult<(string,string)>((Environment.UserName,Environment.UserDomainName));
         }
     }

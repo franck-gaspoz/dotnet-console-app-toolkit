@@ -155,7 +155,7 @@ namespace DotNetConsoleAppToolkit
             if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(s);
             var ls = (s + "").Split(_crlf, StringSplitOptions.None)
                 .Select(x => ColorSettings.Log + x);
-            Out.Println(ls);
+            Out.Echoln(ls);
         }
 
         #endregion
@@ -169,7 +169,7 @@ namespace DotNetConsoleAppToolkit
             lock (Out.Lock)
             {
                 Out.RedirecToErr = true;
-                Out.Print($"{ColorSettings.Error}{s}{ColorSettings.Default}", lineBreak);
+                Out.Echo($"{ColorSettings.Error}{s}{ColorSettings.Default}", lineBreak);
                 Out.RedirecToErr = false;
             }
         }
@@ -182,7 +182,7 @@ namespace DotNetConsoleAppToolkit
         {
             lock (Out.Lock)
             {
-                Out.Print($"{ColorSettings.Warning}{s}{ColorSettings.Default}", lineBreak);
+                Out.Echo($"{ColorSettings.Warning}{s}{ColorSettings.Default}", lineBreak);
             }
         }
 
@@ -190,7 +190,7 @@ namespace DotNetConsoleAppToolkit
         {
             lock (Out.Lock)
             {
-                if (prompt != null) Out.Print(prompt);
+                if (prompt != null) Out.Echo(prompt);
             }
             return sc.ReadLine();
         }
@@ -199,14 +199,14 @@ namespace DotNetConsoleAppToolkit
         {
             Out.Locked(() =>
             {
-                Out.Println($"OS={Environment.OSVersion} {(Environment.Is64BitOperatingSystem ? "64" : "32")}bits");
-                Out.Println($"{White}{Bkf}{ColorSettings.HighlightIdentifier}window:{Rf} left={ColorSettings.Numeric}{sc.WindowLeft}{Rf},top={ColorSettings.Numeric}{sc.WindowTop}{Rf},width={ColorSettings.Numeric}{sc.WindowWidth}{Rf},height={ColorSettings.Numeric}{sc.WindowHeight}{Rf},largest width={ColorSettings.Numeric}{sc.LargestWindowWidth}{Rf},largest height={ColorSettings.Numeric}{sc.LargestWindowHeight}{Rf}");
-                Out.Println($"{ColorSettings.HighlightIdentifier}buffer:{Rf} width={ColorSettings.Numeric}{sc.BufferWidth}{Rf},height={ColorSettings.Numeric}{sc.BufferHeight}{Rf} | input encoding={ColorSettings.Numeric}{sc.InputEncoding.EncodingName}{Rf} | output encoding={ColorSettings.Numeric}{sc.OutputEncoding.EncodingName}{Rf}");
-                Out.Println($"{White}default background color={Bkf}{ColorSettings.KeyWord}{DefaultBackground}{Rf} | default foreground color={ColorSettings.KeyWord}{DefaultForeground}{Rf}");
+                Out.Echoln($"OS={Environment.OSVersion} {(Environment.Is64BitOperatingSystem ? "64" : "32")}bits");
+                Out.Echoln($"{White}{Bkf}{ColorSettings.HighlightIdentifier}window:{Rf} left={ColorSettings.Numeric}{sc.WindowLeft}{Rf},top={ColorSettings.Numeric}{sc.WindowTop}{Rf},width={ColorSettings.Numeric}{sc.WindowWidth}{Rf},height={ColorSettings.Numeric}{sc.WindowHeight}{Rf},largest width={ColorSettings.Numeric}{sc.LargestWindowWidth}{Rf},largest height={ColorSettings.Numeric}{sc.LargestWindowHeight}{Rf}");
+                Out.Echoln($"{ColorSettings.HighlightIdentifier}buffer:{Rf} width={ColorSettings.Numeric}{sc.BufferWidth}{Rf},height={ColorSettings.Numeric}{sc.BufferHeight}{Rf} | input encoding={ColorSettings.Numeric}{sc.InputEncoding.EncodingName}{Rf} | output encoding={ColorSettings.Numeric}{sc.OutputEncoding.EncodingName}{Rf}");
+                Out.Echoln($"{White}default background color={Bkf}{ColorSettings.KeyWord}{DefaultBackground}{Rf} | default foreground color={ColorSettings.KeyWord}{DefaultForeground}{Rf}");
                 if (RuntimeEnvironment.OSType == OSPlatform.Windows)
                 {
-                    Out.Println($"number lock={ColorSettings.Numeric}{sc.NumberLock}{Rf} | capslock={ColorSettings.Numeric}{sc.CapsLock}{Rf}");            // TODO: not supported on linux ubuntu 18.04 wsl
-                    Out.Println($"cursor visible={ColorSettings.Numeric}{sc.CursorVisible}{Rf} | cursor size={ColorSettings.Numeric}{sc.CursorSize}");     // TODO: not supported on linux ubuntu 18.04 wsl
+                    Out.Echoln($"number lock={ColorSettings.Numeric}{sc.NumberLock}{Rf} | capslock={ColorSettings.Numeric}{sc.CapsLock}{Rf}");            // TODO: not supported on linux ubuntu 18.04 wsl
+                    Out.Echoln($"cursor visible={ColorSettings.Numeric}{sc.CursorVisible}{Rf} | cursor size={ColorSettings.Numeric}{sc.CursorSize}");     // TODO: not supported on linux ubuntu 18.04 wsl
                 }
             });
         }
@@ -545,7 +545,7 @@ namespace DotNetConsoleAppToolkit
             return $"{CommandBlockBeginChar}{cmd}{CommandBlockEndChar}";
         }
 
-        public static string GetCmd(PrintDirectives cmd, string value = null)
+        public static string GetCmd(EchoDirectives cmd, string value = null)
         {
             if (value != null)
                 return $"{CommandBlockBeginChar}{cmd}{CommandValueAssignationChar}{value}{CommandBlockEndChar}";
@@ -580,88 +580,88 @@ namespace DotNetConsoleAppToolkit
 
         #region commands shortcuts
 
-        public static string Clleft => GetCmd(PrintDirectives.clleft);
-        public static string Clright => GetCmd(PrintDirectives.clright);
-        public static string Fillright => GetCmd(PrintDirectives.fillright);
-        public static string Cl => GetCmd(PrintDirectives.cl);
-        public static string Chome => GetCmd(PrintDirectives.chome);
+        public static string Clleft => GetCmd(EchoDirectives.clleft);
+        public static string Clright => GetCmd(EchoDirectives.clright);
+        public static string Fillright => GetCmd(EchoDirectives.fillright);
+        public static string Cl => GetCmd(EchoDirectives.cl);
+        public static string Chome => GetCmd(EchoDirectives.chome);
 
-        public static string Lion => GetCmd(PrintDirectives.lion);
-        public static string Bon => GetCmd(PrintDirectives.bon);
-        public static string Blon => GetCmd(PrintDirectives.blon);
+        public static string Lion => GetCmd(EchoDirectives.lion);
+        public static string Bon => GetCmd(EchoDirectives.bon);
+        public static string Blon => GetCmd(EchoDirectives.blon);
 
-        public static string Cleft => GetCmd(PrintDirectives.cleft);
-        public static string Cright => GetCmd(PrintDirectives.cright);
-        public static string Cup => GetCmd(PrintDirectives.cup);
-        public static string Cdown => GetCmd(PrintDirectives.cdown);
-        public static string Cnleft(int n) => GetCmd(PrintDirectives.cleft+"",n+"");
-        public static string Cnright(int n) => GetCmd(PrintDirectives.cright + "", n + "");
-        public static string Cnup(int n) => GetCmd(PrintDirectives.cup + "", n + "");
-        public static string Cndown(int n) => GetCmd(PrintDirectives.cdown + "", n + "");
+        public static string Cleft => GetCmd(EchoDirectives.cleft);
+        public static string Cright => GetCmd(EchoDirectives.cright);
+        public static string Cup => GetCmd(EchoDirectives.cup);
+        public static string Cdown => GetCmd(EchoDirectives.cdown);
+        public static string Cnleft(int n) => GetCmd(EchoDirectives.cleft+"",n+"");
+        public static string Cnright(int n) => GetCmd(EchoDirectives.cright + "", n + "");
+        public static string Cnup(int n) => GetCmd(EchoDirectives.cup + "", n + "");
+        public static string Cndown(int n) => GetCmd(EchoDirectives.cdown + "", n + "");
 
-        public static string Invon => GetCmd(PrintDirectives.invon);
-        public static string Uon => GetCmd(PrintDirectives.uon);
-        public static string Tdoff => GetCmd(PrintDirectives.tdoff);
+        public static string Invon => GetCmd(EchoDirectives.invon);
+        public static string Uon => GetCmd(EchoDirectives.uon);
+        public static string Tdoff => GetCmd(EchoDirectives.tdoff);
         
-        public static string DefaultBackgroundCmd => GetCmd(PrintDirectives.b + "", DefaultBackground.ToString().ToLower());
-        public static string DefaultForegroundCmd => GetCmd(PrintDirectives.f + "", DefaultForeground.ToString().ToLower());
-        public static string Rdc => GetCmd(PrintDirectives.rdc);
+        public static string DefaultBackgroundCmd => GetCmd(EchoDirectives.b + "", DefaultBackground.ToString().ToLower());
+        public static string DefaultForegroundCmd => GetCmd(EchoDirectives.f + "", DefaultForeground.ToString().ToLower());
+        public static string Rdc => GetCmd(EchoDirectives.rdc);
 
-        public static string Bblack => GetCmd(PrintDirectives.b+"", "black");
-        public static string Bdarkblue => GetCmd(PrintDirectives.b , "darkblue");
-        public static string Bdarkgreen => GetCmd(PrintDirectives.b , "darkgreen");
-        public static string Bdarkcyan => GetCmd(PrintDirectives.b , "darkcyan");
-        public static string Bdarkred => GetCmd(PrintDirectives.b , "darkred");
-        public static string Bdarkmagenta => GetCmd(PrintDirectives.b , "darkmagenta");
-        public static string Bdarkyellow => GetCmd(PrintDirectives.b , "darkyellow");
-        public static string Bgray => GetCmd(PrintDirectives.b , "gray");
-        public static string Bdarkgray => GetCmd(PrintDirectives.b , "darkgray");
-        public static string Bblue => GetCmd(PrintDirectives.b , "blue");
-        public static string Bgreen => GetCmd(PrintDirectives.b , "green");
-        public static string Bcyan => GetCmd(PrintDirectives.b , "cyan");
-        public static string Bred => GetCmd(PrintDirectives.b , "red");
-        public static string Bmagenta => GetCmd(PrintDirectives.b , "magenta");
-        public static string Byellow => GetCmd(PrintDirectives.b , "yellow");
-        public static string Bwhite => GetCmd(PrintDirectives.b , "white");
-        public static string Black => GetCmd(PrintDirectives.f , "black");
-        public static string Darkblue => GetCmd(PrintDirectives.f , "darkblue");
-        public static string Darkgreen => GetCmd(PrintDirectives.f , "darkgreen");
-        public static string Darkcyan => GetCmd(PrintDirectives.f , "darkcyan");
-        public static string Darkred => GetCmd(PrintDirectives.f , "darkred");
-        public static string Darkmagenta => GetCmd(PrintDirectives.f , "darkmagenta");
-        public static string Darkyellow => GetCmd(PrintDirectives.f , "darkyellow");
-        public static string Gray => GetCmd(PrintDirectives.f , "gray");
-        public static string Darkgray => GetCmd(PrintDirectives.f , "darkgray");
-        public static string Blue => GetCmd(PrintDirectives.f , "blue");
-        public static string Green => GetCmd(PrintDirectives.f , "green");
-        public static string Cyan => GetCmd(PrintDirectives.f , "cyan");
-        public static string Red => GetCmd(PrintDirectives.f , "red");
-        public static string Magenta => GetCmd(PrintDirectives.f , "magenta");
-        public static string Yellow => GetCmd(PrintDirectives.f , "yellow");
-        public static string White => GetCmd(PrintDirectives.f , "white");
+        public static string Bblack => GetCmd(EchoDirectives.b+"", "black");
+        public static string Bdarkblue => GetCmd(EchoDirectives.b , "darkblue");
+        public static string Bdarkgreen => GetCmd(EchoDirectives.b , "darkgreen");
+        public static string Bdarkcyan => GetCmd(EchoDirectives.b , "darkcyan");
+        public static string Bdarkred => GetCmd(EchoDirectives.b , "darkred");
+        public static string Bdarkmagenta => GetCmd(EchoDirectives.b , "darkmagenta");
+        public static string Bdarkyellow => GetCmd(EchoDirectives.b , "darkyellow");
+        public static string Bgray => GetCmd(EchoDirectives.b , "gray");
+        public static string Bdarkgray => GetCmd(EchoDirectives.b , "darkgray");
+        public static string Bblue => GetCmd(EchoDirectives.b , "blue");
+        public static string Bgreen => GetCmd(EchoDirectives.b , "green");
+        public static string Bcyan => GetCmd(EchoDirectives.b , "cyan");
+        public static string Bred => GetCmd(EchoDirectives.b , "red");
+        public static string Bmagenta => GetCmd(EchoDirectives.b , "magenta");
+        public static string Byellow => GetCmd(EchoDirectives.b , "yellow");
+        public static string Bwhite => GetCmd(EchoDirectives.b , "white");
+        public static string Black => GetCmd(EchoDirectives.f , "black");
+        public static string Darkblue => GetCmd(EchoDirectives.f , "darkblue");
+        public static string Darkgreen => GetCmd(EchoDirectives.f , "darkgreen");
+        public static string Darkcyan => GetCmd(EchoDirectives.f , "darkcyan");
+        public static string Darkred => GetCmd(EchoDirectives.f , "darkred");
+        public static string Darkmagenta => GetCmd(EchoDirectives.f , "darkmagenta");
+        public static string Darkyellow => GetCmd(EchoDirectives.f , "darkyellow");
+        public static string Gray => GetCmd(EchoDirectives.f , "gray");
+        public static string Darkgray => GetCmd(EchoDirectives.f , "darkgray");
+        public static string Blue => GetCmd(EchoDirectives.f , "blue");
+        public static string Green => GetCmd(EchoDirectives.f , "green");
+        public static string Cyan => GetCmd(EchoDirectives.f , "cyan");
+        public static string Red => GetCmd(EchoDirectives.f , "red");
+        public static string Magenta => GetCmd(EchoDirectives.f , "magenta");
+        public static string Yellow => GetCmd(EchoDirectives.f , "yellow");
+        public static string White => GetCmd(EchoDirectives.f , "white");
 
-        public static string Bkf => GetCmd(PrintDirectives.bkf );
-        public static string Rf => GetCmd(PrintDirectives.rsf );
-        public static string Bkb => GetCmd(PrintDirectives.bkb );
-        public static string Rb => GetCmd(PrintDirectives.rsb );
-        public static string Cls => GetCmd(PrintDirectives.cls );
-        public static string Br => GetCmd(PrintDirectives.br );
+        public static string Bkf => GetCmd(EchoDirectives.bkf );
+        public static string Rf => GetCmd(EchoDirectives.rsf );
+        public static string Bkb => GetCmd(EchoDirectives.bkb );
+        public static string Rb => GetCmd(EchoDirectives.rsb );
+        public static string Cls => GetCmd(EchoDirectives.cls );
+        public static string Br => GetCmd(EchoDirectives.br );
 
-        public static string B(ConsoleColor c) => GetCmd(PrintDirectives.b , c+"");
-        public static string B8(ConsoleColor c) => GetCmd(PrintDirectives.b8 , c+"");
-        public static string B24(ConsoleColor c) => GetCmd(PrintDirectives.b24 , c+"");
+        public static string B(ConsoleColor c) => GetCmd(EchoDirectives.b , c+"");
+        public static string B8(ConsoleColor c) => GetCmd(EchoDirectives.b8 , c+"");
+        public static string B24(ConsoleColor c) => GetCmd(EchoDirectives.b24 , c+"");
 
-        public static string F(ConsoleColor c) => GetCmd(PrintDirectives.f , c+"");
-        public static string F8(ConsoleColor c) => GetCmd(PrintDirectives.f8 , c+"");
-        public static string F24(ConsoleColor c) => GetCmd(PrintDirectives.f24 , c+"");
+        public static string F(ConsoleColor c) => GetCmd(EchoDirectives.f , c+"");
+        public static string F8(ConsoleColor c) => GetCmd(EchoDirectives.f8 , c+"");
+        public static string F24(ConsoleColor c) => GetCmd(EchoDirectives.f24 , c+"");
 
-        public static string Bkcr => GetCmd(PrintDirectives.bkcr );
-        public static string Rscr => GetCmd(PrintDirectives.rscr );
-        public static string Crx(int x) => GetCmd(PrintDirectives.crx , x +"");
-        public static string Cry(int y) => GetCmd(PrintDirectives.cry , y +"");
-        public static string Cr(int x, int y) => $"{GetCmd(PrintDirectives.crx , x +"" )}{GetCmd(PrintDirectives.cry , y+"" )}";
+        public static string Bkcr => GetCmd(EchoDirectives.bkcr );
+        public static string Rscr => GetCmd(EchoDirectives.rscr );
+        public static string Crx(int x) => GetCmd(EchoDirectives.crx , x +"");
+        public static string Cry(int y) => GetCmd(EchoDirectives.cry , y +"");
+        public static string Cr(int x, int y) => $"{GetCmd(EchoDirectives.crx , x +"" )}{GetCmd(EchoDirectives.cry , y+"" )}";
 
-        public static string Exec(string csharpText) => GetCmd(PrintDirectives.exec , csharpText);
+        public static string Exec(string csharpText) => GetCmd(EchoDirectives.exec , csharpText);
 
         public static string Tab => "".PadLeft(TabLength, ' ');
 

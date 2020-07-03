@@ -1,5 +1,4 @@
 ﻿using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
-using static DotNetConsoleAppToolkit.DotNetConsole;
 
 namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 {
@@ -7,13 +6,13 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
     public class ConsoleCommands : ICommandsDeclaringType
     {
         const string _printDocText =
-@"text can contains (uon)print directives(tdoff) that changes the print behavior. 
-the print directive syntax is formed according to these pattern:
+@"text can contains (uon)echo directives(tdoff) that changes the echo behavior. 
+the echo directive syntax is formed according to these pattern:
 
 (f=darkyellow)(printDirective) or (printDirective=printDirectiveValue)(rdc)
 
-- multiple print directives can be separated by a (f=darkyellow),(rdc) to be grouped in a single text in parentheses: (f=darkyellow)(printDirective1,printDirective2=..,printDirective3)(rdc)
-- a print directive value can be written inside a 'code' text block, depending on each print directive, with the syntax: (f=darkyellow)[[...]](rdc)
+- multiple echo directives can be separated by a (f=darkyellow),(rdc) to be grouped in a single text in parentheses: (f=darkyellow)(echoDirective1,echoDirective2=..,echoDirective3)(rdc)
+- an echo directive value can be written inside a 'code' text block, depending on each echo directive, with the syntax: (f=darkyellow)[[...]](rdc)
 - symbols of this grammar can be configured throught the class (uon)DotNetConsole(tdoff)
 
 current print directives are:
@@ -41,7 +40,7 @@ current print directives are:
     (f=yellow)invon(rdc)               : inverted colors on
     (f=yellow)tdoff(rdc)               : text decoration off and reset default colors
 
-    (3) (uon)print flow control:(tdoff)
+    (3) (uon)echo flow control:(tdoff)
 
     (f=yellow)cls(rdc)                 : clear screen
     (f=yellow)br(rdc)                  : jump begin of next line (line break)   
@@ -64,7 +63,7 @@ current print directives are:
 
     (4) (uon)script engine:(tdoff)
 
-    (f=yellow)exec=(f=darkyellow)CodeBlock|[[CodeBlock]](rdc) : executes and print result of a C# code block
+    (f=yellow)exec=(f=darkyellow)CodeBlock|[[CodeBlock]](rdc) : executes and echo result of a C# code block
 
     (5) (uon)application control:(tdoff)
 
@@ -74,7 +73,7 @@ current print directives are:
 ";
 
         [Command("write text to the output stream", null, _printDocText)]
-        public CommandResult<string> Print(
+        public CommandResult<string> Echo(
             CommandEvaluationContext context,
             [Parameter("text to be writen to output", true)] string expr = ""
             )
@@ -82,14 +81,14 @@ current print directives are:
             lock (context.Out.Lock)
             {
                 context.Out.EchoOn();
-                context.Out.Print(expr);
+                context.Out.Echo(expr);
                 var str = context.Out.EchoOff();
                 return new CommandResult<string>(str);
             }
         }
 
         [Command("write text to the output stream followed by a line break", null, _printDocText)]
-        public CommandResult<string> Println(
+        public CommandResult<string> Echoln(
             CommandEvaluationContext context,
             [Parameter("text to be writen to output", true)] string expr = ""
             )
@@ -97,7 +96,7 @@ current print directives are:
             lock (context.Out.Lock)
             {
                 context.Out.EchoOn();
-                context.Out.Println(expr);
+                context.Out.Echoln(expr);
                 var str = context.Out.EchoOff();
                 return new CommandResult<string>(str);
             }

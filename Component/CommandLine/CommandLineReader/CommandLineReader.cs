@@ -63,7 +63,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                 {
                     lock (ConsoleLock)
                     {
-                        Out.Print(_prompt);
+                        Out.Echo(_prompt);
                         _beginOfLineCurPos = Out.CursorPos;
                         Out.ConsolePrint(_inputReaderStringBuilder.ToString());
                     }
@@ -88,7 +88,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                             if (Out.CursorTop == slines.Min(o => o.Y))
                             {
                                 Out.CursorLeft = left;
-                                Out.Print(_prompt);
+                                Out.Echo(_prompt);
                             }
                             var enableConstraintConsolePrintInsideWorkArea = EnableConstraintConsolePrintInsideWorkArea;
                             EnableConstraintConsolePrintInsideWorkArea = false;
@@ -240,7 +240,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                         {
                             lock (ConsoleLock)
                             {
-                                Out.Print(prompt);
+                                Out.Echo(prompt);
                                 _beginOfLineCurPos = Out.CursorPos;
                             }
                             _readingStarted = true;

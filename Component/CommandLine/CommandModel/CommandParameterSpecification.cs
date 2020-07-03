@@ -77,7 +77,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandModel
 
         public string ToColorizedString(bool grammarSymbolsVisible=true)
         {
-            var f = GetCmd(PrintDirectives.f + "", DefaultForeground.ToString().ToLower());
+            var f = GetCmd(EchoDirectives.f + "", DefaultForeground.ToString().ToLower());
             var r = $"{ColorSettings.ParameterName}{ParameterName}{f}";
             if (IsOption)
             {

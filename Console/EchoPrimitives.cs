@@ -5,7 +5,7 @@ using static DotNetConsoleAppToolkit.DotNetConsole;
 
 namespace DotNetConsoleAppToolkit.Console
 {
-    public class PrintPrimitives
+    public class EchoPrimitives
     {
         public static void Print(
             ConsoleTextWriterWrapper @out,
@@ -33,16 +33,16 @@ namespace DotNetConsoleAppToolkit.Console
                 tablewidth += table.Columns[i].ColumnName.PadRight(colLengths[i], ' ').Length + colseplength;
             var line = noBorders ? "" : (ColorSettings.TableBorder + "".PadRight(tablewidth, '-'));
 
-            if (!noBorders) @out.Println(line);
+            if (!noBorders) @out.Echoln(line);
             for (int i=0;i<table.Columns.Count;i++)
             {
-                if (i == 0) @out.Print(colsep);
+                if (i == 0) @out.Echo(colsep);
                 var col = table.Columns[i];
                 var colName = col.ColumnName.PadRight(colLengths[i], ' ');
-                @out.Print(ColorSettings.TableColumnName + colName+colsep);
+                @out.Echo(ColorSettings.TableColumnName + colName+colsep);
             }
-            @out.Println();
-            if (!noBorders) @out.Println(line);
+            @out.Echoln();
+            if (!noBorders) @out.Echoln(line);
 
             foreach ( var rw in table.Rows )
             {
@@ -50,21 +50,21 @@ namespace DotNetConsoleAppToolkit.Console
                 {
                     @out.EnableFillLineFromCursor = true;
                     @out.ShowCur();
-                    @out.Println(ColorSettings.Default + "");
+                    @out.Echoln(ColorSettings.Default + "");
                     return;
                 }
                 var row = (DataRow)rw;
                 var arr = row.ItemArray;
                 for (int i=0;i<arr.Length;i++)
                 {
-                    if (i == 0) Out.Print(colsep);
+                    if (i == 0) Out.Echo(colsep);
                     var txt = (arr[i]==null)?"":arr[i].ToString();
                     var l = Out.GetPrint(txt).Length;
-                    @out.Print(ColorSettings.Default+txt+("".PadRight(Math.Max(0,colLengths[i]-l),' '))+colsep);
+                    @out.Echo(ColorSettings.Default+txt+("".PadRight(Math.Max(0,colLengths[i]-l),' '))+colsep);
                 }
-                @out.Println();
+                @out.Echoln();
             }
-            @out.Println(line+ColorSettings.Default.ToString());
+            @out.Echoln(line+ColorSettings.Default.ToString());
             @out.ShowCur();
             @out.EnableFillLineFromCursor = true;
         }
