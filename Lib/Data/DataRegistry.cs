@@ -35,15 +35,6 @@ namespace DotNetConsoleAppToolkit.Lib.Data
             return r;
         }
 
-        public (bool found,object data) GetValue(string path)
-        {
-            if (_objects.TryGetValue(path, out var value))
-                return (true,value);
-            var (f,r) = RootObject.GetValue(SplitPath(path));
-            _objects.AddOrReplace(path, r);
-            return (f,r);
-        }
-
         public (bool found, object data) GetPathOwner(string path)
             => RootObject.GetPathOwner(SplitPath(path));
                

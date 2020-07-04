@@ -78,12 +78,6 @@ namespace DotNetConsoleAppToolkit.Lib.Data
                 return (false,null);
         }
 
-        public (bool found,object data) GetValue(ArraySegment<string> path)
-        {
-            var (f,r) = Get(path);
-            return (f, r);
-        }
-
         public bool Has(ArraySegment<string> path)
             => GetPathOwner(path).found;
 

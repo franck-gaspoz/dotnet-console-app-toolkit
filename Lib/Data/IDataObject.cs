@@ -9,7 +9,6 @@ namespace DotNetConsoleAppToolkit.Lib.Data
         bool IsReadOnly { get; }
 
         (bool found, object data) Get(ArraySegment<string> path);
-        (bool found, object data) GetValue(ArraySegment<string> path);
         (bool found, object data) GetPathOwner(ArraySegment<string> path);
         bool Has(ArraySegment<string> path);
         void Set(ArraySegment<string> path, object value);

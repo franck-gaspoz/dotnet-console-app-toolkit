@@ -34,45 +34,45 @@ namespace DotNetConsoleAppToolkit.Lib.Data
             IsReadOnly = isReadOnly;
         }
 
-        public object Get(ArraySegment<string> path)
-            => Get(Value, path);        
+        public (bool found, object data) Get(ArraySegment<string> path)
+            => Get(Value, path);
 
-        object Get(object target, ArraySegment<string> path)
+        (bool found, object data) Get(object target, ArraySegment<string> path)
         {
-            if (target == null) return null;
-            if (path.Count == 0) return null;
+            if (target == null) return (false,null);
+            if (path.Count == 0) return (false,null);
             var attrname = path[0];
             var fieldsInfos = target.GetType().GetFields().ToDictionary((x) => x.Name);
             if (fieldsInfos.TryGetValue(attrname, out var fieldInfo))
             {
-                if (path.Count == 1) return fieldInfo.GetValue(target);
+                if (path.Count == 1) return (true,fieldInfo.GetValue(target));
                 return Get(target, path.Slice(1));
             }
             else
-                return null;
+                return (false,null);
         }
 
-        public object GetPathOwner(ArraySegment<string> path)
-            => GetPathOwner(Value, path);        
+        public (bool found, object data) GetPathOwner(ArraySegment<string> path)
+            => GetPathOwner(Value, path);
 
-        object GetPathOwner(object target, ArraySegment<string> path) { 
-            if (path.Count == 0) return null;
+        (bool found, object data) GetPathOwner(object target, ArraySegment<string> path) { 
+            if (path.Count == 0) return (false,null);
             var attrname = path[0];
             var fieldsInfos = target.GetType().GetFields().ToDictionary((x) => x.Name);
             if (fieldsInfos.TryGetValue(attrname, out var fieldInfo))
             {
-                if (path.Count == 1) return fieldInfo.GetValue(target);
+                if (path.Count == 1) return (true,fieldInfo.GetValue(target));
                 return GetPathOwner(target,path.Slice(1));
             }
             else
-                return null;
+                return (false,null);
         }
 
         public bool Has(ArraySegment<string> path)
             => Has(Value, path);
 
         bool Has(object target, ArraySegment<string> path)
-            => GetPathOwner(path) != null;
+            => GetPathOwner(path).found;
 
         public void Set(ArraySegment<string> path, object value)
             => Set(this, path, value);

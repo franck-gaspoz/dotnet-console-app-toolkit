@@ -41,7 +41,7 @@ namespace DotNetConsoleAppToolkit.Component.Data
 
         public DataValue GetValue(string path)
         {
-            var (f, r) = _dataRegistry.GetValue(path);
+            var (f, r) = _dataRegistry.Get(path);
             if (!f) throw new VariableNotFoundException(GetVariableName(path));
             return (DataValue)r;
         }

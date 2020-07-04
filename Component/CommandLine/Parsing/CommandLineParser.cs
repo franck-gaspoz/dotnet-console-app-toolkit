@@ -3,6 +3,7 @@ using DotNetConsoleAppToolkit.Console;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
 {
@@ -84,6 +85,19 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
                 }
                 i++;
             }
+
+            if (vars.Count > 0)
+            {
+                var nexpr = new StringBuilder();
+                int x = 0;
+                foreach (var vr in vars)
+                {
+                    nexpr.Append(expr.Substring(x, vr.X - 1));
+                    nexpr.Append("?");
+                    x = vr.Y + 1;
+                }
+            }
+
             return expr;
         }
 
