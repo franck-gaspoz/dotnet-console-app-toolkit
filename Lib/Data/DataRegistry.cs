@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using static DotNetConsoleAppToolkit.Component.Data.VariableSyntax;
 
 namespace DotNetConsoleAppToolkit.Lib.Data
 {
@@ -13,8 +15,8 @@ namespace DotNetConsoleAppToolkit.Lib.Data
         {
             var p = SplitPath(path);
             RootObject.Set(p, value);
-            _objects.AddOrReplace(path,
-                (IDataObject)RootObject.Get(p));            
+            var (f, _) = RootObject.Get(p);
+            if (f) _objects.AddOrReplace(path,value);            
         }
 
         public void Unset(string path)
@@ -24,30 +26,26 @@ namespace DotNetConsoleAppToolkit.Lib.Data
                 _objects.Remove(path);
         }
 
-        public object Get(string path)
+        public (bool found, object data) Get(string path)
         {
             if (_objects.TryGetValue(path, out var value))
-                return value;
+                return (true,value);
             var r = RootObject.Get(SplitPath(path));
             _objects.AddOrReplace(path, r);
             return r;
         }
 
-        public DataValue GetValue(string path)
+        public (bool found,object data) GetValue(string path)
         {
             if (_objects.TryGetValue(path, out var value))
-                return (DataValue)value;
-            var r = RootObject.Get(SplitPath(path));
+                return (true,value);
+            var (f,r) = RootObject.GetValue(SplitPath(path));
             _objects.AddOrReplace(path, r);
-            return (DataValue)r;
+            return (f,r);
         }
 
-        public DataObject GetPathOwner(string path)
-            => (DataObject)RootObject.GetPathOwner(SplitPath(path));
-
-        string[] SplitPath(string path)
-        {
-            return path?.Split('.');
-        }
+        public (bool found, object data) GetPathOwner(string path)
+            => RootObject.GetPathOwner(SplitPath(path));
+               
     }
 }

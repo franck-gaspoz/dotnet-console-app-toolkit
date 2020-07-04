@@ -386,7 +386,10 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
         /// </summary>
         /// <param name="expr">expression to be evaluated</param>
         /// <returns>return code</returns>
-        public ExpressionEvaluationResult Eval(string expr,int outputX)
+        public ExpressionEvaluationResult Eval(
+            CommandEvaluationContext context,
+            string expr,
+            int outputX)
         {
             var parseResult = Parse(_syntaxAnalyzer,expr);
             ExpressionEvaluationResult r = null;

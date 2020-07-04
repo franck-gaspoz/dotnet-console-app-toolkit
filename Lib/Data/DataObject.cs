@@ -65,33 +65,39 @@ namespace DotNetConsoleAppToolkit.Lib.Data
             }
         }
 
-        public object Get(ArraySegment<string> path)
+        public (bool found,object data) Get(ArraySegment<string> path)
         {
-            if (path.Count == 0) return null;
+            if (path.Count == 0) return (false,null);
             var attrname = path[0];
             if (_attributes.TryGetValue(attrname, out var attr))
             {
-                if (path.Count == 1) return attr;
+                if (path.Count == 1) return (true,attr);
                 return attr.Get(path.Slice(1));
             }
             else
-                return null;
+                return (false,null);
+        }
+
+        public (bool found,object data) GetValue(ArraySegment<string> path)
+        {
+            var (f,r) = Get(path);
+            return (f, r);
         }
 
         public bool Has(ArraySegment<string> path)
-            => GetPathOwner(path) != null;
+            => GetPathOwner(path).found;
 
-        public object GetPathOwner(ArraySegment<string> path)
+        public (bool found, object data) GetPathOwner(ArraySegment<string> path)
         {
-            if (path.Count == 0) return null;
+            if (path.Count == 0) return (false,null);
             var attrname = path[0];
             if (_attributes.ContainsKey(attrname))
             {
-                if (path.Count == 1) return this;
+                if (path.Count == 1) return (true,this);
                 return GetPathOwner(path.Slice(1));
             }
             else
-                return null;
+                return (false,null);
         }
     }
 

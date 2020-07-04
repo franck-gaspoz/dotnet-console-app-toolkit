@@ -1,4 +1,5 @@
 ﻿using DotNetConsoleAppToolkit.Component.Data;
+using DotNetConsoleAppToolkit.Console;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,19 +70,26 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
         {
             var t = expr.ToCharArray();
             var i = 0;
+            var vars = new List<StringSegment>();
+            
             while (i<t.Length)
             {
                 var c = t[i];
                 if (c==VariablePrefixCharacter && (i==0 || t[i-1]!='\\' ))
                 {
                     var j = VariableSyntax.FindEndOfVariableName(t, i+1);
+                    var variable = expr.Substring(i, j - i + 1);
+                    vars.Add(new StringSegment(variable, i, j, j - i + 1));
+                    i = j;
                 }
                 i++;
             }
             return expr;
         }
 
-        public static ParseResult Parse(SyntaxAnalyser syntaxAnalyzer, string expr)
+        public static ParseResult Parse(
+            SyntaxAnalyser syntaxAnalyzer, 
+            string expr)
         {
             if (expr == null) return new ParseResult(ParseResultType.Empty,null);
             
@@ -89,11 +97,12 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
             if (string.IsNullOrEmpty(expr)) return new ParseResult(ParseResultType.Empty,null);
 
             // substitute variables values
-            
-
+            expr = SubstituteVariables(null, expr);
 
             // TODO: parse & evaluate to be executed expressions (run syntax to be added)
+            // ...
 
+            //
             var splits = SplitExpr(expr);
             var segments = splits.Skip(1).ToArray();
             var token = splits.First();

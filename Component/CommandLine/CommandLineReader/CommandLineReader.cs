@@ -16,7 +16,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
     {
         #region attributes
 
-        public delegate ExpressionEvaluationResult ExpressionEvaluationCommandDelegate(string com,int outputX);
+        public delegate ExpressionEvaluationResult ExpressionEvaluationCommandDelegate(CommandEvaluationContext context, string com,int outputX);
 
         Thread _inputReaderThread;
         
@@ -124,7 +124,6 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
             bool outputStartNextLine = false,
             bool enableHistory = false)
         {
-            
             if (commandLine != null)
             {
                 if (outputStartNextLine) Out.LineBreak();
@@ -136,7 +135,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                     sc.CancelKeyPress += CancelKeyPress;
                     CommandLineProcessor.CancellationTokenSource = new CancellationTokenSource();
                     var task = Task.Run<ExpressionEvaluationResult>(
-                        () => evalCommandDelegate(commandLine, _prompt == null ? 0 : Out.GetPrint(_prompt).Length),
+                        () => evalCommandDelegate(CommandLineProcessor.CommandEvaluationContext, commandLine, _prompt == null ? 0 : Out.GetPrint(_prompt).Length),
                         CommandLineProcessor.CancellationTokenSource.Token
                         );
 
