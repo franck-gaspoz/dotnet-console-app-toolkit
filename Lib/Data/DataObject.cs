@@ -1,26 +1,25 @@
-﻿using DotNetConsoleAppToolkit.Console;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace DotNetConsoleAppToolkit.Lib.Data
 {
     public sealed class DataObjectReadOnlyException : Exception
     {
-        public DataObjectReadOnlyException(DataObject dataObject) : base(
-            $"dataobject name='{dataObject}' is read only"
+        public DataObjectReadOnlyException(IDataObject dataObject) : base(
+            $"DataObject name='{dataObject}' is read only"
             ) { }
     }
 
-    public class DataObject
+    public sealed class DataObject : IDataObject
     {
         public string Name { get; private set; }
 
         public DataObject Parent { get; private set; }
 
-        private readonly Dictionary<string, DataObject> _attributes
-            = new Dictionary<string, DataObject>();
+        private readonly Dictionary<string, IDataObject> _attributes
+            = new Dictionary<string, IDataObject>();
 
-        public readonly bool IsReadOnly = false;
+        public bool IsReadOnly { get; private set; }
 
         public DataObject(string name, bool isReadOnly = false)
         {
@@ -28,40 +27,72 @@ namespace DotNetConsoleAppToolkit.Lib.Data
             IsReadOnly = isReadOnly;
         }
 
-        public void Set(string path,string value)
+        public void Set(ArraySegment<string> path, object value)
         {
             if (IsReadOnly) throw new DataObjectReadOnlyException(this);
+            if (path.Count == 0) return;
+            var attrname = path[0];
+            if (_attributes.TryGetValue(attrname, out var attr))
+            {
+                if (path.Count == 1)
+                {
+                    _attributes[attrname] = new DataValue(attrname, value);
+                }
+                else
+                    attr.Set(path.Slice(1), value);
+            }
+            else
+            {
+                var node = new DataObject(attrname);
+                _attributes[attrname] = node;
+                node.Set(path.Slice(1), value);
+            }
         }
 
-        public void Unset(string path)
+        public void Unset(ArraySegment<string> path)
         {
             if (IsReadOnly) throw new DataObjectReadOnlyException(this);
+            if (path.Count == 0) return;
+            var attrname = path[0];
+            if (_attributes.TryGetValue(attrname, out var attr))
+            {
+                if (path.Count == 1)
+                {
+                    _attributes.Remove(attrname);
+                }
+                else
+                    attr.Unset(path.Slice(1));
+            }
         }
 
-        public virtual object Get(ArraySegment<string> path)
+        public object Get(ArraySegment<string> path)
         {
             if (path.Count == 0) return null;
             var attrname = path[0];
-            if (_attributes.TryGetValue(attrname, out var value))
+            if (_attributes.TryGetValue(attrname, out var attr))
             {
-                if (path.Count == 1) return value;
-                return value.Get(path.Slice(1));
+                if (path.Count == 1) return attr;
+                return attr.Get(path.Slice(1));
             }
             else
                 return null;
         }
 
-        public virtual bool Has(ArraySegment<string> path)
+        public bool Has(ArraySegment<string> path)
+            => GetPathOwner(path) != null;
+
+        public object GetPathOwner(ArraySegment<string> path)
         {
-            if (path.Count == 0) return false;
+            if (path.Count == 0) return null;
             var attrname = path[0];
             if (_attributes.ContainsKey(attrname))
             {
-                if (path.Count == 1) return true;
-                return Has(path.Slice(1));
+                if (path.Count == 1) return this;
+                return GetPathOwner(path.Slice(1));
             }
             else
-                return false;
+                return null;
         }
     }
+
 }

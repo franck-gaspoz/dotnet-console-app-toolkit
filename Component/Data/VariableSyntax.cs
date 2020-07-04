@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace DotNetConsoleAppToolkit.Component.Data
 {
-    public class ArithmeticExpression
+    public class VariableSyntax
     {
-        /*public bool IsArithmeticExpression(string s)
-        {
-            return false;
-        }*/
-
         public static int FindEndOfVariableName(char[] text,int beginPos)
         {
             int i = beginPos;

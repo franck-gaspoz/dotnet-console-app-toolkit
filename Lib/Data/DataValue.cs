@@ -1,39 +1,41 @@
-﻿using DotNetConsoleAppToolkit.Component.CommandLine;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Reflection;
 
 namespace DotNetConsoleAppToolkit.Lib.Data
 {
-    public class DataValue : DataObject
+    public sealed class DataValueReadOnlyException : Exception
     {
-        public object Value;
-        public Type ValueType { get; protected set; }
-        public bool HasValue { get; protected set; }
+        public DataValueReadOnlyException(IDataObject dataObject) : base(
+            $"DataValue name='{dataObject}' is read only"
+            )
+        { }
+    }
+
+    public sealed class DataValue : IDataObject
+    {
+        public string Name { get; private set; }
+        public DataObject Parent { get; private set; }
+
+        public object Value { get; private set; }
+        public Type ValueType { get; private set; }
+        public bool HasValue { get; private set; }
+
+        public bool IsReadOnly { get; private set; }
 
         public DataValue(
             string name,
             object value,
-            Type valueType = null) : base(name)
+            Type valueType = null,
+            bool isReadOnly = false)
         {
+            Name = name ?? throw new ArgumentNullException(nameof(Name));
             ValueType = valueType ?? value?.GetType();
+            ValueType = ValueType ?? throw new ArgumentNullException(nameof(ValueType));
+            IsReadOnly = isReadOnly;
         }
 
-        static Dictionary<string,FieldInfo> _bkFieldsInfos;
-        private Dictionary<string, FieldInfo> _fieldsInfos {
-            get {
-                if (_bkFieldsInfos == null) _bkFieldsInfos = 
-                        this.GetType().GetFields()
-                        .ToDictionary((x) => x.Name);
-                return _bkFieldsInfos;
-            }
-        }
-
-        public override object Get(ArraySegment<string> path)
-        {
-            return Get(Value, path);
-        }
+        public object Get(ArraySegment<string> path)
+            => Get(Value, path);        
 
         object Get(object target, ArraySegment<string> path)
         {
@@ -43,11 +45,64 @@ namespace DotNetConsoleAppToolkit.Lib.Data
             var fieldsInfos = target.GetType().GetFields().ToDictionary((x) => x.Name);
             if (fieldsInfos.TryGetValue(attrname, out var fieldInfo))
             {
-                if (path.Count == 1) return fieldInfo.GetValue(Value);
-                return Get(Value,path.Slice(1));
+                if (path.Count == 1) return fieldInfo.GetValue(target);
+                return Get(target, path.Slice(1));
             }
             else
                 return null;
+        }
+
+        public object GetPathOwner(ArraySegment<string> path)
+            => GetPathOwner(Value, path);        
+
+        object GetPathOwner(object target, ArraySegment<string> path) { 
+            if (path.Count == 0) return null;
+            var attrname = path[0];
+            var fieldsInfos = target.GetType().GetFields().ToDictionary((x) => x.Name);
+            if (fieldsInfos.TryGetValue(attrname, out var fieldInfo))
+            {
+                if (path.Count == 1) return fieldInfo.GetValue(target);
+                return GetPathOwner(target,path.Slice(1));
+            }
+            else
+                return null;
+        }
+
+        public bool Has(ArraySegment<string> path)
+            => Has(Value, path);
+
+        bool Has(object target, ArraySegment<string> path)
+            => GetPathOwner(path) != null;
+
+        public void Set(ArraySegment<string> path, object value)
+            => Set(this, path, value);
+
+        void Set(object target, ArraySegment<string> path, object value)
+        {
+            if (IsReadOnly) throw new DataObjectReadOnlyException(this);
+            if (target == null) return;
+            if (path.Count == 0) return;
+            var attrname = path[0];
+            var fieldsInfos = target.GetType().GetFields().ToDictionary((x) => x.Name);
+            if (fieldsInfos.TryGetValue(attrname, out var fieldInfo))
+            {
+                if (path.Count == 1)
+                {
+                    fieldInfo.SetValue(target, value);
+                }
+                else
+                    Set(target, path.Slice(1), value);
+            }
+            else
+                throw new DataValueReadOnlyException(this);
+        }
+
+        public void Unset(ArraySegment<string> path)
+            => Unset(this, path);
+
+        void Unset(object target, ArraySegment<string> path)
+        {
+            throw new DataValueReadOnlyException(this);
         }
     }
 }

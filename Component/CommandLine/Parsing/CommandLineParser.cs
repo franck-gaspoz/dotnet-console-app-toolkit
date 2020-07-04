@@ -74,7 +74,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
                 var c = t[i];
                 if (c==VariablePrefixCharacter && (i==0 || t[i-1]!='\\' ))
                 {
-                    var j = ArithmeticExpression.FindEndOfVariableName(t, i+1);
+                    var j = VariableSyntax.FindEndOfVariableName(t, i+1);
                 }
                 i++;
             }

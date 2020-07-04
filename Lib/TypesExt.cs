@@ -24,7 +24,7 @@ namespace DotNetConsoleAppToolkit.Lib
             return null;
         }*/
 
-        public static void AddOrReplace<TK,TV>(this Dictionary<object,TV> dic,string key,TV value)
+        public static void AddOrReplace<TK,TV>(this Dictionary<TK,TV> dic,TK key,TV value)
         {
             if (dic.ContainsKey(key))
                 dic[key] = value;
