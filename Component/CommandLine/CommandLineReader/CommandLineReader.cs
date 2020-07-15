@@ -54,6 +54,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
             _nextPrompt = prompt ?? _defaultPrompt;
         }
 
+        public string GetPrompt() => _prompt;
+
         void Initialize(ExpressionEvaluationCommandDelegate evalCommandDelegate = null)
         {
             if (evalCommandDelegate==null && CommandLineProcessor!=null) _evalCommandDelegate = CommandLineProcessor.Eval;

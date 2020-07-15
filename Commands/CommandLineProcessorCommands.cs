@@ -273,12 +273,18 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
         [Command("set the command line prompt")]
         public CommandResult<string> Prompt(
             CommandEvaluationContext context, 
-            [Parameter("text of the prompt", false)] string prompt
+            [Parameter("set the new text of prompt if given, else prints the current prompt text", true)] string prompt = null
             )
         {
             context.CommandLineProcessor.AssertCommandLineProcessorHasACommandLineReader();
-            context.CommandLineProcessor.CmdLineReader.SetPrompt(prompt);
-            return new CommandResult<string>( prompt);
+            if (prompt == null)
+            {
+                prompt = context.CommandLineProcessor.CmdLineReader.GetPrompt();
+                context.Out.Echoln(prompt,true);
+            }
+            else
+                context.CommandLineProcessor.CmdLineReader.SetPrompt(prompt);
+            return new CommandResult<string>( prompt );
         }
 
         [Command("exit the shell")]
