@@ -14,6 +14,7 @@ namespace DotNetConsoleAppToolkit.Lib.Data
         public List<DataValue> ToList()
         {
             var r = new List<DataValue>();
+            // TODO: do not use objects here, use exploration
             var values = _objects.Values.Where(x => x is DataValue).Cast<DataValue>();
             r.AddRange(values);
             //var subRegistries = _objects.Values.Where(x => x is DataObject);*/
@@ -23,9 +24,9 @@ namespace DotNetConsoleAppToolkit.Lib.Data
         public void Set(string path,object value=null)
         {
             var p = SplitPath(path);
-            RootObject.Set(p, value);
+            var valueObj = RootObject.Set(p, value);
             if (RootObject.Get(p,out var data) && !_objects.ContainsKey(path))
-                _objects.AddOrReplace(path,value);            
+                _objects.AddOrReplace(path, valueObj);            
         }
 
         public void Unset(string path)

@@ -14,7 +14,7 @@ namespace DotNetConsoleAppToolkit.Lib.Data
     {
         public string Name { get; private set; }
 
-        public DataObject Parent { get; private set; }
+        public DataObject Parent { get; set; }
 
         private readonly Dictionary<string, IDataObject> _attributes
             = new Dictionary<string, IDataObject>();
@@ -29,26 +29,40 @@ namespace DotNetConsoleAppToolkit.Lib.Data
             IsReadOnly = isReadOnly;
         }
 
-        public void Set(ArraySegment<string> path, object value = null)
+        public IDataObject Set(ArraySegment<string> path, object value)
         {
+            IDataObject r = null;
             if (IsReadOnly) throw new DataObjectReadOnlyException(this);
-            if (path.Count == 0) return;
+            if (path.Count == 0) return r;
             var attrname = path[0];
             if (_attributes.TryGetValue(attrname, out var attr))
             {
                 if (path.Count == 1)
                 {
-                    _attributes[attrname] = new DataValue(attrname, value);
+                    r = (value is IDataObject) ? (IDataObject)value : new DataValue(attrname, value);
+                    r.Parent = this;
+                    _attributes[attrname] = r;
                 }
                 else
-                    attr.Set(path.Slice(1), value);
+                    r = attr.Set(path.Slice(1), value);
             }
             else
             {
-                var node = new DataObject(attrname);
-                _attributes[attrname] = node;
-                node.Set(path.Slice(1), value);
+                if (path.Count == 1)
+                {
+                    r = (value is IDataObject) ? (IDataObject)value : new DataValue(attrname, value);
+                    r.Parent = this;
+                    _attributes.Add(attrname, r);
+                }
+                else
+                {
+                    var node = new DataObject(attrname);
+                    _attributes[attrname] = node;
+                    node.Parent = this;
+                    r = node.Set(path.Slice(1), value);
+                }
             }
+            return r;
         }
 
         public void Unset(ArraySegment<string> path)

@@ -14,7 +14,7 @@ namespace DotNetConsoleAppToolkit.Lib.Data
     public sealed class DataValue : IDataObject
     {
         public string Name { get; private set; }
-        public DataObject Parent { get; private set; }
+        public DataObject Parent { get; set; }
 
         public object Value { get; private set; }
         public Type ValueType { get; private set; }
@@ -83,14 +83,15 @@ namespace DotNetConsoleAppToolkit.Lib.Data
         bool Has(object target, ArraySegment<string> path, out object data)
             => GetPathOwner(target, path, out data);
 
-        public void Set(ArraySegment<string> path, object value)
+        public IDataObject Set(ArraySegment<string> path, object value)
             => Set(this, path, value);
 
-        void Set(object target, ArraySegment<string> path, object value)
+        IDataObject Set(object target, ArraySegment<string> path, object value)
         {
+            IDataObject r = Parent;
             if (IsReadOnly) throw new DataObjectReadOnlyException(this);
-            if (target == null) return;
-            if (path.Count == 0) return;
+            if (target == null) return r;
+            if (path.Count == 0) return r;
             var attrname = path[0];
             var fieldsInfos = target.GetType().GetFields().ToDictionary((x) => x.Name);
             if (fieldsInfos.TryGetValue(attrname, out var fieldInfo))
@@ -104,6 +105,7 @@ namespace DotNetConsoleAppToolkit.Lib.Data
             }
             else
                 throw new DataValueReadOnlyException(this);
+            return r;
         }
 
         public void Unset(ArraySegment<string> path)

@@ -1,5 +1,6 @@
 ﻿using DotNetConsoleAppToolkit.Lib.Data;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using static DotNetConsoleAppToolkit.Component.Data.VariableSyntax;
 
@@ -24,7 +25,10 @@ namespace DotNetConsoleAppToolkit.Component.Data
         /// </summary>
         public Variables() {
             foreach (var ns in Enum.GetValues(typeof(VariableNameSpace)))
-                _dataRegistry.Set(ns + "");
+                _dataRegistry.Set(ns + "", new DataObject(ns+"",false));
+            var pfx = VariableNameSpace.Env + ".";
+            foreach (DictionaryEntry envvar in Environment.GetEnvironmentVariables())
+                _dataRegistry.Set(pfx+envvar.Key, envvar.Value);
         }
 
         public void Set(string path, object value)
