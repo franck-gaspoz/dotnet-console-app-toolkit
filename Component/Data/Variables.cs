@@ -1,5 +1,6 @@
 ﻿using DotNetConsoleAppToolkit.Lib.Data;
 using System;
+using System.Collections.Generic;
 using static DotNetConsoleAppToolkit.Component.Data.VariableSyntax;
 
 namespace DotNetConsoleAppToolkit.Component.Data
@@ -34,19 +35,21 @@ namespace DotNetConsoleAppToolkit.Component.Data
 
         public object Get(string path)
         {
-            var (f,r) = _dataRegistry.Get(path);
-            if (!f) throw new VariableNotFoundException(GetVariableName(path));
-            return r;
+            if (!_dataRegistry.Get(path,out var data))
+                throw new VariableNotFoundException(GetVariableName(path));
+            return data;
         }
 
         public DataValue GetValue(string path)
         {
-            var (f, r) = _dataRegistry.Get(path);
-            if (!f) throw new VariableNotFoundException(GetVariableName(path));
-            return (DataValue)r;
+            if (!_dataRegistry.Get(path,out var data))
+                throw new VariableNotFoundException(GetVariableName(path));
+            return (DataValue)data;
         }
 
-        public (bool found,object data) GetPathOwner(string path)
-            => _dataRegistry.GetPathOwner(path);
+        public bool GetPathOwner(string path,out object data)
+            => _dataRegistry.GetPathOwner(path,out data);
+
+        public List<DataValue> ToList() => _dataRegistry.ToList();
     }
 }

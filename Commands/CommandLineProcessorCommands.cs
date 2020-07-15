@@ -1,7 +1,9 @@
 ﻿using DotNetConsoleAppToolkit.Commands.FileSystem;
 using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 using DotNetConsoleAppToolkit.Component.CommandLine.Parsing;
+using DotNetConsoleAppToolkit.Component.Data;
 using DotNetConsoleAppToolkit.Console;
+using DotNetConsoleAppToolkit.Lib.Data;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -18,6 +20,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
     [Commands("commands of the command line processor")]
     public class CommandLineProcessorCommands : ICommandsDeclaringType
     {
+        #region help
+
         [Command("print help about commands,commands types and modules")]
         public CommandVoidResult Help(
             CommandEvaluationContext context,
@@ -124,66 +128,6 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             return new CommandVoidResult();
         }
 
-        [Command("list modules of commands if no option specified, else load or unload modules of commands")]
-        [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
-        [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
-        public CommandResult<List<CommandsModule>> Module(
-            CommandEvaluationContext context, 
-            [Option("l", "load a module from the given path", true, true)] FilePath loadModulePath = null,
-            [Option("u","unload the module having the given name ",true,true)] string unloadModuleName = null
-            )
-        {
-            var f = ColorSettings.Default.ToString();
-            if (loadModulePath==null && unloadModuleName==null)
-            {
-                var col1length = context.CommandLineProcessor.Modules.Values.Select(x => x.Name.Length).Max() + 1;
-                foreach (var kvp in context.CommandLineProcessor.Modules)
-                {
-                    context.Out.Echoln($"{Darkcyan}{kvp.Value.Name.PadRight(col1length,' ')}{f}{kvp.Value.Description} [types count={Cyan}{kvp.Value.TypesCount}{f} commands count={Cyan}{kvp.Value.CommandsCount}{f}]");
-                    context.Out.Echoln($"{"".PadRight(col1length, ' ')}{ColorSettings.Label}assembly:{ColorSettings.HalfDark}{kvp.Value.Assembly.FullName}");
-                    context.Out.Echoln($"{"".PadRight(col1length, ' ')}{ColorSettings.Label}path:    {ColorSettings.HalfDark}{kvp.Value.Assembly.Location}");
-                }
-                return new CommandResult<List<CommandsModule>>( context.CommandLineProcessor.Modules.Values.ToList());
-            }
-            if (loadModulePath!=null)
-            {
-                if (loadModulePath.CheckExists())
-                {
-                    var a = Assembly.LoadFrom(loadModulePath.FileSystemInfo.FullName);
-                    var (typesCount, commandsCount) = context.CommandLineProcessor.RegisterCommandsAssembly(context, a);
-                    if (commandsCount == 0)
-                    {
-                        Errorln("no commands have been loaded");
-                        return new CommandResult<List<CommandsModule>>( ReturnCode.Error);
-                    }
-                    else
-                        context.Out.Echoln($"loaded {ColorSettings.Numeric}{Plur("command", commandsCount, f)} in {ColorSettings.Numeric}{Plur("type", typesCount, f)}");
-                }
-                else
-                    return new CommandResult<List<CommandsModule>>( ReturnCode.Error);
-            }
-            if (unloadModuleName!=null)
-            {
-                if (context.CommandLineProcessor.Modules.Values.Any(x => x.Name == unloadModuleName))
-                {
-                    var (typesCount, commandsCount) = context.CommandLineProcessor.UnregisterCommandsAssembly(context, unloadModuleName);
-                    if (commandsCount == 0)
-                    {
-                        Errorln("no commands have been unloaded");
-                        return new CommandResult<List<CommandsModule>>( ReturnCode.Error);
-                    }
-                    else
-                        context.Out.Echoln($"unloaded {ColorSettings.Numeric}{Plur("command", commandsCount, f)} in {ColorSettings.Numeric}{Plur("type", typesCount, f)}");
-                }
-                else
-                {
-                    Errorln($"commands module '{unloadModuleName}' not registered");
-                    return new CommandResult<List<CommandsModule>>( ReturnCode.Error);
-                }
-            }
-            return new CommandResult<List<CommandsModule>>();
-        }
-
         void PrintCommandHelp(
             CommandEvaluationContext context,
             CommandSpecification com, 
@@ -270,6 +214,105 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             return Br+string.Join( "", lst).Replace(prfx1, "");
         }
 
+        #endregion
+
+        #region modules
+
+        [Command("list modules of commands if no option specified, else load or unload modules of commands")]
+        [SuppressMessage("Style", "IDE0071:Simplifier l’interpolation", Justification = "<En attente>")]
+        [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
+        public CommandResult<List<CommandsModule>> Module(
+            CommandEvaluationContext context,
+            [Option("l", "load a module from the given path", true, true)] FilePath loadModulePath = null,
+            [Option("u", "unload the module having the given name ", true, true)] string unloadModuleName = null
+            )
+                {
+                    var f = ColorSettings.Default.ToString();
+                    if (loadModulePath == null && unloadModuleName == null)
+                    {
+                        var col1length = context.CommandLineProcessor.Modules.Values.Select(x => x.Name.Length).Max() + 1;
+                        foreach (var kvp in context.CommandLineProcessor.Modules)
+                        {
+                            context.Out.Echoln($"{Darkcyan}{kvp.Value.Name.PadRight(col1length, ' ')}{f}{kvp.Value.Description} [types count={Cyan}{kvp.Value.TypesCount}{f} commands count={Cyan}{kvp.Value.CommandsCount}{f}]");
+                            context.Out.Echoln($"{"".PadRight(col1length, ' ')}{ColorSettings.Label}assembly:{ColorSettings.HalfDark}{kvp.Value.Assembly.FullName}");
+                            context.Out.Echoln($"{"".PadRight(col1length, ' ')}{ColorSettings.Label}path:    {ColorSettings.HalfDark}{kvp.Value.Assembly.Location}");
+                        }
+                        return new CommandResult<List<CommandsModule>>(context.CommandLineProcessor.Modules.Values.ToList());
+                    }
+                    if (loadModulePath != null)
+                    {
+                        if (loadModulePath.CheckExists())
+                        {
+                            var a = Assembly.LoadFrom(loadModulePath.FileSystemInfo.FullName);
+                            var (typesCount, commandsCount) = context.CommandLineProcessor.RegisterCommandsAssembly(context, a);
+                            if (commandsCount == 0)
+                            {
+                                Errorln("no commands have been loaded");
+                                return new CommandResult<List<CommandsModule>>(ReturnCode.Error);
+                            }
+                            else
+                                context.Out.Echoln($"loaded {ColorSettings.Numeric}{Plur("command", commandsCount, f)} in {ColorSettings.Numeric}{Plur("type", typesCount, f)}");
+                        }
+                        else
+                            return new CommandResult<List<CommandsModule>>(ReturnCode.Error);
+                    }
+                    if (unloadModuleName != null)
+                    {
+                        if (context.CommandLineProcessor.Modules.Values.Any(x => x.Name == unloadModuleName))
+                        {
+                            var (typesCount, commandsCount) = context.CommandLineProcessor.UnregisterCommandsAssembly(context, unloadModuleName);
+                            if (commandsCount == 0)
+                            {
+                                Errorln("no commands have been unloaded");
+                                return new CommandResult<List<CommandsModule>>(ReturnCode.Error);
+                            }
+                            else
+                                context.Out.Echoln($"unloaded {ColorSettings.Numeric}{Plur("command", commandsCount, f)} in {ColorSettings.Numeric}{Plur("type", typesCount, f)}");
+                        }
+                        else
+                        {
+                            Errorln($"commands module '{unloadModuleName}' not registered");
+                            return new CommandResult<List<CommandsModule>>(ReturnCode.Error);
+                        }
+                    }
+                    return new CommandResult<List<CommandsModule>>();
+                }
+
+        #endregion
+
+        #region variables
+
+        [Command("prints the environment variables and values")]
+        public CommandResult<IDataObject> Env(
+            CommandEvaluationContext context
+            )
+        {
+            var vars = context.Variables.ToList();
+            return new CommandResult<IDataObject>( );
+        }
+
+        [Command("set the value of shell variables (including shell options), or display the name and values of shell variables")]
+        public CommandResult<IDataObject> Set(
+            CommandEvaluationContext context
+            )
+        {
+            var vars = context.Variables.ToList();
+            return new CommandResult<IDataObject>();
+        }
+
+        [Command("unset the value of shell variables (including shell options)")]
+        public CommandResult<IDataObject> Unset(
+            CommandEvaluationContext context
+            )
+        {
+            var vars = context.Variables.ToList();
+            return new CommandResult<IDataObject>();
+        }
+
+        #endregion
+
+        #region command line
+
         [Command("set the command line prompt")]
         public CommandResult<string> Prompt(
             CommandEvaluationContext context, 
@@ -286,6 +329,10 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
                 context.CommandLineProcessor.CmdLineReader.SetPrompt(prompt);
             return new CommandResult<string>( prompt );
         }
+
+        #endregion
+
+        #region app
 
         [Command("exit the shell")]
         public CommandResult<int> Exit(
@@ -304,6 +351,10 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             context.CommandLineProcessor.PrintInfo(context);
             return new CommandVoidResult();
         }
+
+        #endregion
+
+        #region history
 
         [Command("displays the commands history list or manipulate it")]
         [SuppressMessage("Style", "IDE0071WithoutSuggestion:Simplifier l’interpolation", Justification = "<En attente>")]
@@ -420,5 +471,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             }
             return new CommandResult<string>(lastCmd);
         }
+
+        #endregion
     }
 }

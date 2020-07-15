@@ -21,6 +21,8 @@ namespace DotNetConsoleAppToolkit.Lib.Data
 
         public bool IsReadOnly { get; private set; }
 
+        public bool HasAttributes => _attributes.Count > 0;
+
         public DataObject(string name, bool isReadOnly = false)
         {
             Name = name;
@@ -65,33 +67,41 @@ namespace DotNetConsoleAppToolkit.Lib.Data
             }
         }
 
-        public (bool found,object data) Get(ArraySegment<string> path)
+        public bool Get(ArraySegment<string> path,out object data)
         {
-            if (path.Count == 0) return (false,null);
+            data = null;
+            if (path.Count == 0) return false;
             var attrname = path[0];
             if (_attributes.TryGetValue(attrname, out var attr))
             {
-                if (path.Count == 1) return (true,attr);
-                return attr.Get(path.Slice(1));
+                if (path.Count == 1) return true;
+                if (attr.Get(path.Slice(1), out var sdata))
+                {
+                    data = sdata;
+                    return true;
+                }
             }
-            else
-                return (false,null);
+            return false;
         }
 
-        public bool Has(ArraySegment<string> path)
-            => GetPathOwner(path).found;
+        public bool Has(ArraySegment<string> path,out object data)
+            => GetPathOwner(path,out data);
 
-        public (bool found, object data) GetPathOwner(ArraySegment<string> path)
+        public bool GetPathOwner(ArraySegment<string> path,out object data)
         {
-            if (path.Count == 0) return (false,null);
+            data = null;
+            if (path.Count == 0) return false;
             var attrname = path[0];
             if (_attributes.ContainsKey(attrname))
             {
-                if (path.Count == 1) return (true,this);
-                return GetPathOwner(path.Slice(1));
+                if (path.Count == 1)
+                {
+                    data = this;
+                    return true;
+                }
+                return GetPathOwner(path.Slice(1),out data);
             }
-            else
-                return (false,null);
+            return false;
         }
     }
 

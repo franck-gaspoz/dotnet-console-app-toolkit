@@ -11,12 +11,21 @@ namespace DotNetConsoleAppToolkit.Lib.Data
 
         DataObject RootObject = new DataObject("root");
 
+        public List<DataValue> ToList()
+        {
+            var r = new List<DataValue>();
+            /*var values = _objects.Values.Where(x => x is );
+            r.AddRange(values)
+            var subRegistries = _objects.Values.Where(x => x is DataObject);*/
+            return r;
+        }
+
         public void Set(string path,object value)
         {
             var p = SplitPath(path);
             RootObject.Set(p, value);
-            var (f, _) = RootObject.Get(p);
-            if (f) _objects.AddOrReplace(path,value);            
+            if (RootObject.Get(p,out var data) && !_objects.ContainsKey(path))
+                _objects.AddOrReplace(path,value);            
         }
 
         public void Unset(string path)
@@ -26,18 +35,25 @@ namespace DotNetConsoleAppToolkit.Lib.Data
                 _objects.Remove(path);
         }
 
-        public (bool found, object data) Get(string path)
+        public bool Get(string path,out object data)
         {
             if (_objects.TryGetValue(path, out var value))
-                return (true,value);
-            var r = RootObject.Get(SplitPath(path));
-            if (r.found)
-                _objects.AddOrReplace(path, r.data);
-            return r;
+            {
+                data = value;
+                return true;
+            }
+            if (RootObject.Get(SplitPath(path),out var sdata))
+            {
+                _objects.AddOrReplace(path, sdata);
+                data = sdata;
+                return true;
+            }
+            data = null;
+            return false;
         }
 
-        public (bool found, object data) GetPathOwner(string path)
-            => RootObject.GetPathOwner(SplitPath(path));
+        public bool GetPathOwner(string path,out object data)
+            => RootObject.GetPathOwner(SplitPath(path),out data);
                
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace DotNetConsoleAppToolkit.Lib.Data
 {
@@ -21,6 +22,7 @@ namespace DotNetConsoleAppToolkit.Lib.Data
         public bool HasValue { get; private set; }
 
         public bool IsReadOnly { get; private set; }
+        public bool HasAttributes => false;
 
         public DataValue(
             string name,
@@ -34,45 +36,53 @@ namespace DotNetConsoleAppToolkit.Lib.Data
             IsReadOnly = isReadOnly;
         }
 
-        public (bool found, object data) Get(ArraySegment<string> path)
-            => Get(Value, path);
+        public bool Get(ArraySegment<string> path,out object data)
+            => Get(Value, path,out data);
 
-        (bool found, object data) Get(object target, ArraySegment<string> path)
+        bool Get(object target, ArraySegment<string> path,out object data)
         {
-            if (target == null) return (false,null);
-            if (path.Count == 0) return (false,null);
+            data = null;
+            if (target == null) return false;
+            if (path.Count == 0) return false;
             var attrname = path[0];
             var fieldsInfos = target.GetType().GetFields().ToDictionary((x) => x.Name);
             if (fieldsInfos.TryGetValue(attrname, out var fieldInfo))
             {
-                if (path.Count == 1) return (true,fieldInfo.GetValue(target));
-                return Get(target, path.Slice(1));
+                if (path.Count == 1)
+                {
+                    data = fieldInfo.GetValue(target);
+                    return true;
+                }
+                return Get(target, path.Slice(1),out data);
             }
-            else
-                return (false,null);
+            return false;
         }
 
-        public (bool found, object data) GetPathOwner(ArraySegment<string> path)
-            => GetPathOwner(Value, path);
+        public bool GetPathOwner(ArraySegment<string> path,out object data)
+            => GetPathOwner(Value, path,out data);
 
-        (bool found, object data) GetPathOwner(object target, ArraySegment<string> path) { 
-            if (path.Count == 0) return (false,null);
+        bool GetPathOwner(object target, ArraySegment<string> path,out object data) {
+            data = null;
+            if (path.Count == 0) return false;
             var attrname = path[0];
             var fieldsInfos = target.GetType().GetFields().ToDictionary((x) => x.Name);
             if (fieldsInfos.TryGetValue(attrname, out var fieldInfo))
             {
-                if (path.Count == 1) return (true,fieldInfo.GetValue(target));
-                return GetPathOwner(target,path.Slice(1));
+                if (path.Count == 1)
+                {
+                    data = fieldInfo.GetValue(target);
+                    return true;
+                }
+                return GetPathOwner(target,path.Slice(1),out data);
             }
-            else
-                return (false,null);
+            return false;
         }
 
-        public bool Has(ArraySegment<string> path)
-            => Has(Value, path);
+        public bool Has(ArraySegment<string> path,out object data)
+            => Has(Value, path,out data);
 
-        bool Has(object target, ArraySegment<string> path)
-            => GetPathOwner(path).found;
+        bool Has(object target, ArraySegment<string> path, out object data)
+            => GetPathOwner(target, path, out data);
 
         public void Set(ArraySegment<string> path, object value)
             => Set(this, path, value);
