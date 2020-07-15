@@ -127,9 +127,16 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
             expr = expr.Trim();
             if (string.IsNullOrEmpty(expr)) return new ParseResult(ParseResultType.Empty,null);
             
+            // -----> substitute variables values in commands args
+            // -- TODO: do before 'FindSyntaxesFromToken', coz arg values are checked by command syntaxes
+            expr = SubstituteVariables(context, expr);
+            // <----------------------
+
             var splits = SplitExpr(expr);
             var segments = splits.Skip(1).ToArray();
             var token = splits.First();
+
+            // get potential syntaxes
             var ctokens = syntaxAnalyzer.FindSyntaxesFromToken(token, false, SyntaxMatchingRule);
 
             if (ctokens.Count == 0) return new ParseResult(ParseResultType.NotIdentified,null);
@@ -179,12 +186,16 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
 
                 if (nbValid == 1)
                 {
+                    #if NO
                     // -----> substitute variables values in commands args
+                    // -- TODO: do before 'FindSyntaxesFromToken', coz arg values are checked by command syntaxes
                     var validSyntax = validSyntaxParsingResults.First();
                     foreach (var cmdParam in validSyntax.MatchingParameters.Parameters)
                         if (cmdParam.Value.GetValue() is string cmdParamValue && cmdParamValue!=null)
                             cmdParam.Value.SetValue(SubstituteVariables(context, cmdParamValue));
-                    
+                    // <----------------------
+                    #endif
+
                     return new ParseResult(ParseResultType.Valid, validSyntaxParsingResults);
                 }
             }
