@@ -11,10 +11,10 @@ namespace DotNetConsoleAppToolkit.Lib
 
         public static string DumpNullStringAsText = "{null}";
 
-        public static string DumpAsText(object o)
+        public static string DumpAsText(object o,bool quoteStrings=true)
         {
             if (o == null) return DumpNullStringAsText ?? null;
-            if (o is string s) return $"\"{s}\"";
+            if (o is string s && quoteStrings) return $"\"{s}\"";
             return o.ToString();
         }
 

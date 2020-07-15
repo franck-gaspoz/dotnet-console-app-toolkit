@@ -3,9 +3,11 @@ using DotNetConsoleAppToolkit.Component.CommandLine.CommandModel;
 using DotNetConsoleAppToolkit.Component.CommandLine.Parsing;
 using DotNetConsoleAppToolkit.Component.Data;
 using DotNetConsoleAppToolkit.Console;
+using DotNetConsoleAppToolkit.Lib;
 using DotNetConsoleAppToolkit.Lib.Data;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -282,13 +284,38 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
 
         #region variables
 
+        Table GetVarsDataTable(List<DataValue> values)
+        {
+            var table = new Table();
+            table.AddColumns("name", "type", "value");
+            table.SetFormat("name", Yellow+"{0}"+Rsf);
+            table.SetFormat("type", Cyan+"{0}"+Tab+Rsf);
+            table.SetHeaderFormat("type", "{0}"+Tab);
+            foreach ( var value in values )
+            {
+                table.Rows.Add(
+                    value.Name + (value.IsReadOnly ? "(r)" : ""),
+                    value.ValueType.Name,
+                    DumpAsText(value.Value,false));
+            }
+            return table;
+        }
+
         [Command("prints the environment variables and values")]
-        public CommandResult<IDataObject> Env(
+        public CommandResult<List<DataValue>> Env(
             CommandEvaluationContext context
             )
         {
-            var vars = context.Variables.ToList();
-            return new CommandResult<IDataObject>( );
+            var envVars = context.Variables.GetDataObject(VariableNameSpace.Env + "");
+            var values = envVars.GetDataValues();
+            values.Sort((x,y) => x.Name.CompareTo(y.Name));
+            var dt = GetVarsDataTable(values);
+            dt.Echo(
+                context.Out, 
+                context.CommandLineProcessor.CancellationTokenSource, 
+                true, 
+                false);
+            return new CommandResult<List<DataValue>>( values );
         }
 
         [Command("set the value of shell variables (including shell options), or display the name and values of shell variables")]
@@ -296,7 +323,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             CommandEvaluationContext context
             )
         {
-            var vars = context.Variables.ToList();
+            var vars = context.Variables.GetDataValues();
             return new CommandResult<IDataObject>();
         }
 
@@ -305,7 +332,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             CommandEvaluationContext context
             )
         {
-            var vars = context.Variables.ToList();
+            var vars = context.Variables.GetDataValues();
             return new CommandResult<IDataObject>();
         }
 

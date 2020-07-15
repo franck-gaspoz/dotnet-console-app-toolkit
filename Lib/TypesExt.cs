@@ -1,4 +1,5 @@
 ﻿using DotNetConsoleAppToolkit.Console;
+using DotNetConsoleAppToolkit.Lib.Data;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
@@ -39,22 +40,27 @@ namespace DotNetConsoleAppToolkit.Lib
                     mergeInto.Add(o);
         } 
 
-        public static void AddColumns(this DataTable table,params string[] columnNames)
+        public static void AddColumns(
+            this DataTable table,
+            params string[] columnNames)
         {
             foreach (var colName in columnNames)
+            {
                 table.Columns.Add(colName);
+            }
         }
 
-        public static void Print(this DataTable x, ConsoleTextWriterWrapper @out, CancellationTokenSource cancellationTokenSource, bool noBorders = false) => prim.Print(@out, cancellationTokenSource, x, noBorders);
-        public static void Print(this string x, ConsoleTextWriterWrapper @out) => @out.Echo(x);
-        public static void Print(this int x, ConsoleTextWriterWrapper @out) => @out.Echo(x);
-        public static void Print(this double x, ConsoleTextWriterWrapper @out) => @out.Echo(x);
-        public static void Print(this float x, ConsoleTextWriterWrapper @out) => @out.Echo(x);
-        public static void Print(this bool x, ConsoleTextWriterWrapper @out) => @out.Echo(x);
-        public static void Println(this string x, ConsoleTextWriterWrapper @out) => @out.Echoln(x);
-        public static void Println(this int x, ConsoleTextWriterWrapper @out) => @out.Echoln(x+"");
-        public static void Println(this double x, ConsoleTextWriterWrapper @out) => @out.Echoln(x+"");
-        public static void Println(this float x, ConsoleTextWriterWrapper @out) => @out.Echoln(x+"");
-        public static void Println(this bool x, ConsoleTextWriterWrapper @out) => @out.Echoln(x+"");
+        public static void Echo(this DataTable x, ConsoleTextWriterWrapper @out, CancellationTokenSource cancellationTokenSource, bool noBorders = false,bool padLastColumn=true) => prim.Print(@out, cancellationTokenSource, x, noBorders,padLastColumn);
+        public static void Echo(this Table x, ConsoleTextWriterWrapper @out, CancellationTokenSource cancellationTokenSource, bool noBorders = false,bool padLastColumn = true) => prim.Print(@out, cancellationTokenSource, x, noBorders,padLastColumn);
+        public static void Echo(this string x, ConsoleTextWriterWrapper @out) => @out.Echo(x);
+        public static void Echo(this int x, ConsoleTextWriterWrapper @out) => @out.Echo(x);
+        public static void Echo(this double x, ConsoleTextWriterWrapper @out) => @out.Echo(x);
+        public static void Echo(this float x, ConsoleTextWriterWrapper @out) => @out.Echo(x);
+        public static void Echo(this bool x, ConsoleTextWriterWrapper @out) => @out.Echo(x);
+        public static void Echoln(this string x, ConsoleTextWriterWrapper @out) => @out.Echoln(x);
+        public static void Echoln(this int x, ConsoleTextWriterWrapper @out) => @out.Echoln(x+"");
+        public static void Echoln(this double x, ConsoleTextWriterWrapper @out) => @out.Echoln(x+"");
+        public static void Echoln(this float x, ConsoleTextWriterWrapper @out) => @out.Echoln(x+"");
+        public static void Echoln(this bool x, ConsoleTextWriterWrapper @out) => @out.Echoln(x+"");
     }
 }

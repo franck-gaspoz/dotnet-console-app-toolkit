@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DotNetConsoleAppToolkit.Lib.Data
 {
@@ -27,6 +28,19 @@ namespace DotNetConsoleAppToolkit.Lib.Data
         {
             Name = name;
             IsReadOnly = isReadOnly;
+        }
+
+        public List<DataValue> GetDataValues()
+        {
+            var r = new List<DataValue>();
+            foreach ( var attrkv in _attributes )
+            {
+                if (attrkv.Value is DataValue dataValue)
+                    r.Add(dataValue);
+                else
+                    r.AddRange(attrkv.Value.GetDataValues());
+            }
+            return r;
         }
 
         public IDataObject Set(ArraySegment<string> path, object value)

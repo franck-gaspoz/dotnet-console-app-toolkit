@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using static DotNetConsoleAppToolkit.Lib.Str;
 
 namespace DotNetConsoleAppToolkit.Lib.Data
 {
@@ -16,8 +18,13 @@ namespace DotNetConsoleAppToolkit.Lib.Data
         public string Name { get; private set; }
         public DataObject Parent { get; set; }
 
-        public object Value { get; private set; }
+        object _value;
+        public object Value { 
+            get { return _value; } 
+            private set { _value = value; HasValue = true; } 
+        }
         public Type ValueType { get; private set; }
+
         public bool HasValue { get; private set; }
 
         public bool IsReadOnly { get; private set; }
@@ -33,6 +40,13 @@ namespace DotNetConsoleAppToolkit.Lib.Data
             ValueType = valueType ?? value?.GetType();
             ValueType = ValueType ?? throw new ArgumentNullException(nameof(ValueType));
             IsReadOnly = isReadOnly;
+            Value = value;
+            HasValue = true;
+        }
+
+        public List<DataValue> GetDataValues()
+        {
+            return new List<DataValue>() { };
         }
 
         public bool Get(ArraySegment<string> path,out object data)
@@ -114,6 +128,11 @@ namespace DotNetConsoleAppToolkit.Lib.Data
         void Unset(object target, ArraySegment<string> path)
         {
             throw new DataValueReadOnlyException(this);
+        }
+
+        public override string ToString()
+        {
+            return $"{Name}{(IsReadOnly ? " (r) " : "")} [{ValueType.Name}] {(HasValue ? ("= " + DumpAsText(Value,false)) : "")}";
         }
     }
 }

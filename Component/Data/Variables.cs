@@ -24,8 +24,11 @@ namespace DotNetConsoleAppToolkit.Component.Data
         /// creates a standard variable rush with known namespaces
         /// </summary>
         public Variables() {
+            // standard namespaces
             foreach (var ns in Enum.GetValues(typeof(VariableNameSpace)))
                 _dataRegistry.Set(ns + "", new DataObject(ns+"",false));
+
+            // Env vars
             var pfx = VariableNameSpace.Env + ".";
             foreach (DictionaryEntry envvar in Environment.GetEnvironmentVariables())
                 _dataRegistry.Set(pfx+envvar.Key, envvar.Value);
@@ -37,12 +40,25 @@ namespace DotNetConsoleAppToolkit.Component.Data
         public void Unset(string path)
             => _dataRegistry.Unset(path);
 
+        /// <summary>
+        /// serch in data context the path according to these precedence rules:
+        /// - full path
+        /// - path related to Local
+        /// - path related to Env
+        /// - path related to Global
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
         public object Get(string path)
         {
             if (!_dataRegistry.Get(path,out var data))
                 throw new VariableNotFoundException(GetVariableName(path));
             return data;
         }
+
+        public T Get<T>(string path) => (T)Get(path);
+
+        public IDataObject GetDataObject(string path) => (IDataObject)Get(path);
 
         public DataValue GetValue(string path)
         {
@@ -54,6 +70,6 @@ namespace DotNetConsoleAppToolkit.Component.Data
         public bool GetPathOwner(string path,out object data)
             => _dataRegistry.GetPathOwner(path,out data);
 
-        public List<DataValue> ToList() => _dataRegistry.ToList();
+        public List<DataValue> GetDataValues() => _dataRegistry.GetDataValues();
     }
 }

@@ -200,13 +200,13 @@ namespace DotNetConsoleAppToolkit
             Out.Locked(() =>
             {
                 Out.Echoln($"OS={Environment.OSVersion} {(Environment.Is64BitOperatingSystem ? "64" : "32")}bits");
-                Out.Echoln($"{White}{Bkf}{ColorSettings.HighlightIdentifier}window:{Rf} left={ColorSettings.Numeric}{sc.WindowLeft}{Rf},top={ColorSettings.Numeric}{sc.WindowTop}{Rf},width={ColorSettings.Numeric}{sc.WindowWidth}{Rf},height={ColorSettings.Numeric}{sc.WindowHeight}{Rf},largest width={ColorSettings.Numeric}{sc.LargestWindowWidth}{Rf},largest height={ColorSettings.Numeric}{sc.LargestWindowHeight}{Rf}");
-                Out.Echoln($"{ColorSettings.HighlightIdentifier}buffer:{Rf} width={ColorSettings.Numeric}{sc.BufferWidth}{Rf},height={ColorSettings.Numeric}{sc.BufferHeight}{Rf} | input encoding={ColorSettings.Numeric}{sc.InputEncoding.EncodingName}{Rf} | output encoding={ColorSettings.Numeric}{sc.OutputEncoding.EncodingName}{Rf}");
-                Out.Echoln($"{White}default background color={Bkf}{ColorSettings.KeyWord}{DefaultBackground}{Rf} | default foreground color={ColorSettings.KeyWord}{DefaultForeground}{Rf}");
+                Out.Echoln($"{White}{Bkf}{ColorSettings.HighlightIdentifier}window:{Rsf} left={ColorSettings.Numeric}{sc.WindowLeft}{Rsf},top={ColorSettings.Numeric}{sc.WindowTop}{Rsf},width={ColorSettings.Numeric}{sc.WindowWidth}{Rsf},height={ColorSettings.Numeric}{sc.WindowHeight}{Rsf},largest width={ColorSettings.Numeric}{sc.LargestWindowWidth}{Rsf},largest height={ColorSettings.Numeric}{sc.LargestWindowHeight}{Rsf}");
+                Out.Echoln($"{ColorSettings.HighlightIdentifier}buffer:{Rsf} width={ColorSettings.Numeric}{sc.BufferWidth}{Rsf},height={ColorSettings.Numeric}{sc.BufferHeight}{Rsf} | input encoding={ColorSettings.Numeric}{sc.InputEncoding.EncodingName}{Rsf} | output encoding={ColorSettings.Numeric}{sc.OutputEncoding.EncodingName}{Rsf}");
+                Out.Echoln($"{White}default background color={Bkf}{ColorSettings.KeyWord}{DefaultBackground}{Rsf} | default foreground color={ColorSettings.KeyWord}{DefaultForeground}{Rsf}");
                 if (RuntimeEnvironment.OSType == OSPlatform.Windows)
                 {
-                    Out.Echoln($"number lock={ColorSettings.Numeric}{sc.NumberLock}{Rf} | capslock={ColorSettings.Numeric}{sc.CapsLock}{Rf}");            // TODO: not supported on linux ubuntu 18.04 wsl
-                    Out.Echoln($"cursor visible={ColorSettings.Numeric}{sc.CursorVisible}{Rf} | cursor size={ColorSettings.Numeric}{sc.CursorSize}");     // TODO: not supported on linux ubuntu 18.04 wsl
+                    Out.Echoln($"number lock={ColorSettings.Numeric}{sc.NumberLock}{Rsf} | capslock={ColorSettings.Numeric}{sc.CapsLock}{Rsf}");            // TODO: not supported on linux ubuntu 18.04 wsl
+                    Out.Echoln($"cursor visible={ColorSettings.Numeric}{sc.CursorVisible}{Rsf} | cursor size={ColorSettings.Numeric}{sc.CursorSize}");     // TODO: not supported on linux ubuntu 18.04 wsl
                 }
             });
         }
@@ -641,9 +641,9 @@ namespace DotNetConsoleAppToolkit
         public static string White => GetCmd(EchoDirectives.f , "white");
 
         public static string Bkf => GetCmd(EchoDirectives.bkf );
-        public static string Rf => GetCmd(EchoDirectives.rsf );
+        public static string Rsf => GetCmd(EchoDirectives.rsf );
         public static string Bkb => GetCmd(EchoDirectives.bkb );
-        public static string Rb => GetCmd(EchoDirectives.rsb );
+        public static string Rsb => GetCmd(EchoDirectives.rsb );
         public static string Cls => GetCmd(EchoDirectives.cls );
         public static string Br => GetCmd(EchoDirectives.br );
 

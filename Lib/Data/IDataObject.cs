@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace DotNetConsoleAppToolkit.Lib.Data
 {
@@ -9,6 +10,7 @@ namespace DotNetConsoleAppToolkit.Lib.Data
         bool IsReadOnly { get; }
         bool HasAttributes { get; }
 
+        List<DataValue> GetDataValues();
         bool Get(ArraySegment<string> path,out object data );
         bool GetPathOwner(ArraySegment<string> path,out object data);
         bool Has(ArraySegment<string> path,out object data);

@@ -11,21 +11,13 @@ namespace DotNetConsoleAppToolkit.Lib.Data
 
         DataObject RootObject = new DataObject("root");
 
-        public List<DataValue> ToList()
-        {
-            var r = new List<DataValue>();
-            // TODO: do not use objects here, use exploration
-            var values = _objects.Values.Where(x => x is DataValue).Cast<DataValue>();
-            r.AddRange(values);
-            //var subRegistries = _objects.Values.Where(x => x is DataObject);*/
-            return r;
-        }
+        public List<DataValue> GetDataValues() => RootObject.GetDataValues();
 
         public void Set(string path,object value=null)
         {
             var p = SplitPath(path);
             var valueObj = RootObject.Set(p, value);
-            if (RootObject.Get(p,out var data) && !_objects.ContainsKey(path))
+            if (RootObject.Get(p,out _) && !_objects.ContainsKey(path))
                 _objects.AddOrReplace(path, valueObj);            
         }
 
