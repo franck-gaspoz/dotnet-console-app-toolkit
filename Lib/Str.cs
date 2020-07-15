@@ -9,6 +9,20 @@ namespace DotNetConsoleAppToolkit.Lib
     {
         #region data to text operations
 
+        public static string DoubleQuoteIfString(object o)
+        {
+            if (o == null) return null;
+            if (o is string str
+                && !str.StartsWith("\"")
+                && !str.EndsWith("\"")
+                )
+            {
+                str = "\"" + str + "\"";
+                return str;
+            }
+            return o.ToString();
+        }
+
         public static string DumpNullStringAsText = "{null}";
 
         public static string DumpAsText(object o,bool quoteStrings=true)

@@ -29,7 +29,7 @@ namespace DotNetConsoleAppToolkit.Component.Data
                 _dataRegistry.Set(ns + "", new DataObject(ns+"",false));
 
             // Env vars
-            var pfx = VariableNameSpace.Env + ".";
+            var pfx = Nsp(VariableNameSpace.Env,"");
             foreach (DictionaryEntry envvar in Environment.GetEnvironmentVariables())
                 _dataRegistry.Set(pfx+envvar.Key, envvar.Value);
         }
@@ -49,27 +49,58 @@ namespace DotNetConsoleAppToolkit.Component.Data
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public object Get(string path)
+        public bool Get(string path,out object value,bool throwException=true)
         {
-            if (!_dataRegistry.Get(path,out var data))
-                throw new VariableNotFoundException(GetVariableName(path));
-            return data;
+            var r = _dataRegistry.Get(path, out value)
+            || _dataRegistry.Get(Nsp(VariableNameSpace.Local, path), out value)
+            || _dataRegistry.Get(Nsp(VariableNameSpace.Env, path), out value)
+            || _dataRegistry.Get(Nsp(VariableNameSpace.Env, path), out value);
+            if (!r && throwException)
+                throw new VariableNotFoundException(GetVariableName(path));            
+            return r;
         }
 
-        public T Get<T>(string path) => (T)Get(path);
+        public T GetValue<T>(string path) => (T)GetValue(path).Value;
 
-        public IDataObject GetDataObject(string path) => (IDataObject)Get(path);
-
-        public DataValue GetValue(string path)
+        public bool GetDataObject(string path, out IDataObject value, bool throwException = true)
         {
-            if (!_dataRegistry.Get(path,out var data))
+            if (Get(path,out var obj,throwException))
+            {
+                value = (IDataObject)obj;
+                return true;
+            }
+            value = null;
+            return false;
+        }
+
+        public DataValue GetValue(string path,bool throwException=true)
+        {
+            if (Get(path, out var data, false))
+                return (DataValue)data;
+            if (throwException)
+                    throw new VariableNotFoundException(GetVariableName(path));
+            return null;
+        }
+
+        public bool GetValue(string path,out DataValue value,bool throwException=true)
+        {
+            if (Get(path, out var data, false))
+            {
+                value = (DataValue)data;
+                return true;
+            }
+            if (throwException)
                 throw new VariableNotFoundException(GetVariableName(path));
-            return (DataValue)data;
+            value = null;
+            return false;
         }
 
         public bool GetPathOwner(string path,out object data)
             => _dataRegistry.GetPathOwner(path,out data);
 
         public List<DataValue> GetDataValues() => _dataRegistry.GetDataValues();
+
+        string Nsp(string @namespace, string key) => @namespace + "." + key;
+        string Nsp(VariableNameSpace @namespace, string key) => @namespace + "." + key;
     }
 }

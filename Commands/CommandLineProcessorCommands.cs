@@ -306,7 +306,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Commands
             CommandEvaluationContext context
             )
         {
-            var envVars = context.Variables.GetDataObject(VariableNameSpace.Env + "");
+            context.Variables.GetDataObject(VariableNameSpace.Env + "",out var envVars);
             var values = envVars.GetDataValues();
             values.Sort((x,y) => x.Name.CompareTo(y.Name));
             var dt = GetVarsDataTable(values);

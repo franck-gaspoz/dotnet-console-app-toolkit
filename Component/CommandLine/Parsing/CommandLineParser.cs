@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using static DotNetConsoleAppToolkit.Component.Data.Variables;
 using static DotNetConsoleAppToolkit.DotNetConsole;
+using static DotNetConsoleAppToolkit.Lib.Str;
 
 namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
 {
@@ -99,11 +100,14 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
                     nexpr.Append(expr.Substring(x, vr.X-x));
                     try
                     {
-                        nexpr.Append(context.Variables.Get(vr.Text));
+                        context.Variables.GetValue(vr.Text,out var value);
+                        nexpr.Append(DoubleQuoteIfString(value.Value));
                     }
                     catch (VariableNotFoundException ex)
                     {
                         Errorln(ex.Message);
+                        // keep bad var name in place
+                        nexpr.Append("$" + vr.Text);
                     }
                     x = vr.Y + 1;
                 }
