@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static DotNetConsoleAppToolkit.Component.Data.Variables;
+using static DotNetConsoleAppToolkit.DotNetConsole;
 
 namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
 {
@@ -79,7 +81,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
                 if (c==VariablePrefixCharacter && (i==0 || t[i-1]!='\\' ))
                 {
                     var j = VariableSyntax.FindEndOfVariableName(t, i+1);
-                    var variable = expr.Substring(i, j - i + 1);
+                    var variable = expr.Substring(i+1, j - i);
                     vars.Add(new StringSegment(variable, i, j, j - i + 1));
                     i = j;
                 }
@@ -90,18 +92,33 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
             {
                 var nexpr = new StringBuilder();
                 int x = 0;
+                StringSegment lastvr = null; 
                 foreach (var vr in vars)
                 {
-                    nexpr.Append(expr.Substring(x, vr.X - 1));
-                    nexpr.Append("?");
+                    lastvr = vr;
+                    nexpr.Append(expr.Substring(x, vr.X-x));
+                    try
+                    {
+                        nexpr.Append(context.Variables.Get(vr.Text));
+                    }
+                    catch (VariableNotFoundException ex)
+                    {
+                        Errorln(ex.Message);
+                    }
                     x = vr.Y + 1;
                 }
+                if (lastvr!=null)
+                {
+                    nexpr.Append(expr.Substring(x));
+                }
+                expr = nexpr.ToString();
             }
 
             return expr;
         }
 
         public static ParseResult Parse(
+            CommandEvaluationContext context,
             SyntaxAnalyser syntaxAnalyzer, 
             string expr)
         {
@@ -109,14 +126,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
             
             expr = expr.Trim();
             if (string.IsNullOrEmpty(expr)) return new ParseResult(ParseResultType.Empty,null);
-
-            // substitute variables values
-            expr = SubstituteVariables(null, expr);
-
-            // TODO: parse & evaluate to be executed expressions (run syntax to be added)
-            // ...
-
-            //
+            
             var splits = SplitExpr(expr);
             var segments = splits.Skip(1).ToArray();
             var token = splits.First();
@@ -166,8 +176,17 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
                 }
 
                 if (nbValid == 0) return new ParseResult(ParseResultType.NotValid,syntaxParsingResults);
-                
-                if (nbValid == 1) return new ParseResult( ParseResultType.Valid, validSyntaxParsingResults );
+
+                if (nbValid == 1)
+                {
+                    // -----> substitute variables values in commands args
+                    var validSyntax = validSyntaxParsingResults.First();
+                    foreach (var cmdParam in validSyntax.MatchingParameters.Parameters)
+                        if (cmdParam.Value.GetValue() is string cmdParamValue && cmdParamValue!=null)
+                            cmdParam.Value.SetValue(SubstituteVariables(context, cmdParamValue));
+                    
+                    return new ParseResult(ParseResultType.Valid, validSyntaxParsingResults);
+                }
             }
             throw new InvalidOperationException();
         }

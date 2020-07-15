@@ -31,7 +31,8 @@ namespace DotNetConsoleAppToolkit.Lib.Data
             if (_objects.TryGetValue(path, out var value))
                 return (true,value);
             var r = RootObject.Get(SplitPath(path));
-            _objects.AddOrReplace(path, r);
+            if (r.found)
+                _objects.AddOrReplace(path, r.data);
             return r;
         }
 

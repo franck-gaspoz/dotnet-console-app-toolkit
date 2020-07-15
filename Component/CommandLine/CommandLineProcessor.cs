@@ -24,8 +24,8 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 {
     public class CommandLineProcessor
     {
-        public const string AppName = "? sh";
-        public const string AppLongName = "? Shell";
+        public const string AppName = "orbsh";
+        public const string AppLongName = "Orbital Shell";
         public const string AppEditor = "released on June 2020 under licence MIT";
 
         #region attributes
@@ -391,7 +391,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
             string expr,
             int outputX)
         {
-            var parseResult = Parse(_syntaxAnalyzer,expr);
+            var parseResult = Parse(context,_syntaxAnalyzer,expr);
             ExpressionEvaluationResult r = null;
             var errorText = "";
 

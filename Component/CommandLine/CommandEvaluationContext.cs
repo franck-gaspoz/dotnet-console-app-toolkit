@@ -1,4 +1,5 @@
-﻿using DotNetConsoleAppToolkit.Console;
+﻿using DotNetConsoleAppToolkit.Component.Data;
+using DotNetConsoleAppToolkit.Console;
 using System.IO;
 
 namespace DotNetConsoleAppToolkit.Component.CommandLine
@@ -10,6 +11,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
         public readonly TextWriterWrapper Err;
         public readonly TextReader In;
         public readonly object InputData;
+        public readonly Variables Variables;
 
         public CommandEvaluationContext(
             CommandLineProcessor commandLineProcessor, 
@@ -23,6 +25,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
             In = @in;
             Err = err;
             InputData = inputData;
+            Variables = new Variables();
         }
     }
 }
