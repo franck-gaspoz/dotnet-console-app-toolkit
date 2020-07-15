@@ -140,6 +140,20 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
             context.Out.Echoln($"{ColorSettings.Label}{Uon} {AppLongName} ({AppName}) version {Assembly.GetExecutingAssembly().GetName().Version}" + ("".PadRight(18,' ')) + Tdoff);
             context.Out.Echoln($" {AppEditor}");
             context.Out.Echoln($" {RuntimeInformation.OSDescription} {RuntimeInformation.OSArchitecture} - {RuntimeInformation.FrameworkDescription}");
+            var banner =
+                File.ReadAllLines(
+                Path.Combine(
+                    Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                    "Commands",
+                    "CommandLineProcessor",
+                    "banner.txt"));
+            int c = 202;
+            foreach ( var line in banner )
+            {
+                context.Out.SetForeground(c);
+                context.Out.Echoln(line);
+                c++;
+            }
             context.Out.Echoln();
         }
         

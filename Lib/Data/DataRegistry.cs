@@ -14,13 +14,13 @@ namespace DotNetConsoleAppToolkit.Lib.Data
         public List<DataValue> ToList()
         {
             var r = new List<DataValue>();
-            /*var values = _objects.Values.Where(x => x is );
-            r.AddRange(values)
-            var subRegistries = _objects.Values.Where(x => x is DataObject);*/
+            var values = _objects.Values.Where(x => x is DataValue).Cast<DataValue>();
+            r.AddRange(values);
+            //var subRegistries = _objects.Values.Where(x => x is DataObject);*/
             return r;
         }
 
-        public void Set(string path,object value)
+        public void Set(string path,object value=null)
         {
             var p = SplitPath(path);
             RootObject.Set(p, value);

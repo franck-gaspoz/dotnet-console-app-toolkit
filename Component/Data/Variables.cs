@@ -19,19 +19,19 @@ namespace DotNetConsoleAppToolkit.Component.Data
 
         protected readonly DataRegistry _dataRegistry = new DataRegistry();
 
+        /// <summary>
+        /// creates a standard variable rush with known namespaces
+        /// </summary>
         public Variables() {
-            
+            foreach (var ns in Enum.GetValues(typeof(VariableNameSpace)))
+                _dataRegistry.Set(ns + "");
         }
 
         public void Set(string path, object value)
-        {
-
-        }
+            => _dataRegistry.Set(path, value);
 
         public void Unset(string path)
-        {
-
-        }
+            => _dataRegistry.Unset(path);
 
         public object Get(string path)
         {

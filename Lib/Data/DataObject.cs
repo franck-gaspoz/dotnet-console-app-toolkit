@@ -29,7 +29,7 @@ namespace DotNetConsoleAppToolkit.Lib.Data
             IsReadOnly = isReadOnly;
         }
 
-        public void Set(ArraySegment<string> path, object value)
+        public void Set(ArraySegment<string> path, object value = null)
         {
             if (IsReadOnly) throw new DataObjectReadOnlyException(this);
             if (path.Count == 0) return;
