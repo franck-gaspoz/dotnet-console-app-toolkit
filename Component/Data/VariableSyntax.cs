@@ -23,7 +23,7 @@ namespace DotNetConsoleAppToolkit.Component.Data
         {
             //return Char.IsLetterOrDigit(c);
             // shell not very restrictive
-            return c > 32;
+            return c > 32 && c!='"' && c!='\'' && c!='`' && c!='\\';
         }
 
         public static string[] SplitPath(string path)
