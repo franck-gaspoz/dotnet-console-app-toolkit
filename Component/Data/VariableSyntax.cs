@@ -21,7 +21,9 @@ namespace DotNetConsoleAppToolkit.Component.Data
 
         public static bool IsVariableNameValidCharacter(char c)
         {
-            return Char.IsLetterOrDigit(c);
+            //return Char.IsLetterOrDigit(c);
+            // shell not very restrictive
+            return c > 32;
         }
 
         public static string[] SplitPath(string path)
