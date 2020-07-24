@@ -21,8 +21,7 @@ namespace DotNetConsoleAppToolkit.Component.Data
 
         public static bool IsVariableNameValidCharacter(char c)
         {
-            //return Char.IsLetterOrDigit(c);
-            // shell not very restrictive
+            // exclude top level separators
             return c > 32 && c!='"' && c!='\'' && c!='`' && c!='\\';
         }
 
