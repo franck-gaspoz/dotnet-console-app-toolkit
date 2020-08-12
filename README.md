@@ -6,7 +6,7 @@
 # Index
 
 - [Features](https://github.com/franck-gaspoz/dotnet-console-app-toolkit/blob/master/README.md#features)
-- [Example: Orbital Shell (orbsh)](https://github.com/franck-gaspoz/dotnet-console-app-toolkit/blob/master/README.md#example--the-dot-net-console-toolkit-integrated-shell-dnsh)
+- [Example: Orbital Shell (orbsh)](https://github.com/franck-gaspoz/dotnet-console-app-toolkit/blob/master/README.md#orbsh)
 - [Packages dependencies](https://github.com/franck-gaspoz/dotnet-console-app-toolkit/blob/master/README.md#packages-dependencies)
 
 # Features
@@ -65,11 +65,12 @@ The toolkit provides functionalities needed to build console applications runnin
 
 - <b>shell commands</b> that allows to run a complete shell, containing the most usefull and usual commands of a traditional shell (dir/ls, cd, rm, mv, find, more, ...), with user session and extensibility (commands modules that can be installed and uninstalled from repositories)
 
-## Example : the Dot Net Console Toolkit Multi-plateform integrated shell (mupsh)
+## Example : Orbital Shell (orbsh)
 
+<a href="#orbsh"/>
 <img src="Doc/Images/2020-06-13 02_34_57-Window-github.png"/>
 
-This is a view of what is done with the C# project <a href="https://github.com/franck-gaspoz/dotnet-console-app-toolkit-shell"><b>dotnet-console-app-toolkit-shell</b></a>. The <b>Dot Net Console App Toolkit</b> integrates anything needed to run a complete shell, writes shell commands using C# and use console UI components.
+This is a view of what is done with the C# project <a href="https://github.com/franck-gaspoz/dotnet-console-app-toolkit-shell"><b>orbital-shell</b></a>. The <b>Dot Net Console App Toolkit</b> integrates anything needed to run a complete shell, writes shell commands using C# and use console UI components.
 
 > ### :information_source: &nbsp;&nbsp;&nbsp;&nbsp;How this example is coded ?
 > This shell example runs with just a few lines of code:
