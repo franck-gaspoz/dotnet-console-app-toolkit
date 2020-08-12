@@ -21,7 +21,7 @@ The toolkit provides functionalities needed to build console applications runnin
     Println "(br,f=yellow,b=red)yellow text on red background(br)(f=cyan)current time is: (exec=System.DateTime.Now,br)"
     
     // 2) invoking the tookit:
-    mupsh.exe "(br,f=yellow,b=red)yellow text on red background(br)(f=cyan)current time is: (exec=System.DateTime.Now,br)"
+    orbsh.exe "(br,f=yellow,b=red)yellow text on red background(br)(f=cyan)current time is: (exec=System.DateTime.Now,br)"
     
     // 3) from C# using DotNetConsole.cs
     Println($"{Br}{Yellow}{BRed}yellow text on red background{Br}{Cyan}current time is: {System.DateTime.Now}{Br}");
@@ -55,7 +55,7 @@ The toolkit provides functionalities needed to build console applications runnin
         return r;
     }
     ```
-  - that will be auto documented like this by the integrated shell (mupsh):
+  - that will be auto documented like this by the integrated shell (orbsh):
   
     <image src="Doc/Images/2020-06-13 06_36_43-Window.png"/>
 
