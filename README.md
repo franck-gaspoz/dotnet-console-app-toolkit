@@ -67,8 +67,9 @@ The toolkit provides functionalities needed to build console applications runnin
 
 ## Example : Orbital Shell (orbsh)
 
-<a href="#orbsh"/>
-<img src="Doc/Images/2020-06-13 02_34_57-Window-github.png"/>
+<a href="#orbsh">
+<img src="Doc/Images/orbital-shell.png"/>
+</a>
 
 This is a view of what is done with the C# project <a href="https://github.com/franck-gaspoz/dotnet-console-app-toolkit-shell"><b>orbital-shell</b></a>. The <b>Dot Net Console App Toolkit</b> integrates anything needed to run a complete shell, writes shell commands using C# and use console UI components.
 
