@@ -6,7 +6,7 @@
 # Index
 
 - [Features](https://github.com/franck-gaspoz/dotnet-console-app-toolkit/blob/master/README.md#features)
-- [Example: the Dot Net Console Multi-plateform Toolkit Shell (mupsh)](https://github.com/franck-gaspoz/dotnet-console-app-toolkit/blob/master/README.md#example--the-dot-net-console-toolkit-integrated-shell-dnsh)
+- [Example: Orbital Shell (orbsh)](https://github.com/franck-gaspoz/dotnet-console-app-toolkit/blob/master/README.md#example--the-dot-net-console-toolkit-integrated-shell-dnsh)
 - [Packages dependencies](https://github.com/franck-gaspoz/dotnet-console-app-toolkit/blob/master/README.md#packages-dependencies)
 
 # Features
