@@ -5,6 +5,8 @@ namespace DotNetConsoleAppToolkit.Component.Data
 {
     public class VariableSyntax
     {
+        public static char VariablePrefixCharacter = '$';
+
         public static int FindEndOfVariableName(char[] text,int beginPos)
         {
             int i = beginPos;
@@ -22,7 +24,10 @@ namespace DotNetConsoleAppToolkit.Component.Data
         public static bool IsVariableNameValidCharacter(char c)
         {
             // exclude top level separators
-            return c > 32 && c!='"' && c!='\'' && c!='`' && c!='\\';
+            return c > 32 && c != '"' && c != '\'' && c != '`' && c != '\\'
+            // exclude variable delimiter
+            && c != VariablePrefixCharacter;
+            ;
         }
 
         public static string[] SplitPath(string path)

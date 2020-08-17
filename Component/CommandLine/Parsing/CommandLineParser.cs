@@ -11,11 +11,14 @@ using static DotNetConsoleAppToolkit.Lib.Str;
 namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
 {
     public static class CommandLineParser
-    {
-        public static char VariablePrefixCharacter = '$';
-
+    {        
         public static StringComparison SyntaxMatchingRule = StringComparison.InvariantCultureIgnoreCase;
 
+        /// <summary>
+        /// split an expression to be evaluted at top level syntax level
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns>segments of syntaxes to be evaluated</returns>
         public static string[] SplitExpr(string expr)
         {
             if (expr == null) return new string[] { };
@@ -79,7 +82,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
             while (i<t.Length)
             {
                 var c = t[i];
-                if (c==VariablePrefixCharacter && (i==0 || t[i-1]!='\\' ))
+                if (c==VariableSyntax.VariablePrefixCharacter && (i==0 || t[i-1]!='\\' ))
                 {
                     var j = VariableSyntax.FindEndOfVariableName(t, i+1);
                     var variable = expr.Substring(i+1, j - i);
@@ -203,6 +206,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.Parsing
                     return new ParseResult(ParseResultType.Valid, validSyntaxParsingResults);
                 }
             }
+            
             throw new InvalidOperationException();
         }
     }

@@ -393,10 +393,10 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine
 
         /// <summary>
         /// 1. parse command line
+        /// 2. execute command or error
         ///     A. internal command (modules)
         ///     B. underlying shell command
         ///     C. unknown command
-        /// 2. execute command or error
         /// </summary>
         /// <param name="expr">expression to be evaluated</param>
         /// <returns>return code</returns>
