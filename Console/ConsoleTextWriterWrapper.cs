@@ -383,7 +383,7 @@ namespace DotNetConsoleAppToolkit.Console
                 lock (Lock)
                 {
                     _cachedCursorPosition.X = value;
-                    Write(Esc + "["+value+"G");
+                    Write(Esc + "["+(value+1)+"G");
                 } 
             }
         }
