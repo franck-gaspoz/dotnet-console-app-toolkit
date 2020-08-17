@@ -72,31 +72,18 @@ current print directives are:
     (f=darkyellow)ConsoleColor := darkblue|darkgreen|darkcyan|darkred|darkmagenta|darkyellow|gray|darkgray|blue|green|cyan|red|magenta|yellow|white(rdc) (not case sensitive)
 ";
 
-        [Command("write text to the output stream", null, _printDocText)]
+        [Command("write text to the output stream followed by a line break", null, _printDocText)]
         public CommandResult<string> Echo(
             CommandEvaluationContext context,
-            [Parameter("text to be writen to output", true)] string expr = ""
+            [Parameter("text to be writen to output", true)] string expr = "",
+            [Option("-nl","not a line: do not add a line break after output")] bool avoidLineBreak = false
             )
         {
             lock (context.Out.Lock)
             {
                 context.Out.EchoOn();
-                context.Out.Echo(expr);
-                var str = context.Out.EchoOff();
-                return new CommandResult<string>(str);
-            }
-        }
+                context.Out.Echo(expr,!avoidLineBreak);
 
-        [Command("write text to the output stream followed by a line break", null, _printDocText)]
-        public CommandResult<string> Echoln(
-            CommandEvaluationContext context,
-            [Parameter("text to be writen to output", true)] string expr = ""
-            )
-        {
-            lock (context.Out.Lock)
-            {
-                context.Out.EchoOn();
-                context.Out.Echoln(expr);
                 var str = context.Out.EchoOff();
                 return new CommandResult<string>(str);
             }
