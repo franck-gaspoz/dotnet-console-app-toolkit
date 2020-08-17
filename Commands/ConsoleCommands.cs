@@ -76,7 +76,7 @@ current print directives are:
         public CommandResult<string> Echo(
             CommandEvaluationContext context,
             [Parameter("text to be writen to output", true)] string expr = "",
-            [Option("-nl","not a line: do not add a line break after output")] bool avoidLineBreak = false
+            [Option("n","no line break: do not add a line break after output")] bool avoidLineBreak = false
             )
         {
             lock (context.Out.Lock)
