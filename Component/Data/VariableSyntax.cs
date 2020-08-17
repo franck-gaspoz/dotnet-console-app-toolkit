@@ -23,10 +23,14 @@ namespace DotNetConsoleAppToolkit.Component.Data
 
         public static bool IsVariableNameValidCharacter(char c)
         {
+            // exclude non printable caracters & flow control caracters
+            return c > 31
             // exclude top level separators
-            return c > 32 && c != '"' && c != '\'' && c != '`' && c != '\\'
+            && c!=' ' &&  c != '"' && c != '\'' && c != '`' && c != '\\' && c!='&'
             // exclude variable delimiter
-            && c != VariablePrefixCharacter;
+            && c != VariablePrefixCharacter
+            // exclude common operators
+            && c!='-' && c!='+' && c!='/' && c!='*' && c!='^'
             ;
         }
 
