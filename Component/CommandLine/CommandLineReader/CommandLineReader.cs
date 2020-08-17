@@ -154,7 +154,7 @@ namespace DotNetConsoleAppToolkit.Component.CommandLine.CommandLineReader
                     catch (OperationCanceledException)
                     {
                         var res = task.Result;
-                        Errorln($"command canceled: {commandLine}");
+                        Warningln($"command canceled: {commandLine}");
                     }
                     finally
                     {
