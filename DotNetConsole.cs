@@ -12,7 +12,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
-using static DotNetConsoleAppToolkit.Component.UI.UIElement;
 using RuntimeEnvironment = DotNetConsoleAppToolkit.Lib.RuntimeEnvironment;
 using sc = System.Console;
 
@@ -25,12 +24,12 @@ namespace DotNetConsoleAppToolkit
     /// dotnet core sdk helps build fastly nice console applications
     /// <para>
     /// slowness due to:
-    /// - many system calls on both linux (ConsolePal.Unix.cs) and windows 
-    /// - use of interop on each console method in windows (ConsolePal.Windows.cs)
-    /// workarounds:
+    /// - many system calls on both linux (ConsolePal.Unix.cs) and windows (ConsolePal.Windows.cs)
+    /// - the .net core make use of interop for each console method call in windows (ConsolePal.Windows.cs)
+    /// implemented the workaround:
     /// - 'retains mode' : echo in a buffer in order to output as much text as possible in one time
     /// - needs a refactorization: 
-    /// -- dotnetconsole api placed on top of streams out,error as a wrapper)
+    /// -- dotnetconsole api placed on top of streams out,error as a wrapper (Console/ConsoleTextWriterWrapper.cs)
     /// -- explode DotNetConsole in small parts
     /// </para>
     /// </summary>
@@ -59,8 +58,8 @@ namespace DotNetConsoleAppToolkit
         public static bool IsErrorRedirected = false;
         public static bool IsOutputRedirected = false;
 
-        public static int UIWatcherThreadDelay = 500;
-        public static ViewResizeStrategy ViewResizeStrategy = ViewResizeStrategy.FitViewSize;
+        //public static int UIWatcherThreadDelay = 500;
+        //public static ViewResizeStrategy ViewResizeStrategy = ViewResizeStrategy.FitViewSize;
         public static bool ClearOnViewResized = true;      // false not works properly in Windows Terminal + fit view size
         
         public static bool SaveColors = /*true*/ false; /*bug fix*/ // TODO: remove
@@ -80,9 +79,6 @@ namespace DotNetConsoleAppToolkit
         public static bool ForwardLogsToSystemDiagnostics = true;
         public static int TabLength = 7;
 
-        static Thread _watcherThread;
-        static readonly Dictionary<int, UIElement> _uielements = new Dictionary<int, UIElement>();
-
         static TextWriter _errorWriter;
         static StreamWriter _errorStreamWriter;
         static FileStream _errorFileStream;
@@ -95,6 +91,10 @@ namespace DotNetConsoleAppToolkit
         static string[] _crlf = { Environment.NewLine };
 
         public static object ConsoleLock => Out.Lock;
+
+        //static Thread _watcherThread;
+        //static readonly Dictionary<int, UIElement> _uielements = new Dictionary<int, UIElement>();
+        public static bool RedrawUIElementsEnabled = true;
 
         #endregion
 
@@ -237,20 +237,43 @@ namespace DotNetConsoleAppToolkit
 
         #region work area operations
 
-        public static void SetWorkArea(string id, int wx, int wy, int width, int height)
-        {
-            lock (Out.Lock)
-            {
-                _workArea = new WorkArea(id, wx, wy, width, height);
-                ApplyWorkArea();
-                EnableConstraintConsolePrintInsideWorkArea = true;
-            }
-        }
+        
 
-        public static void UnsetWorkArea()
+
+
+        /// <summary>
+        /// this setting limit wide of lines (available width -1) to prevent sys console to automatically put a line break when reaching end of line (console bug ?)
+        /// </summary>
+        public static bool AvoidConsoleAutoLineBreakAtEndOfLine = false;
+
+        public static (int x, int y, int w, int h) GetCoords(int x, int y, int w, int h, bool fitToVisibleArea = true)
         {
-            _workArea = new WorkArea();
-            EnableConstraintConsolePrintInsideWorkArea = false;
+            // (1) dos console (eg. vs debug consolehep) set WindowTop as y scroll position. WSL console doesn't (still 0)
+            // scroll -> native dos console set WindowTop and WindowLeft as base scroll coordinates
+            // if WorkArea defined, we must use absolute coordinates and not related
+            // CursorLeft and CursorTop are always good
+            lock (ConsoleLock)
+            {
+                if (x < 0) x = sc.WindowLeft + sc.WindowWidth + x;
+
+                if (y < 0) y = /*sc.WindowTop (fix 1) */ +sc.WindowHeight + y;
+
+                if (fitToVisibleArea)
+                {
+                    if (w < 0) w = sc.WindowWidth + ((AvoidConsoleAutoLineBreakAtEndOfLine) ? -1 : 0) + (w + 1)     // 1 POS TOO MUCH !!
+                            /*+ sc.WindowLeft*/;
+
+                    if (h < 0) h = sc.WindowHeight + h
+                            + sc.WindowTop; /* ?? */
+                }
+                else
+                {
+                    if (w < 0) w = sc.BufferWidth + ((AvoidConsoleAutoLineBreakAtEndOfLine) ? -1 : 0) + (w + 1);
+
+                    if (h < 0) h = sc.WindowHeight + h + sc.WindowTop;
+                }
+                return (x, y, w, h);
+            }
         }
 
         public static ActualWorkArea ActualWorkArea(bool fitToVisibleArea = true)
@@ -263,24 +286,7 @@ namespace DotNetConsoleAppToolkit
             return new ActualWorkArea(_workArea.Id, x, y, w, h);
         }
 
-        public static void ApplyWorkArea(bool viewSizeChanged = false)
-        {
-            if (_workArea.Rect.IsEmpty) return;
-            lock (Out.Lock)
-            {
-                if (ViewResizeStrategy != ViewResizeStrategy.HostTerminalDefault &&
-                    (!viewSizeChanged ||
-                    (viewSizeChanged && ViewResizeStrategy == ViewResizeStrategy.FitViewSize)))
-                    try
-                    {
-                        sc.WindowTop = 0;
-                        sc.WindowLeft = 0;
-                        sc.BufferWidth = sc.WindowWidth;
-                        sc.BufferHeight = sc.WindowHeight;
-                    }
-                    catch (Exception) { }
-            }
-        }
+
 
         public static void SetCursorAtWorkAreaTop()
         {
@@ -295,161 +301,17 @@ namespace DotNetConsoleAppToolkit
 
         #region UI operations
 
-        static void RunUIElementWatcher()
+        public static void FixCoords(ref int x, ref int y)
         {
-            if (_watcherThread != null)
-                return;
-
-            _watcherThread = new Thread(WatcherThreadImpl)
+            lock (ConsoleLock)
             {
-                Name = "ui watcher"
-            };
-            _watcherThread.Start();
-        }
-
-        static void WatcherThreadImpl()
-        {
-            int lastWinHeight,lastWinWidth,lastWinTop,lastWinLeft,w,h,l,t;
-            lock (Out.Lock)
-            {
-                lastWinHeight = sc.WindowHeight;
-                lastWinWidth = sc.WindowWidth;
-                lastWinTop = sc.WindowTop;
-                lastWinLeft = sc.WindowLeft;
-            }
-            bool interrupted = false;
-            try
-            {
-                while (true)
-                {
-                    lock (Out.Lock)
-                    {
-                        h = sc.WindowHeight;
-                        w = sc.WindowWidth;
-                        l = sc.WindowLeft;
-                        t = sc.WindowTop;
-                        if (w != lastWinWidth || h != lastWinHeight || l != lastWinLeft || t != lastWinTop)
-                        {
-                            if (ViewResizeStrategy != ViewResizeStrategy.HostTerminalDefault)
-                            {
-                                RedrawUIElementsEnabled = true;
-                                UpdateUI(true);                               
-                            }
-                        }
-                    }
-                    lastWinHeight = h;
-                    lastWinWidth = w;
-                    lastWinLeft = l;
-                    lastWinTop = t;
-                    Thread.Sleep(UIWatcherThreadDelay);
-                }
-            }
-            catch (ThreadInterruptedException) { interrupted = true;  }
-            catch (Exception ex)
-            {
-                LogError("ui watcher crashed: " + ex.Message);
-            }
-            if (!interrupted)
-            {
-                _watcherThread = null;
-                RunUIElementWatcher();
-            }
-        }
-
-        public static int AddFrame(
-            GetContentDelegate getContent,
-            ConsoleColor backgroundColor,
-            int x = 0,
-            int y = -1,
-            int w = -1,
-            int h = 1,
-            DrawStrategy drawStrategy = DrawStrategy.OnViewResizedOnly,
-            bool mustRedrawBackground = true,
-            int updateTimerInterval=0)
-        {
-            lock (Out.Lock)
-            {
-                var o = new Frame(
-                    getContent,
-                    backgroundColor,
-                    x,
-                    y,
-                    w,
-                    h,
-                    drawStrategy,
-                    mustRedrawBackground,
-                    updateTimerInterval);
-                o.Draw();
-                _uielements.Add(o.Id, o);
-                RunUIElementWatcher();
-                return o.Id;
-            }
-        }
-
-        public static bool RemoveFrame(int id)
-        {
-            lock (Out.Lock)
-            {
-                if (_uielements.ContainsKey(id))
-                {
-                    _uielements.Remove(id);
-                    return true;
-                }
-                return false;
-            }
-        }
-
-        public static void UpdateUI(bool viewSizeChanged=false,bool enableViewSizeChangedEvent=true)
-        {
-            lock (Out.Lock)
-            {
-                if (RedrawUIElementsEnabled)
-                {
-                    RedrawUIElementsEnabled = false;
-                    var cursorPosBackup = Out.CursorPos;
-
-                    if (ViewResizeStrategy == ViewResizeStrategy.FitViewSize
-                        && viewSizeChanged
-                        && _uielements.Count > 0        // ADDED 27/6 for test
-                        )
-                    {
-                        if (ClearOnViewResized)
-                            Out.ClearScreen();
-                    }
-
-                    foreach (var o in _uielements)
-                        o.Value.UpdateDraw(viewSizeChanged);
-
-                    if (viewSizeChanged)
-                    {
-                        ApplyWorkArea(viewSizeChanged);
-                        if (ViewResizeStrategy == ViewResizeStrategy.FitViewSize
-                            && ClearOnViewResized)
-                            if (_workArea.Rect.IsEmpty)
-                                Out.SetCursorPos(cursorPosBackup);
-                            else
-                                SetCursorAtWorkAreaTop();
-                        if (enableViewSizeChangedEvent)
-                            ViewSizeChanged?.Invoke(null,EventArgs.Empty);
-                    }
-
-                    RedrawUIElementsEnabled = true;
-                }
-            }
-        }
-
-        static void EraseUIElements()
-        {
-            lock (Out.Lock)
-            {
-                if (RedrawUIElementsEnabled)
-                    foreach (var o in _uielements)
-                        o.Value.Erase();
+                x = Math.Max(0, Math.Min(x, sc.BufferWidth - 1));
+                y = Math.Max(0, Math.Min(y, sc.BufferHeight - 1));
             }
         }
 
         #endregion
-        
+
         #region stream methods
 
         public static void RedirectOut(StreamWriter sw)
@@ -532,7 +394,7 @@ namespace DotNetConsoleAppToolkit
 
         #region folders
 
-        public static string TempPath => Path.Combine( Environment.CurrentDirectory , "Temp" );
+        //public static string TempPath => Path.Combine( Environment.CurrentDirectory , "Temp" );
 
         #endregion
 

@@ -7,7 +7,6 @@ using System.Runtime.CompilerServices;
 using static DotNetConsoleAppToolkit.DotNetConsole;
 using cons= DotNetConsoleAppToolkit.DotNetConsole;
 using static DotNetConsoleAppToolkit.Lib.Str;
-using static DotNetConsoleAppToolkit.Component.UI.UIElement;
 using sc = System.Console;
 using static DotNetConsoleAppToolkit.Console.ANSI;
 
@@ -37,6 +36,7 @@ namespace DotNetConsoleAppToolkit.Console
             {
                 _cachedBackgroundColor = DefaultBackground;
                 _cachedForegroundColor = DefaultForeground;
+                // reset default colors to fix end of line filled with last colors
                 return $"{DefaultColors}{CRLF}";        // {ESC}[0m
             }
         }
@@ -333,7 +333,7 @@ namespace DotNetConsoleAppToolkit.Console
                 RestoreDefaultColors();
                 sc.Clear();
                 //Write(Esc+"[2J" + Esc + "[0;0H"); // bugged on windows
-                UpdateUI(true, false);
+                //UpdateUI(true, false);
             });
         }
         

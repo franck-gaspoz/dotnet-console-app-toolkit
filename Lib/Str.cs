@@ -9,6 +9,24 @@ namespace DotNetConsoleAppToolkit.Lib
     {
         #region data to text operations
 
+        public static bool IsQuotedString(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s)) return false;
+            return s[0] == s[s.Length - 1] && (s[0] == '\'' || s[0] == '"');
+        }
+
+        public static string AssureIsQuoted(string s) => IsQuotedString(s) ? s : DoubleQuoted(s);
+
+        public static string DoubleQuoted(string s)
+        {
+            return $"\"{s}\"";
+        }
+
+        public static string Quoted(string s)
+        {
+            return $"'{s}'";
+        }
+
         public static string DoubleQuoteIfString(object o)
         {
             if (o == null) return null;

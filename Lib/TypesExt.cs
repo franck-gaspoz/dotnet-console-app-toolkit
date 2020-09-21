@@ -1,14 +1,12 @@
 ﻿using DotNetConsoleAppToolkit.Console;
-using DotNetConsoleAppToolkit.Lib.Data;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using System.Threading;
-using prim = DotNetConsoleAppToolkit.Console.EchoPrimitives;
 
 namespace DotNetConsoleAppToolkit.Lib
 {
-    public static class TypesExt
+    public static partial class TypesExt
     {
         /*public static object GetValue(this MemberInfo memberInfo,object target)
         {
@@ -33,6 +31,14 @@ namespace DotNetConsoleAppToolkit.Lib
                 dic.Add(key, value);
         }
 
+        public static void AddOrReplace<TK, TV>(this SortedDictionary<TK, TV> dic, TK key, TV value)
+        {
+            if (dic.ContainsKey(key))
+                dic[key] = value;
+            else
+                dic.Add(key, value);
+        }
+
         public static void Merge<T>(this List<T> mergeInto,List<T> merged)
         {
             foreach (var o in merged)
@@ -49,14 +55,13 @@ namespace DotNetConsoleAppToolkit.Lib
                 table.Columns.Add(colName);
             }
         }
-
-        public static void Echo(this DataTable x, ConsoleTextWriterWrapper @out, CancellationTokenSource cancellationTokenSource, bool noBorders = false,bool padLastColumn=true) => prim.Print(@out, cancellationTokenSource, x, noBorders,padLastColumn);
-        public static void Echo(this Table x, ConsoleTextWriterWrapper @out, CancellationTokenSource cancellationTokenSource, bool noBorders = false,bool padLastColumn = true) => prim.Print(@out, cancellationTokenSource, x, noBorders,padLastColumn);
+        
         public static void Echo(this string x, ConsoleTextWriterWrapper @out) => @out.Echo(x);
         public static void Echo(this int x, ConsoleTextWriterWrapper @out) => @out.Echo(x);
         public static void Echo(this double x, ConsoleTextWriterWrapper @out) => @out.Echo(x);
         public static void Echo(this float x, ConsoleTextWriterWrapper @out) => @out.Echo(x);
         public static void Echo(this bool x, ConsoleTextWriterWrapper @out) => @out.Echo(x);
+        
         public static void Echoln(this string x, ConsoleTextWriterWrapper @out) => @out.Echoln(x);
         public static void Echoln(this int x, ConsoleTextWriterWrapper @out) => @out.Echoln(x+"");
         public static void Echoln(this double x, ConsoleTextWriterWrapper @out) => @out.Echoln(x+"");

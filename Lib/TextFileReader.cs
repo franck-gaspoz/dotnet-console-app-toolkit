@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace DotNetConsoleAppToolkit.Lib
 {
-    public static class FIleReader
+    public static class TextFileReader
     {
         public static ((int count, string separator, OSPlatform eol) detectedEOL,
             List<(int count,string separator,OSPlatform eol)> eolCounts,
@@ -85,6 +85,12 @@ namespace DotNetConsoleAppToolkit.Lib
             return (matchEOL.Value,counts,r);
         }
 
+        /// <summary>
+        /// read all lines of a text file, according to detected eol symbol after any eventual eol symbols clean up
+        /// <para>use default file encoding</para>
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns>(text of the file splited into lines,eol symbol plateform style name,detected eol symbol</returns>
         public static (string[] lines,OSPlatform eol,string separator) ReadAllLines(string path)
         {
             var txt = File.ReadAllText(path);

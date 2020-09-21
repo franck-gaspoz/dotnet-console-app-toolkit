@@ -10,6 +10,7 @@ namespace DotNetConsoleAppToolkit.Console
 
         public static TextColor Log = new TextColor(ConsoleColor.Green, null);
         public static TextColor Error = new TextColor(ConsoleColor.Red, null);
+        public static TextColor Success = new TextColor(ConsoleColor.Green, null);
         public static TextColor Warning = new TextColor(ConsoleColor.DarkYellow, null);
 
         public static TextColor Numeric = new TextColor(ConsoleColor.Cyan, null);

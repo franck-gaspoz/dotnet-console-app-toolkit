@@ -15,6 +15,14 @@
             Length = length;
         }
 
+        public StringSegment(string text, int x, int y)
+        {
+            Text = text;
+            X = x;
+            Y = y;
+            Length = y-x+1;
+        }
+
         public override string ToString()
         {
             return $"pos={X},{Y} l={Length} Text={Text}";
