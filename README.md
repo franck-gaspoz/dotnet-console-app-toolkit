@@ -55,7 +55,7 @@ The toolkit provides functionalities needed to build console applications runnin
         return r;
     }
     ```
-  - that will be auto documented like this by the integrated shell (orbsh):
+  - that will be auto documented like this by the shell component help feature:
   
     <image src="Doc/Images/2020-06-13 06_36_43-Window.png"/>
 
@@ -71,7 +71,7 @@ The toolkit provides functionalities needed to build console applications runnin
 <img src="Doc/Images/orbital-shell.png"/>
 </a>
 
-This is a view of what is done with the C# project <a href="https://github.com/franck-gaspoz/dotnet-console-app-toolkit-shell"><b>orbital-shell</b></a>. The <b>Dot Net Console App Toolkit</b> integrates anything needed to run a complete shell, writes shell commands using C# and use console UI components.
+This is a view of what is done with the C# project <a href="https://github.com/franck-gaspoz/orbital-shell"><b>orbital-shell</b></a>. The **Dot Net Console App Toolkit Shell component** integrates anything needed to run a complete shell, writes shell commands using C# and use console UI components.
 
 > ### :information_source: &nbsp;&nbsp;&nbsp;&nbsp;How this example is coded ?
 > This shell example runs with just a few lines of code:
