@@ -21,13 +21,13 @@ The toolkit provides functionalities needed to build console applications runnin
     // -- example of a string containing print directives --
     
     // 1) from the toolkit shell command line:
-    Println "(br,f=yellow,b=red)yellow text on red background(br)(f=cyan)current time is: (exec=System.DateTime.Now,br)"
+    echo "(br,f=yellow,b=red)yellow text on red background(br)(f=cyan)current time is: (exec=System.DateTime.Now,br)"
     
-    // 2) invoking the tookit:
+    // 2) invoking the toolkit:
     orbsh.exe "(br,f=yellow,b=red)yellow text on red background(br)(f=cyan)current time is: (exec=System.DateTime.Now,br)"
     
     // 3) from C# using DotNetConsole.cs
-    Println($"{Br}{Yellow}{BRed}yellow text on red background{Br}{Cyan}current time is: {System.DateTime.Now}{Br}");
+    Echo($"{Br}{Yellow}{BRed}yellow text on red background{Br}{Cyan}current time is: {System.DateTime.Now}{Br}");
      ```
      <image src="Doc/Images/2020-06-13 06_18_08-Window.png"/>
     
@@ -41,7 +41,7 @@ The toolkit provides functionalities needed to build console applications runnin
 
 <img src="Doc/Images/orbital-shell.png" id="orbsh"/>
 
-This is a view of what is done with the C# project <a href="https://github.com/franck-gaspoz/orbital-shell"><b>orbital-shell</b></a>. The **Dot Net Console App Toolkit Shell component** integrates anything needed to run a complete shell, writes shell commands using C# and use console UI components.
+This is a view of what is done with the C# project <a href="https://github.com/franck-gaspoz/orbital-shell"><b>orbital-shell</b></a>. The **Dot Net Console App Toolkit Shell component** integrates anything needed to run a complete shell, write shell commands using C# and use console UI components.
 
 > ### :information_source: &nbsp;&nbsp;&nbsp;&nbsp;How this example is coded ?
 > This shell example runs with just a few lines of code:
