@@ -18,6 +18,8 @@ namespace DotNetConsoleAppToolkit.Console
         
         public bool RedirecToErr = false;
 
+        public ColorSettings ColorSettings = Colors;
+
         #region console output settings
 
         public int CropX = -1;
@@ -575,7 +577,10 @@ namespace DotNetConsoleAppToolkit.Console
         
         public void Echoln(string s = "", bool ignorePrintDirectives = false) => Echo(s, true, false, !ignorePrintDirectives);
         
-        public void Echo(string s = "", bool lineBreak = false, bool ignorePrintDirectives = false) => Echo(s, lineBreak, false, !ignorePrintDirectives);
+        public void Echo(
+            string s = "", 
+            bool lineBreak = false, 
+            bool ignorePrintDirectives = false) => Echo(s, lineBreak, false, !ignorePrintDirectives);
         
         public void Echoln(char s, bool ignorePrintDirectives = false) => Echo(s + "", true, false, !ignorePrintDirectives);
         
@@ -838,6 +843,7 @@ namespace DotNetConsoleAppToolkit.Console
                         var b = _cachedBackgroundColor;
                         if (!IsRedirected)
                         {
+                            // needs ShellEnv
                             SetForeground( ColorSettings.Default.Foreground.Value );
                             SetBackground( ColorSettings.Default.Background.Value );
                             _textWriter.WriteLine(string.Empty);

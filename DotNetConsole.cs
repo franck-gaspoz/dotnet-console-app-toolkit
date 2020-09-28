@@ -96,6 +96,8 @@ namespace DotNetConsoleAppToolkit
         //static readonly Dictionary<int, UIElement> _uielements = new Dictionary<int, UIElement>();
         public static bool RedrawUIElementsEnabled = true;
 
+        public static ColorSettings Colors = new ColorSettings();
+
         #endregion
 
         #region log methods
@@ -114,7 +116,7 @@ namespace DotNetConsoleAppToolkit
                     msg += Environment.NewLine + ex.Message;
                 }
                 var ls = msg.Split(_crlf, StringSplitOptions.None)
-                    .Select(x => ColorSettings.Error + x);
+                    .Select(x => Colors.Error + x);
                 Errorln(ls);
             }
         }
@@ -126,11 +128,11 @@ namespace DotNetConsoleAppToolkit
             if (DumpExceptions)
             {
                 ls = (ex + "").Split(_crlf, StringSplitOptions.None)
-                .Select(x => ColorSettings.Error + x)
+                .Select(x => Colors.Error + x)
                 .ToList();
-                if (message != null) ls.Insert(0, $"{ColorSettings.Error}{message}");
+                if (message != null) ls.Insert(0, $"{Colors.Error}{message}");
             } else
-                ls.Insert(0, $"{ColorSettings.Error}{message}: {ex.Message}");
+                ls.Insert(0, $"{Colors.Error}{message}: {ex.Message}");
             Errorln(ls);
         }
 
@@ -138,7 +140,7 @@ namespace DotNetConsoleAppToolkit
         {
             if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(s);
             var ls = (s + "").Split(_crlf, StringSplitOptions.None)
-                .Select(x => ColorSettings.Error + x);
+                .Select(x => Colors.Error + x);
             Errorln(ls);
         }
 
@@ -146,7 +148,7 @@ namespace DotNetConsoleAppToolkit
         {
             if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(s);
             var ls = (s + "").Split(_crlf, StringSplitOptions.None)
-                .Select(x => ColorSettings.Warning + x);
+                .Select(x => Colors.Warning + x);
             Errorln(ls);
         }
 
@@ -154,7 +156,7 @@ namespace DotNetConsoleAppToolkit
         {
             if (ForwardLogsToSystemDiagnostics) System.Diagnostics.Debug.WriteLine(s);
             var ls = (s + "").Split(_crlf, StringSplitOptions.None)
-                .Select(x => ColorSettings.Log + x);
+                .Select(x => Colors.Log + x);
             Out.Echoln(ls);
         }
 
@@ -169,7 +171,7 @@ namespace DotNetConsoleAppToolkit
             lock (Out.Lock)
             {
                 Out.RedirecToErr = true;
-                Out.Echo($"{ColorSettings.Error}{s}{ColorSettings.Default}", lineBreak);
+                Out.Echo($"{Colors.Error}{s}{Colors.Default}", lineBreak);
                 Out.RedirecToErr = false;
             }
         }
@@ -182,7 +184,7 @@ namespace DotNetConsoleAppToolkit
         {
             lock (Out.Lock)
             {
-                Out.Echo($"{ColorSettings.Warning}{s}{ColorSettings.Default}", lineBreak);
+                Out.Echo($"{Colors.Warning}{s}{Colors.Default}", lineBreak);
             }
         }
 
@@ -200,13 +202,13 @@ namespace DotNetConsoleAppToolkit
             Out.Locked(() =>
             {
                 Out.Echoln($"OS={Environment.OSVersion} {(Environment.Is64BitOperatingSystem ? "64" : "32")}bits");
-                Out.Echoln($"{White}{Bkf}{ColorSettings.HighlightIdentifier}window:{Rsf} left={ColorSettings.Numeric}{sc.WindowLeft}{Rsf},top={ColorSettings.Numeric}{sc.WindowTop}{Rsf},width={ColorSettings.Numeric}{sc.WindowWidth}{Rsf},height={ColorSettings.Numeric}{sc.WindowHeight}{Rsf},largest width={ColorSettings.Numeric}{sc.LargestWindowWidth}{Rsf},largest height={ColorSettings.Numeric}{sc.LargestWindowHeight}{Rsf}");
-                Out.Echoln($"{ColorSettings.HighlightIdentifier}buffer:{Rsf} width={ColorSettings.Numeric}{sc.BufferWidth}{Rsf},height={ColorSettings.Numeric}{sc.BufferHeight}{Rsf} | input encoding={ColorSettings.Numeric}{sc.InputEncoding.EncodingName}{Rsf} | output encoding={ColorSettings.Numeric}{sc.OutputEncoding.EncodingName}{Rsf}");
-                Out.Echoln($"{White}default background color={Bkf}{ColorSettings.KeyWord}{DefaultBackground}{Rsf} | default foreground color={ColorSettings.KeyWord}{DefaultForeground}{Rsf}");
+                Out.Echoln($"{White}{Bkf}{Colors.HighlightIdentifier}window:{Rsf} left={Colors.Numeric}{sc.WindowLeft}{Rsf},top={Colors.Numeric}{sc.WindowTop}{Rsf},width={Colors.Numeric}{sc.WindowWidth}{Rsf},height={Colors.Numeric}{sc.WindowHeight}{Rsf},largest width={Colors.Numeric}{sc.LargestWindowWidth}{Rsf},largest height={Colors.Numeric}{sc.LargestWindowHeight}{Rsf}");
+                Out.Echoln($"{Colors.HighlightIdentifier}buffer:{Rsf} width={Colors.Numeric}{sc.BufferWidth}{Rsf},height={Colors.Numeric}{sc.BufferHeight}{Rsf} | input encoding={Colors.Numeric}{sc.InputEncoding.EncodingName}{Rsf} | output encoding={Colors.Numeric}{sc.OutputEncoding.EncodingName}{Rsf}");
+                Out.Echoln($"{White}default background color={Bkf}{Colors.KeyWord}{DefaultBackground}{Rsf} | default foreground color={Colors.KeyWord}{DefaultForeground}{Rsf}");
                 if (RuntimeEnvironment.OSType == OSPlatform.Windows)
                 {
-                    Out.Echoln($"number lock={ColorSettings.Numeric}{sc.NumberLock}{Rsf} | capslock={ColorSettings.Numeric}{sc.CapsLock}{Rsf}");            // TODO: not supported on linux ubuntu 18.04 wsl
-                    Out.Echoln($"cursor visible={ColorSettings.Numeric}{sc.CursorVisible}{Rsf} | cursor size={ColorSettings.Numeric}{sc.CursorSize}");     // TODO: not supported on linux ubuntu 18.04 wsl
+                    Out.Echoln($"number lock={Colors.Numeric}{sc.NumberLock}{Rsf} | capslock={Colors.Numeric}{sc.CapsLock}{Rsf}");            // TODO: not supported on linux ubuntu 18.04 wsl
+                    Out.Echoln($"cursor visible={Colors.Numeric}{sc.CursorVisible}{Rsf} | cursor size={Colors.Numeric}{sc.CursorSize}");     // TODO: not supported on linux ubuntu 18.04 wsl
                 }
             });
         }

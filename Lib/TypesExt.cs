@@ -23,6 +23,18 @@ namespace DotNetConsoleAppToolkit.Lib
             return null;
         }*/
 
+        public static void Merge<K,V>(this Dictionary<K,V> dic,Dictionary<K,V> mergeTo)
+        {
+            foreach (var kv in mergeTo)
+                dic.AddOrReplace(kv.Key, kv.Value);
+        }
+
+        public static void Add<K, V>(this Dictionary<K, V> dic, Dictionary<K, V> addTo)
+        {
+            foreach (var kv in addTo)
+                dic.Add(kv.Key, kv.Value);
+        }
+
         public static void AddOrReplace<TK,TV>(this Dictionary<TK,TV> dic,TK key,TV value)
         {
             if (dic.ContainsKey(key))

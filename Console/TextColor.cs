@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using static DotNetConsoleAppToolkit.DotNetConsole;
 
 namespace DotNetConsoleAppToolkit.Console
@@ -9,14 +8,14 @@ namespace DotNetConsoleAppToolkit.Console
         ConsoleColor? _foreground;
         public ConsoleColor? Foreground
         {
-            get { return !_foreground.HasValue?_foreground.Value:DefaultForeground; }
+            get { return _foreground.HasValue?_foreground.Value:DefaultForeground; }
             set { _foreground = value; }
         }
 
         ConsoleColor? _background;
         public ConsoleColor? Background
         {
-            get { return !_background.HasValue?_background.Value:DefaultBackground;  }
+            get { return _background.HasValue?_background.Value:DefaultBackground;  }
             set { _background = value; }
         }
 
@@ -32,11 +31,13 @@ namespace DotNetConsoleAppToolkit.Console
                 + (!_background.HasValue ? "" : GetCmd(EchoDirectives.b + "", _background.Value.ToString().ToLower()));
         }
 
+        #region build and convert colors operations
+
         public static ConsoleColor GetColor(string colorName)
         {
             return (ConsoleColor)Enum.Parse(typeof(ConsoleColor), colorName);
         }
-        
+
         /// <summary>
         /// parse a 4 bit color
         /// </summary>
@@ -81,5 +82,7 @@ namespace DotNetConsoleAppToolkit.Console
             if (TraceCommandErrors) Error($"invalid 24 bit color: {c}");
             return (255, 255, 255);
         }
+
+        #endregion
     }
 }
