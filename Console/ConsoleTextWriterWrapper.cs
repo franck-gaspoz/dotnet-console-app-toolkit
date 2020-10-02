@@ -473,7 +473,7 @@ namespace DotNetConsoleAppToolkit.Console
                 if (string.IsNullOrWhiteSpace(s)) return s;
                 var ms = new MemoryStream(s.Length * 4);
                 var sw = new StreamWriter(ms);
-                RedirectOut(sw);
+                cons.RedirectOut(sw);
                 var e = EnableConstraintConsolePrintInsideWorkArea;
                 EnableConstraintConsolePrintInsideWorkArea = false;
                 Echo(s, lineBreak, false, !ignorePrintDirectives, true, printSequences);
@@ -483,7 +483,7 @@ namespace DotNetConsoleAppToolkit.Console
                 var rw = new StreamReader(ms);
                 var txt = rw.ReadToEnd();
                 rw.Close();
-                RedirectOut((StreamWriter)null);
+                cons.RedirectOut((StreamWriter)null);
                 return txt;
             }
         }
@@ -495,7 +495,7 @@ namespace DotNetConsoleAppToolkit.Console
                 if (string.IsNullOrWhiteSpace(s)) return s;
                 var ms = new MemoryStream(s.Length * 4);
                 var sw = new StreamWriter(ms);
-                RedirectOut(sw);
+                cons.RedirectOut(sw);
                 var e = EnableConstraintConsolePrintInsideWorkArea;
                 EnableConstraintConsolePrintInsideWorkArea = false;
                 Echo(s, lineBreak);
@@ -505,7 +505,7 @@ namespace DotNetConsoleAppToolkit.Console
                 var rw = new StreamReader(ms);
                 var txt = rw.ReadToEnd();
                 rw.Close();
-                RedirectOut((StreamWriter)null);
+                cons.RedirectOut((StreamWriter)null);
                 return txt;
             }
         }
@@ -564,7 +564,7 @@ namespace DotNetConsoleAppToolkit.Console
             if (RedirecToErr)
             {
                 if (IsEchoEnabled)
-                    _echoStreamWriter.Write(s);
+                    _replicateStreamWriter.Write(s);
                 Err.Write(s);
             }
             else

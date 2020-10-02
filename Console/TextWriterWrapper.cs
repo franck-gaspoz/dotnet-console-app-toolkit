@@ -34,11 +34,12 @@ namespace DotNetConsoleAppToolkit.Console
 
         #region echo to memory
 
-        public bool EchoAutoFlush = true;
-        public bool IsEchoEnabled => _echoStreamWriter != null;
-        protected StreamWriter _echoStreamWriter;
-        protected MemoryStream _echoMemoryStream;
-        protected FileStream _echoFileStream;
+        public bool ReplicateAutoFlush = true;
+        public bool IsEchoEnabled => _replicateStreamWriter != null;
+        protected StreamWriter _replicateStreamWriter;
+        protected MemoryStream _replicattMemoryStream;
+        protected MemoryStream _captureMemoryStream;
+        protected FileStream _replicateFileStream;
 
         #endregion
 
@@ -59,6 +60,47 @@ namespace DotNetConsoleAppToolkit.Console
         #endregion
 
         #region stream operations
+
+        /// <summary>
+        /// capture the output stream to a string
+        /// </summary>
+        /// <returns></returns>
+        public void Capture()
+        {
+            lock (this) 
+            {
+                if (_redirectedTextWriter == null && _captureMemoryStream == null)
+                {
+                    _captureMemoryStream = new MemoryStream();
+                    var sw = new StreamWriter(_captureMemoryStream);
+                    _redirectedTextWriter = _textWriter;
+                    _textWriter = sw;
+                    IsRedirected = true;
+                }
+            }
+        }
+
+        public string StopCapture()
+        {
+            lock (this)
+            {
+                if (_captureMemoryStream != null)
+                {
+                    _textWriter.Flush();
+
+                    _captureMemoryStream.Position = 0;
+                    var str = Encoding.Default.GetString(_captureMemoryStream.ToArray());
+
+                    _textWriter.Close();
+                    _textWriter = _redirectedTextWriter;
+                    _redirectedTextWriter = null;
+                    _captureMemoryStream = null;
+                    IsRedirected = false;
+                    return str;
+                }
+                return null;
+            }
+        }
 
         public void Redirect(TextWriter sw)
         {
@@ -100,16 +142,16 @@ namespace DotNetConsoleAppToolkit.Console
         /// echo Out to a memory stream
         /// </summary>
         /// <param name="autoFlush"></param>
-        public void EchoOn(
+        public void ReplicateToMem(
             bool autoFlush = false
             )
         {
             lock (this)
             {
-                EchoOff();
-                EchoAutoFlush = autoFlush;
-                _echoMemoryStream = new MemoryStream();
-                _echoStreamWriter = new StreamWriter(_echoMemoryStream);
+                StopReplicate();
+                ReplicateAutoFlush = autoFlush;
+                _replicattMemoryStream = new MemoryStream();
+                _replicateStreamWriter = new StreamWriter(_replicattMemoryStream);
             }
         }
 
@@ -118,7 +160,7 @@ namespace DotNetConsoleAppToolkit.Console
         /// </summary>
         /// <param name="filepath">file path where to echo Out</param>
         /// <param name="autoFlush">if set, flush Out before each echo</param>
-        public void EchoOn(
+        public void ReplicateToFile(
             string filepath,
             bool autoFlush = false)
         {
@@ -126,31 +168,32 @@ namespace DotNetConsoleAppToolkit.Console
             {
                 if (!string.IsNullOrWhiteSpace(filepath) && _debugEchoFileStream == null)
                 {
-                    EchoAutoFlush = autoFlush;
-                    _echoFileStream = new FileStream(filepath, FileMode.Append, FileAccess.Write);
-                    _echoStreamWriter = new StreamWriter(_echoFileStream);
+                    StopReplicate();
+                    ReplicateAutoFlush = autoFlush;
+                    _replicateFileStream = new FileStream(filepath, FileMode.Append, FileAccess.Write);
+                    _replicateStreamWriter = new StreamWriter(_replicateFileStream);
                 }
             }
         }
 
-        public string EchoOff()
+        public string StopReplicate()
         {
-            if (_echoFileStream != null)
+            if (_replicateFileStream != null)
             {
-                _echoStreamWriter.Flush();
-                _echoStreamWriter.Close();
-                _echoFileStream = null;
-                _echoStreamWriter = null;
+                _replicateStreamWriter.Flush();
+                _replicateStreamWriter.Close();
+                _replicateFileStream = null;
+                _replicateStreamWriter = null;
                 return null;
             }
-            if (_echoMemoryStream!=null)
+            if (_replicattMemoryStream!=null)
             {
-                _echoStreamWriter.Flush();
-                _echoMemoryStream.Position = 0;
-                var str = Encoding.Default.GetString(_echoMemoryStream.ToArray());
-                _echoStreamWriter.Close();
-                _echoMemoryStream = null;
-                _echoStreamWriter = null;
+                _replicateStreamWriter.Flush();
+                _replicattMemoryStream.Position = 0;
+                var str = Encoding.Default.GetString(_replicattMemoryStream.ToArray());
+                _replicateStreamWriter.Close();
+                _replicattMemoryStream = null;
+                _replicateStreamWriter = null;
                 return str;
             }
             return null;
@@ -194,7 +237,7 @@ namespace DotNetConsoleAppToolkit.Console
         public virtual void Write(string s)
         {
             if (IsEchoEnabled)
-                _echoStreamWriter.Write(s);
+                _replicateStreamWriter.Write(s);
             if (IsBufferEnabled)
             {
                 _bufferWriter.Write(s);
