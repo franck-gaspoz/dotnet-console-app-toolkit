@@ -32,7 +32,7 @@ namespace DotNetConsoleAppToolkit.Console
 
         public TextColor Label = new TextColor(ConsoleColor.Cyan, null);
         public TextColor Name = new TextColor(ConsoleColor.DarkYellow, null);
-        public TextColor HighlightSymbol = new TextColor(ConsoleColor.DarkYellow, null);
+        public TextColor HighlightSymbol = new TextColor(ConsoleColor.Yellow, null);
         public TextColor Symbol = new TextColor(ConsoleColor.DarkYellow, null);
         public TextColor Value = new TextColor(ConsoleColor.DarkYellow, null);
         public TextColor HalfDarkLabel = new TextColor(ConsoleColor.DarkCyan, null);
